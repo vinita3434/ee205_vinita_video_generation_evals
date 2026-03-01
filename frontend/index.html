@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Gen Evals | Kling · Sora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --surface: #12151c;
+      --border: #1e2430;
+      --glow: #00d4aa;
+      --glow-dim: rgba(0, 212, 170, 0.15);
+      --text: #e2e8f0;
+      --text-dim: #64748b;
+      --accent: #00d4aa;
+      --error: #f43f5e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1.75rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-shadow: 0 0 24px var(--glow-dim);
+    }
+    .sub {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.3em;
+      margin-top: 0.5rem;
+    }
+    .prompt-section {
+      margin-bottom: 2rem;
+    }
+    label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.5rem;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow-dim);
+    }
+    textarea::placeholder { color: var(--text-dim); }
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    button {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      background: var(--glow-dim);
+      box-shadow: 0 0 20px var(--glow-dim);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    button.primary:hover:not(:disabled) {
+      box-shadow: 0 0 24px rgba(0,212,170,0.4);
+    }
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 700px) {
+      .videos-grid { grid-template-columns: 1fr; }
+    }
+    .video-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .video-card h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .video-wrap {
+      aspect-ratio: 16/9;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .video-wrap .placeholder {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 1rem;
+    }
+    .video-wrap .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .judge-section {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    .judge-output {
+      margin-top: 1rem;
+      padding: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+    .judge-output.empty { color: var(--text-dim); }
+    .error-msg {
+      color: var(--error);
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    .status {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>VIDEO GEN EVALS</h1>
+      <p class="sub">KLING 2.6 · SORA 2 — ONE PROMPT, TWO MODELS</p>
+    </header>
+
+    <section class="prompt-section">
+      <label for="prompt">PROMPT</label>
+      <textarea id="prompt" placeholder="Describe the video you want to generate..."></textarea>
+      <div class="actions">
+        <button type="button" id="btnGenerate" class="primary">GENERATE 2 VIDEOS</button>
+        <button type="button" id="btnJudge" disabled>RUN JUDGE (GEMINI)</button>
+      </div>
+      <p id="generateStatus" class="status"></p>
+      <p id="generateError" class="error-msg"></p>
+    </section>
+
+    <div class="videos-grid">
+      <div class="video-card">
+        <h3>KLING 2.6</h3>
+        <div class="video-wrap" id="wrapKling">
+          <span class="placeholder">—</span>
+        </div>
+      </div>
+      <div class="video-card">
+        <h3>SORA 2</h3>
+        <div class="video-wrap" id="wrapSora">
+          <span class="placeholder">—</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="judge-section">
+      <label>JUDGE (GEMINI VIA OPENROUTER)</label>
+      <p class="sub" style="margin-bottom: 0.5rem;">Temporal stability & physics accuracy · 1–10</p>
+      <div class="judge-output empty" id="judgeOutput">Run judge after generating videos.</div>
+      <p id="judgeStatus" class="status"></p>
+      <p id="judgeError" class="error-msg"></p>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = (() => {
+      try {
+        const u = new URL(document.baseURI || window.location.href);
+        if (u.protocol === 'file:') return 'http://localhost:8000';
+        if (u.port === '8080' || u.hostname === 'localhost') return 'http://localhost:8000';
+        return u.origin.replace(/\/$/, '');
+      } catch (_) { return 'http://localhost:8000'; }
+    })();
+
+    let lastResult = null;
+
+    function setPlaceholder(id, html) {
+      const wrap = document.getElementById(id);
+      wrap.innerHTML = html;
+    }
+
+    function setVideo(id, src) {
+      const wrap = document.getElementById(id);
+      wrap.innerHTML = `<video src="${src}" controls playsinline></video>`;
+    }
+
+    function showSpinner(id) {
+      setPlaceholder(id, '<div class="spinner"></div>');
+    }
+
+    document.getElementById('btnGenerate').addEventListener('click', async () => {
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) {
+        document.getElementById('generateError').textContent = 'Enter a prompt.';
+        return;
+      }
+      document.getElementById('generateError').textContent = '';
+      document.getElementById('generateStatus').textContent = 'Starting 2 models…';
+      document.getElementById('btnGenerate').disabled = true;
+      setPlaceholder('wrapKling', '<div class="spinner"></div>');
+      setPlaceholder('wrapSora', '<div class="spinner"></div>');
+
+      try {
+        const r = await fetch(`${API_BASE}/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({ detail: r.statusText }));
+          throw new Error(err.detail || r.statusText);
+        }
+        const data = await r.json();
+        lastResult = data;
+        document.getElementById('generateStatus').textContent = `Run ${data.run_id} complete.`;
+
+        const videoBase = `${API_BASE}/video`;
+        setVideo('wrapKling', `${videoBase}/${encodeURIComponent(data.kling_path)}`);
+        setVideo('wrapSora', `${videoBase}/${encodeURIComponent(data.sora_path)}`);
+
+        document.getElementById('btnJudge').disabled = false;
+      } catch (e) {
+        document.getElementById('generateError').textContent = e.message || 'Generate failed';
+        setPlaceholder('wrapKling', '<span class="placeholder">Error</span>');
+        setPlaceholder('wrapSora', '<span class="placeholder">Error</span>');
+      } finally {
+        document.getElementById('btnGenerate').disabled = false;
+      }
+    });
+
+    document.getElementById('btnJudge').addEventListener('click', async () => {
+      if (!lastResult) return;
+      const prompt = document.getElementById('prompt').value.trim();
+      const out = document.getElementById('judgeOutput');
+      const status = document.getElementById('judgeStatus');
+      const errEl = document.getElementById('judgeError');
+      errEl.textContent = '';
+      out.textContent = 'Sending to judge…';
+      out.classList.remove('empty');
+      status.textContent = 'Calling OpenRouter (Gemini)…';
+      document.getElementById('btnJudge').disabled = true;
+
+      try {
+        const r = await fetch(`${API_BASE}/judge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt,
+            kling_path: lastResult.kling_path,
+            sora_path: lastResult.sora_path,
+          }),
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({ detail: r.statusText }));
+          throw new Error(err.detail || r.statusText);
+        }
+        const data = await r.json();
+        out.textContent = data.result || '(No response)';
+        status.textContent = `Model: ${data.model}`;
+      } catch (e) {
+        errEl.textContent = e.message || 'Judge failed';
+        out.textContent = 'Judge request failed.';
+      } finally {
+        document.getElementById('btnJudge').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

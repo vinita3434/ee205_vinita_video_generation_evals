@@ -1,0 +1,35 @@
+import os
+from pathlib import Path
+from typing import Optional
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def _k(name: str) -> Optional[str]:
+    """Load and clean an env var: strip whitespace and remove any stray newlines/carriage returns."""
+    v = os.getenv(name)
+    if not isinstance(v, str):
+        return None
+    # Strip and remove any newlines/carriage returns (common when pasting keys)
+    cleaned = v.strip().replace("\r", "").replace("\n", "").strip()
+    return cleaned if cleaned else None
+
+
+# Video generation API keys
+OPENAI_API_KEY = _k("OPENAI_API_KEY")
+FAL_KEY = _k("FAL_KEY")
+# Set in env so libraries that read from env get the clean key
+if OPENAI_API_KEY:
+    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+if FAL_KEY:
+    os.environ["FAL_KEY"] = FAL_KEY
+
+# Judge (OpenRouter → Gemini)
+OPENROUTER_API_KEY = _k("OPENROUTER_API_KEY")
+JUDGE_MODEL = (os.getenv("JUDGE_MODEL") or "google/gemini-2.0-flash-exp:free").strip()
+
+# Output directory for generated videos (absolute so it works from any cwd)
+OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "outputs")).resolve()
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
