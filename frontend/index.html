@@ -255,7 +255,6 @@
       try {
         const u = new URL(document.baseURI || window.location.href);
         if (u.protocol === 'file:') return 'http://localhost:8000';
-        if (u.port === '8080' || u.hostname === 'localhost') return 'http://localhost:8000';
         return u.origin.replace(/\/$/, '');
       } catch (_) { return 'http://localhost:8000'; }
     })();
