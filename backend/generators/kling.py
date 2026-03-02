@@ -7,7 +7,7 @@ from backend.config import FAL_KEY, OUTPUT_DIR
 KLING_ENDPOINT = "fal-ai/kling-video/v2.6/pro/text-to-video"
 
 
-def generate_kling(prompt: str, run_id: str) -> Path:
+def generate_kling(prompt: str, run_id: str, aspect_ratio: str = "16:9") -> Path:
     """Generate video with Kling 2.6 via fal.ai. Returns path to saved MP4."""
     if not FAL_KEY:
         raise ValueError("FAL_KEY is not set. Add FAL_KEY to your .env (get one at https://fal.ai/dashboard/keys)")
@@ -20,7 +20,7 @@ def generate_kling(prompt: str, run_id: str) -> Path:
         arguments={
             "prompt": prompt,
             "duration": "5",
-            "aspect_ratio": "16:9",
+            "aspect_ratio": aspect_ratio,
             "generate_audio": False,
         },
         with_logs=True,

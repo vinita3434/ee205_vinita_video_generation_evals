@@ -34,3 +34,9 @@ JUDGE_MODEL = (os.getenv("JUDGE_MODEL") or "google/gemini-2.5-flash").strip()
 # Output directory for generated videos (absolute so it works from any cwd)
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "outputs")).resolve()
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Published per-second generation costs (USD) — update if pricing changes
+# Kling 2.6 Pro via fal.ai: $0.07/s without audio (fal.ai/models/fal-ai/kling-video/v2.6/pro/text-to-video)
+# Sora 2 via OpenAI: $0.10/s at 720p (openai.com/api/pricing)
+KLING_COST_PER_S: float = 0.07   # generates 5s → $0.35/run
+SORA_COST_PER_S: float = 0.10    # generates 8s → $0.80/run

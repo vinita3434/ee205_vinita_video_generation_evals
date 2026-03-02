@@ -1,5 +1,6 @@
 import base64
 import concurrent.futures
+import time
 import uuid
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from pydantic import BaseModel
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
-from backend.config import OUTPUT_DIR, OPENROUTER_API_KEY, JUDGE_MODEL
+from backend.config import OUTPUT_DIR, OPENROUTER_API_KEY, JUDGE_MODEL, KLING_COST_PER_S, SORA_COST_PER_S
 from backend.generators import generate_sora, generate_kling
 
 app = FastAPI(title="Video Gen Evals", description="One prompt → 2 models (Kling, Sora) → Judge")
@@ -43,12 +44,18 @@ app.add_middleware(
 
 class GenerateRequest(BaseModel):
     prompt: str
+    quality: str = "720p"   # 480p | 720p | 1080p  (Sora only; Kling is always Pro)
+    ratio: str = "16:9"     # 16:9 | 9:16 | 1:1
 
 
 class GenerateResponse(BaseModel):
     run_id: str
     kling_path: str
     sora_path: str
+    kling_latency_s: float
+    sora_latency_s: float
+    kling_cost_usd: float
+    sora_cost_usd: float
 
 
 class JudgeRequest(BaseModel):
@@ -57,12 +64,13 @@ class JudgeRequest(BaseModel):
     sora_path: str
 
 
-def _generate_one(model: str, prompt: str, run_id: str) -> tuple[str, Path]:
+def _generate_one(model: str, prompt: str, run_id: str, quality: str, ratio: str) -> tuple[str, Path, float]:
+    start = time.time()
     if model == "kling":
-        path = generate_kling(prompt, run_id)
+        path = generate_kling(prompt, run_id, aspect_ratio=ratio)
     else:
-        path = generate_sora(prompt, run_id)
-    return model, path
+        path = generate_sora(prompt, run_id, quality=quality, aspect_ratio=ratio)
+    return model, path, time.time() - start
 
 
 @app.post("/generate", response_model=GenerateResponse)
@@ -76,14 +84,14 @@ def generate(request: GenerateRequest):
     results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         futures = {
-            executor.submit(_generate_one, "kling", prompt, run_id): "kling",
-            executor.submit(_generate_one, "sora", prompt, run_id): "sora",
+            executor.submit(_generate_one, "kling", prompt, run_id, request.quality, request.ratio): "kling",
+            executor.submit(_generate_one, "sora", prompt, run_id, request.quality, request.ratio): "sora",
         }
         for fut in concurrent.futures.as_completed(futures):
             model = futures[fut]
             try:
-                _, path = fut.result()
-                results[model] = path
+                _, path, latency = fut.result()
+                results[model] = (path, latency)
             except Exception as e:
                 err_msg = str(e)
                 import traceback
@@ -92,8 +100,12 @@ def generate(request: GenerateRequest):
 
     return GenerateResponse(
         run_id=run_id,
-        kling_path=results["kling"].name,
-        sora_path=results["sora"].name,
+        kling_path=results["kling"][0].name,
+        sora_path=results["sora"][0].name,
+        kling_latency_s=round(results["kling"][1], 2),
+        sora_latency_s=round(results["sora"][1], 2),
+        kling_cost_usd=round(5 * KLING_COST_PER_S, 4),   # 5s clip
+        sora_cost_usd=round(8 * SORA_COST_PER_S, 4),     # 8s clip
     )
 
 

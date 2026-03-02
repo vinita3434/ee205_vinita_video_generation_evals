@@ -94,6 +94,39 @@
       box-shadow: 0 0 0 3px var(--glow-dim);
     }
     textarea::placeholder { color: var(--text-dim); }
+    .controls {
+      display: flex;
+      gap: 2rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .control-group label {
+      display: inline;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0;
+    }
+    .btn-group button {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.75rem;
+      border-radius: 0;
+      border-right-width: 0;
+    }
+    .btn-group button:first-child { border-radius: 6px 0 0 6px; }
+    .btn-group button:last-child  { border-radius: 0 6px 6px 0; border-right-width: 1px; }
+    .btn-group button.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
     .actions {
       display: flex;
       gap: 1rem;
@@ -206,6 +239,13 @@
       color: var(--accent);
       margin-top: 0.5rem;
     }
+    .latency {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      padding: 0.4rem 1rem;
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.08em;
+    }
   </style>
 </head>
 <body>
@@ -218,6 +258,24 @@
     <section class="prompt-section">
       <label for="prompt">PROMPT</label>
       <textarea id="prompt" placeholder="Describe the video you want to generate..."></textarea>
+      <div class="controls">
+        <div class="control-group">
+          <label>RATIO</label>
+          <div class="btn-group" id="ratioGroup">
+            <button type="button" data-value="16:9" class="active">16:9</button>
+            <button type="button" data-value="9:16">9:16</button>
+            <button type="button" data-value="1:1">1:1</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <label>QUALITY <span style="color:var(--text-dim);font-size:0.65rem;">(SORA)</span></label>
+          <div class="btn-group" id="qualityGroup">
+            <button type="button" data-value="480p">480p</button>
+            <button type="button" data-value="720p" class="active">720p</button>
+            <button type="button" data-value="1080p">1080p</button>
+          </div>
+        </div>
+      </div>
       <div class="actions">
         <button type="button" id="btnGenerate" class="primary">GENERATE 2 VIDEOS</button>
         <button type="button" id="btnJudge" disabled>RUN JUDGE (GEMINI)</button>
@@ -232,12 +290,16 @@
         <div class="video-wrap" id="wrapKling">
           <span class="placeholder">—</span>
         </div>
+        <div class="latency" id="latencyKling"></div>
+        <div class="latency" id="costKling"></div>
       </div>
       <div class="video-card">
         <h3>SORA 2</h3>
         <div class="video-wrap" id="wrapSora">
           <span class="placeholder">—</span>
         </div>
+        <div class="latency" id="latencySora"></div>
+        <div class="latency" id="costSora"></div>
       </div>
     </div>
 
@@ -260,6 +322,22 @@
     })();
 
     let lastResult = null;
+    let selectedRatio = '16:9';
+    let selectedQuality = '720p';
+
+    function initBtnGroup(groupId, onSelect) {
+      const group = document.getElementById(groupId);
+      group.addEventListener('click', e => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        onSelect(btn.dataset.value);
+      });
+    }
+
+    initBtnGroup('ratioGroup',   v => { selectedRatio   = v; });
+    initBtnGroup('qualityGroup', v => { selectedQuality = v; });
 
     function setPlaceholder(id, html) {
       const wrap = document.getElementById(id);
@@ -291,7 +369,7 @@
         const r = await fetch(`${API_BASE}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ prompt, quality: selectedQuality, ratio: selectedRatio }),
         });
         if (!r.ok) {
           const err = await r.json().catch(() => ({ detail: r.statusText }));
@@ -304,6 +382,10 @@
         const videoBase = `${API_BASE}/video`;
         setVideo('wrapKling', `${videoBase}/${encodeURIComponent(data.kling_path)}`);
         setVideo('wrapSora', `${videoBase}/${encodeURIComponent(data.sora_path)}`);
+        document.getElementById('latencyKling').textContent = `GENERATION TIME: ${data.kling_latency_s}s`;
+        document.getElementById('latencySora').textContent = `GENERATION TIME: ${data.sora_latency_s}s`;
+        document.getElementById('costKling').textContent = `EST. COST: $${data.kling_cost_usd.toFixed(4)}`;
+        document.getElementById('costSora').textContent = `EST. COST: $${data.sora_cost_usd.toFixed(4)}`;
 
         document.getElementById('btnJudge').disabled = false;
       } catch (e) {
