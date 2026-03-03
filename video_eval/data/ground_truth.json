@@ -1,0 +1,22 @@
+[
+  {
+    "clip_id": "test_001",
+    "source": "w3schools_sample",
+    "category": "nature",
+    "video_file": "test_001.mp4",
+    "duration_sec": 10,
+    "ground_truth": "A large rabbit sits in a meadow and looks around curiously, then begins to sniff the ground. The rabbit hops a short distance before pausing to observe its surroundings. Butterflies flutter nearby as the scene pans across a lush green landscape.",
+    "source_url": "https://www.w3schools.com/html/mov_bbb.mp4",
+    "verified": true
+  },
+  {
+    "clip_id": "test_002",
+    "source": "google_sample",
+    "category": "driving",
+    "video_file": "test_002.mp4",
+    "duration_sec": 16,
+    "ground_truth": "A silver SUV navigates a winding dirt road through a forested area, kicking up dust as it accelerates. The vehicle handles the uneven terrain with ease, weaving between trees and rocks. The camera follows from behind as the SUV crests a hill and continues down the trail.",
+    "source_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+    "verified": true
+  }
+]
