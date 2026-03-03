@@ -6,6 +6,7 @@ Output: data/frames/{clip_id}/frame_1.jpg ... frame_5.jpg
 from __future__ import annotations
 
 import sys
+import urllib.request
 from pathlib import Path
 
 import cv2
@@ -19,20 +20,29 @@ from config import FRAME_COUNT, FRAME_FORMAT, FRAME_MAX_WIDTH, FRAME_QUALITY, FR
 def extract_frames(
     video_path: str,
     clip_id: str,
+    source_url: str | None = None,
     output_dir: str | None = None,
 ) -> list[str]:
     """Extract FRAME_COUNT evenly-spaced frames from video_path.
+
+    If the local file is missing and source_url is provided, the video is
+    downloaded automatically before extraction.
 
     Frames are resized to max FRAME_MAX_WIDTH px wide (aspect preserved)
     and saved as JPEG at FRAME_QUALITY.
 
     Returns list of FRAME_COUNT absolute paths in chronological order.
-    Raises FileNotFoundError if video_path doesn't exist.
+    Raises FileNotFoundError if video_path doesn't exist (and can't be fetched).
     Raises ValueError if the video has fewer frames than FRAME_COUNT.
     """
     video_path = str(video_path)
     out_dir = Path(output_dir) if output_dir else FRAMES_DIR / clip_id
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if not Path(video_path).exists() and source_url:
+        Path(video_path).parent.mkdir(parents=True, exist_ok=True)
+        print(f"  [download] {source_url} → {video_path}")
+        urllib.request.urlretrieve(source_url, video_path)
 
     if not Path(video_path).exists():
         raise FileNotFoundError(f"Video not found: {video_path}")

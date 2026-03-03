@@ -63,9 +63,9 @@ def run_pipeline(sanity_check: bool = True, use_llm_judge: bool = False) -> None
 
         print(f"\n── Clip: {clip_id} ({clip.get('category', '?')}) ──")
 
-        # Extract frames once, share across models
+        # Extract frames once, share across models (auto-download if source_url present)
         try:
-            frame_paths = extract_frames(str(video_file), clip_id)
+            frame_paths = extract_frames(str(video_file), clip_id, source_url=clip.get("source_url"))
             print(f"  Extracted {len(frame_paths)} frames")
         except Exception as e:
             print(f"  [SKIP] Frame extraction failed: {e}")

@@ -97,7 +97,7 @@ def _llm_judge(
             model_output=output_text,
         )
         response = litellm.completion(
-            model="openrouter/openai/gpt-4o",
+            model="openrouter/google/gemini-2.5-flash",
             messages=[{"role": "user", "content": prompt}],
             api_base="https://openrouter.ai/api/v1",
             api_key=OPENROUTER_API_KEY,
