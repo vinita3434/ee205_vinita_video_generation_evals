@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Video Gen Evals | Kling · Sora</title>
+  <title>AI Video Model Playground</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@600;700&display=swap" rel="stylesheet" />
@@ -206,14 +206,130 @@
       color: var(--accent);
       margin-top: 0.5rem;
     }
+
+    /* Tab navigation */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      padding: 0.75rem 1.75rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Analysis form */
+    .analysis-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: grid;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .analysis-form input[type=url],
+    .analysis-form textarea,
+    .analysis-form select,
+    .analysis-form input[type=number] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.9rem;
+      transition: border-color 0.2s;
+    }
+    .analysis-form input:focus,
+    .analysis-form textarea:focus,
+    .analysis-form select:focus { outline: none; border-color: var(--accent); }
+    .analysis-form textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    @media (max-width: 700px) { .form-row, .form-row-3 { grid-template-columns: 1fr; } }
+
+    /* Analysis results */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 700px) { .analysis-grid { grid-template-columns: 1fr; } }
+    .analysis-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .analysis-card .model-type-badge {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .analysis-card .model-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+    .analysis-metrics {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+    .analysis-metric { font-size: 0.75rem; color: var(--text-dim); }
+    .analysis-metric strong { display: block; font-size: 0.9rem; color: var(--text); }
+    .analysis-output {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+    .analysis-output.err { color: var(--error); font-style: italic; }
+    #analysis-status { font-size: 0.75rem; color: var(--accent); min-height: 1.2em; margin-top: 0.25rem; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>VIDEO GEN EVALS</h1>
-      <p class="sub">KLING 2.6 · SORA 2 — ONE PROMPT, TWO MODELS</p>
+      <h1>AI VIDEO MODEL PLAYGROUND</h1>
+      <p class="sub">GENERATION · ANALYSIS · OPEN + CLOSED SOURCE</p>
     </header>
+
+    <!-- Tab nav -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('gen')">VIDEO GENERATION</button>
+      <button class="tab-btn" onclick="switchTab('analysis')">VIDEO ANALYSIS</button>
+    </nav>
+
+    <!-- TAB: Video Generation -->
+    <div id="tab-gen" class="tab-content active">
 
     <section class="prompt-section">
       <label for="prompt">PROMPT</label>
@@ -248,6 +364,55 @@
       <p id="judgeStatus" class="status"></p>
       <p id="judgeError" class="error-msg"></p>
     </section>
+
+    </div><!-- /tab-gen -->
+
+    <!-- TAB: Video Analysis -->
+    <div id="tab-analysis" class="tab-content">
+
+      <div class="analysis-form">
+        <div>
+          <label for="analysisUrl">VIDEO URL (direct .mp4 link)</label>
+          <input type="url" id="analysisUrl" placeholder="https://example.com/clip.mp4" />
+        </div>
+        <div>
+          <label for="analysisPrompt">ANALYSIS PROMPT</label>
+          <textarea id="analysisPrompt">Describe what is happening in this video. Be specific about actions, objects, and any text visible.</textarea>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="closedModel">CLOSED-SOURCE MODEL</label>
+            <select id="closedModel"><option value="">Loading…</option></select>
+          </div>
+          <div>
+            <label for="openModel">OPEN-SOURCE MODEL</label>
+            <select id="openModel"><option value="">Loading…</option></select>
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div>
+            <label for="nFrames">FRAMES TO EXTRACT (1–5)</label>
+            <input type="number" id="nFrames" value="3" min="1" max="5" />
+          </div>
+          <div>
+            <label for="maxTokens">MAX OUTPUT TOKENS</label>
+            <input type="number" id="maxTokens" value="200" min="50" max="1000" />
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button type="button" class="primary" id="btnAnalyze" onclick="runAnalysis()">ANALYZE VIDEO</button>
+          </div>
+        </div>
+        <p id="analysis-status"></p>
+        <p id="analysis-error" class="error-msg"></p>
+      </div>
+
+      <div id="analysis-results" style="display:none">
+        <label>RESULTS</label>
+        <div class="analysis-grid" id="analysis-cards"></div>
+      </div>
+
+    </div><!-- /tab-analysis -->
+
   </div>
 
   <script>
@@ -273,6 +438,101 @@
 
     function showSpinner(id) {
       setPlaceholder(id, '<div class="spinner"></div>');
+    }
+
+    // ── Tab switching ────────────────────────────────────────────────────────
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', (i === 0 && tab === 'gen') || (i === 1 && tab === 'analysis'));
+      });
+      document.getElementById('tab-gen').classList.toggle('active', tab === 'gen');
+      document.getElementById('tab-analysis').classList.toggle('active', tab === 'analysis');
+      if (tab === 'analysis') loadVisionModels();
+    }
+
+    // ── Vision model loader ──────────────────────────────────────────────────
+    let visionModelsLoaded = false;
+    async function loadVisionModels() {
+      if (visionModelsLoaded) return;
+      try {
+        const r = await fetch(`${API_BASE}/vision-models`);
+        const data = await r.json();
+        document.getElementById('closedModel').innerHTML =
+          data.closed.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        document.getElementById('openModel').innerHTML =
+          data.open.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        visionModelsLoaded = true;
+      } catch (e) {
+        console.error('Failed to load vision models:', e);
+      }
+    }
+
+    // ── Run analysis ─────────────────────────────────────────────────────────
+    async function runAnalysis() {
+      const videoUrl = document.getElementById('analysisUrl').value.trim();
+      const status   = document.getElementById('analysis-status');
+      const errEl    = document.getElementById('analysis-error');
+      const btn      = document.getElementById('btnAnalyze');
+
+      errEl.textContent = '';
+      if (!videoUrl) { errEl.textContent = 'Enter a video URL.'; return; }
+
+      btn.disabled = true;
+      const n = document.getElementById('nFrames').value;
+      status.textContent = `Downloading video and extracting ${n} frame(s)… (may take 20–60s)`;
+
+      try {
+        const r = await fetch(`${API_BASE}/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_url:    videoUrl,
+            prompt:       document.getElementById('analysisPrompt').value,
+            closed_model: document.getElementById('closedModel').value,
+            open_model:   document.getElementById('openModel').value,
+            n_frames:     parseInt(n),
+            max_tokens:   parseInt(document.getElementById('maxTokens').value),
+          }),
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({ detail: r.statusText }));
+          throw new Error(err.detail || r.statusText);
+        }
+        const data = await r.json();
+        renderAnalysisResults(data);
+        status.textContent = `✓ Run ${data.run_id} complete · ${data.n_frames} frame(s)`;
+      } catch (e) {
+        errEl.textContent = e.message || 'Analysis failed';
+        status.textContent = '';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function renderAnalysisResults(data) {
+      const [closed, open] = data.results;
+      function makeCard(r, label) {
+        const fmt = (v, d, sfx='') => v != null ? `<strong>${Number(v).toFixed(d)}${sfx}</strong>` : '<strong style="color:var(--text-dim)">—</strong>';
+        const out = r.error
+          ? `<div class="analysis-output err">${(r.error).replace(/</g,'&lt;')}</div>`
+          : `<div class="analysis-output">${(r.output_text || '—').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+        return `<div class="analysis-card">
+          <div>
+            <div class="model-type-badge">${label}</div>
+            <div class="model-title">${r.model_name}</div>
+          </div>
+          <div class="analysis-metrics">
+            <div class="analysis-metric">${fmt(r.ttft_ms,0,'ms')}<span>TTFT</span></div>
+            <div class="analysis-metric">${fmt(r.latency_ms,0,'ms')}<span>Latency</span></div>
+            <div class="analysis-metric">${fmt(r.output_tokens,0)}<span>Tokens out</span></div>
+            <div class="analysis-metric">${r.cost_usd != null ? `<strong>$${r.cost_usd.toFixed(4)}</strong>` : '<strong style="color:var(--text-dim)">—</strong>'}<span>Cost</span></div>
+          </div>
+          ${out}
+        </div>`;
+      }
+      document.getElementById('analysis-cards').innerHTML =
+        makeCard(closed, 'CLOSED-SOURCE') + makeCard(open, 'OPEN-SOURCE');
+      document.getElementById('analysis-results').style.display = '';
     }
 
     document.getElementById('btnGenerate').addEventListener('click', async () => {

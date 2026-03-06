@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import concurrent.futures
 import uuid
@@ -14,6 +15,7 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
 from backend.config import OUTPUT_DIR, OPENROUTER_API_KEY, JUDGE_MODEL
 from backend.generators import generate_sora, generate_kling
+from backend.analyzers.vision import VISION_MODELS, analyze_video
 
 app = FastAPI(title="Video Gen Evals", description="One prompt → 2 models (Kling, Sora) → Judge")
 
@@ -153,6 +155,48 @@ def judge(request: JudgeRequest):
     choice = data.get("choices", [{}])[0]
     message = choice.get("message", {})
     return {"result": message.get("content", ""), "model": JUDGE_MODEL}
+
+
+@app.get("/vision-models")
+def list_vision_models():
+    """Return available vision models split by closed/open source."""
+    return VISION_MODELS
+
+
+class AnalyzeRequest(BaseModel):
+    video_url: str
+    prompt: str = "Describe what is happening in this video. Be specific about actions, objects, and any text visible."
+    closed_model: str = "openrouter/openai/gpt-4o"
+    open_model: str = "openrouter/meta-llama/llama-3.2-11b-vision-instruct"
+    n_frames: int = 3
+    max_tokens: int = 200
+
+
+@app.post("/analyze")
+async def analyze(request: AnalyzeRequest):
+    """Extract frames from a video URL and run closed + open-source vision models in parallel."""
+    if not (1 <= request.n_frames <= 5):
+        raise HTTPException(status_code=400, detail="n_frames must be between 1 and 5.")
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=503, detail="OPENROUTER_API_KEY is not set.")
+    try:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: analyze_video(
+                video_url=request.video_url,
+                prompt=request.prompt,
+                closed_model_id=request.closed_model,
+                open_model_id=request.open_model,
+                n_frames=request.n_frames,
+                max_tokens=request.max_tokens,
+            ),
+        )
+        return result
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Analysis failed: {exc}")
 
 
 @app.get("/video/{filename}")
