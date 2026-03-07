@@ -5,19 +5,6 @@ from litellm import video_generation, video_status, video_content
 
 from backend.config import OPENAI_API_KEY, OUTPUT_DIR
 
-# Maps (quality, aspect_ratio) → Sora size string
-_SORA_SIZES: dict[tuple[str, str], str] = {
-    ("480p",  "16:9"): "854x480",
-    ("480p",  "9:16"): "480x854",
-    ("480p",  "1:1"):  "480x480",
-    ("720p",  "16:9"): "1280x720",
-    ("720p",  "9:16"): "720x1280",
-    ("720p",  "1:1"):  "720x720",
-    ("1080p", "16:9"): "1920x1080",
-    ("1080p", "9:16"): "1080x1920",
-    ("1080p", "1:1"):  "1080x1080",
-}
-
 
 def generate_sora(prompt: str, run_id: str, quality: str = "720p", aspect_ratio: str = "16:9") -> Path:
     """Generate video with OpenAI Sora 2 via LiteLLM. Returns path to saved MP4."""
@@ -25,7 +12,13 @@ def generate_sora(prompt: str, run_id: str, quality: str = "720p", aspect_ratio:
         raise ValueError("OPENAI_API_KEY is not set")
     out_path = OUTPUT_DIR / f"{run_id}_sora.mp4"
 
-    size = _SORA_SIZES.get((quality, aspect_ratio), "1280x720")
+    # Sora only supports 4 sizes — map quality + ratio to nearest valid option
+    high_res = quality == "1080p"
+    if aspect_ratio == "9:16":
+        size = "1024x1792" if high_res else "720x1280"
+    else:  # 16:9 or 1:1 (no square support, default to landscape)
+        size = "1792x1024" if high_res else "1280x720"
+
     response = video_generation(
         model="openai/sora-2",
         prompt=prompt,
