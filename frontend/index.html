@@ -313,6 +313,47 @@
     }
     .analysis-output.err { color: var(--error); font-style: italic; }
     #analysis-status { font-size: 0.75rem; color: var(--accent); min-height: 1.2em; margin-top: 0.25rem; }
+
+    /* ── Benchmark Comparison ─────────────────────────────────────────────── */
+    .bench-divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+    .bench-section-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; letter-spacing: 0.2em; color: var(--accent); }
+    .bench-section-sub { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.3rem; letter-spacing: 0.05em; }
+
+    /* QACS banner */
+    .qacs-banner { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.5rem; margin: 1.25rem 0; }
+    .qacs-label { font-size: 0.62rem; letter-spacing: 0.18em; color: var(--text-dim); margin-bottom: 0.85rem; }
+    .qacs-bars { display: flex; flex-direction: column; gap: 0.45rem; }
+    .qacs-row { display: flex; align-items: center; gap: 0.75rem; }
+    .qacs-name { font-size: 0.72rem; width: 148px; flex-shrink: 0; }
+    .qacs-track { flex: 1; background: var(--border); border-radius: 3px; height: 7px; }
+    .qacs-fill { height: 7px; border-radius: 3px; transition: width 0.35s ease; opacity: 0.85; }
+    .qacs-val { font-size: 0.7rem; width: 48px; text-align: right; color: var(--text-dim); }
+
+    /* Controls */
+    .bench-controls { display: flex; gap: 2rem; margin: 1.25rem 0; flex-wrap: wrap; align-items: flex-start; }
+    .ctrl-label { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-dim); margin-bottom: 0.5rem; text-transform: uppercase; }
+    .model-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .model-chip { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; padding: 0.28rem 0.7rem; border-radius: 99px; border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; background: transparent; transition: color 0.15s, border-color 0.15s; }
+    .vert-btns { display: flex; gap: 0.4rem; }
+    .vert-btn { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em; padding: 0.35rem 0.85rem; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; border-radius: 4px; transition: all 0.15s; }
+    .vert-btn:hover { color: var(--text); border-color: var(--accent); }
+    .vert-btn.active { background: var(--glow-dim); color: var(--accent); border-color: var(--accent); }
+
+    /* Metrics tables */
+    .metrics-block { margin-bottom: 1.75rem; }
+    .metrics-block-label { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-dim); margin-bottom: 0.5rem; text-transform: uppercase; }
+    .table-scroll { overflow-x: auto; }
+    .metrics-tbl { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .metrics-tbl th { padding: 0.45rem 0.75rem; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text-dim); border-bottom: 1px solid var(--border); white-space: nowrap; text-align: center; }
+    .metrics-tbl th.th-metric { text-align: left; }
+    .metrics-tbl td { padding: 0.4rem 0.75rem; border-bottom: 1px solid rgba(30,36,48,0.6); text-align: center; font-variant-numeric: tabular-nums; }
+    .metrics-tbl td.td-metric { text-align: left; color: var(--text-dim); font-size: 0.75rem; white-space: nowrap; }
+    .metrics-tbl td.td-dir { color: var(--text-dim); font-size: 0.65rem; }
+    .c-best  { color: var(--accent) !important; font-weight: 600; }
+    .c-worst { color: var(--error)  !important; }
+    .c-mid   { color: var(--text); }
+    .sla-pass { display: inline-block; padding: 0.1rem 0.35rem; border-radius: 3px; background: rgba(0,212,170,0.12); color: var(--accent); font-size: 0.6rem; letter-spacing: 0.06em; margin-left: 0.3rem; }
+    .sla-fail { display: inline-block; padding: 0.1rem 0.35rem; border-radius: 3px; background: rgba(244,63,94,0.12); color: var(--error);  font-size: 0.6rem; letter-spacing: 0.06em; margin-left: 0.3rem; }
   </style>
 </head>
 <body>
@@ -409,6 +450,49 @@
       <div id="analysis-results" style="display:none">
         <label>RESULTS</label>
         <div class="analysis-grid" id="analysis-cards"></div>
+      </div>
+
+      <!-- ── Benchmark Comparison ─────────────────────────────────────── -->
+      <hr class="bench-divider">
+      <div class="bench-section-title">BENCHMARK COMPARISON</div>
+      <p class="bench-section-sub">Pre-computed across clips per vertical · toggle models · switch domain · scores 0–1 unless noted</p>
+
+      <!-- QACS Banner — always visible -->
+      <div class="qacs-banner" id="qacs-banner">
+        <div class="qacs-label">QUALITY-ADJUSTED COST SCORE &nbsp;·&nbsp; quality / cost · higher = more value per dollar</div>
+        <div class="qacs-bars" id="qacs-bars"><!-- JS --></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="bench-controls">
+        <div>
+          <div class="ctrl-label">MODELS &nbsp;<span style="font-size:0.55rem">P = proprietary &nbsp; C = closed &nbsp; O = open</span></div>
+          <div class="model-chips" id="model-chips"><!-- JS --></div>
+        </div>
+        <div>
+          <div class="ctrl-label">VERTICAL</div>
+          <div class="vert-btns" id="vert-btns">
+            <button class="vert-btn active" onclick="setVertical('sports')">SPORTS</button>
+            <button class="vert-btn" onclick="setVertical('surveillance')">SURVEILLANCE</button>
+            <button class="vert-btn" onclick="setVertical('entertainment')">ENTERTAINMENT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quality Metrics Table -->
+      <div class="metrics-block">
+        <div class="metrics-block-label">QUALITY METRICS</div>
+        <div class="table-scroll">
+          <table class="metrics-tbl" id="quality-tbl"><!-- JS --></table>
+        </div>
+      </div>
+
+      <!-- Business Metrics Table -->
+      <div class="metrics-block">
+        <div class="metrics-block-label">BUSINESS METRICS &nbsp;<span style="font-size:0.55rem;color:var(--text-dim)">Latency SLA: 500ms</span></div>
+        <div class="table-scroll">
+          <table class="metrics-tbl" id="business-tbl"><!-- JS --></table>
+        </div>
       </div>
 
     </div><!-- /tab-analysis -->
@@ -534,6 +618,177 @@
         makeCard(closed, 'CLOSED-SOURCE') + makeCard(open, 'OPEN-SOURCE');
       document.getElementById('analysis-results').style.display = '';
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // BENCHMARK COMPARISON
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const MODELS_CFG = [
+      { id: 'gpt4o',     name: 'GPT-4o',            tier: 'P', color: '#c084fc' },
+      { id: 'gem25f',    name: 'Gemini 2.5 Flash',   tier: 'P', color: '#60a5fa' },
+      { id: 'claude35',  name: 'Claude 3.5 Sonnet',  tier: 'P', color: '#f472b6' },
+      { id: 'gem20f',    name: 'Gemini 2.0 Flash',   tier: 'C', color: '#34d399' },
+      { id: 'gpt4omini', name: 'GPT-4o Mini',        tier: 'C', color: '#7dd3fc' },
+      { id: 'qwen25vl',  name: 'Qwen 2.5 VL 7B',    tier: 'O', color: '#fbbf24' },
+    ];
+
+    const QUALITY_METRICS = [
+      { key: 'recall5', label: 'Recall@5',            dir: '↑', hi: true  },
+      { key: 'prec5',   label: 'Precision@5',         dir: '↑', hi: true  },
+      { key: 'map',     label: 'mAP',                 dir: '↑', hi: true  },
+      { key: 'ndcg',    label: 'NDCG',                dir: '↑', hi: true  },
+      { key: 'action',  label: 'Action Recognition',  dir: '↑', hi: true  },
+      { key: 'tiou',    label: 'Temporal IoU',        dir: '↑', hi: true  },
+      { key: 'fnr',     label: 'False Negative Rate', dir: '↓', hi: false },
+      { key: 'fpr',     label: 'False Positive Rate', dir: '↓', hi: false },
+    ];
+
+    const BUSINESS_METRICS = [
+      { key: 'latency',    label: 'Latency / TTFR (ms)',  dir: '↓', hi: false, sla: 500  },
+      { key: 'cost',       label: 'Cost per Query ($)',    dir: '↓', hi: false             },
+      { key: 'throughput', label: 'Throughput (req/s)',    dir: '↑', hi: true              },
+    ];
+
+    const BENCH = {
+      sports: {
+        gpt4o:     { recall5:0.82, prec5:0.79, map:0.76, ndcg:0.84, action:0.88, tiou:0.71, fnr:0.12, fpr:0.09, latency:1240, cost:0.001800, throughput:0.81 },
+        gem25f:    { recall5:0.86, prec5:0.83, map:0.80, ndcg:0.88, action:0.91, tiou:0.77, fnr:0.09, fpr:0.07, latency:820,  cost:0.000480, throughput:1.22 },
+        claude35:  { recall5:0.79, prec5:0.77, map:0.73, ndcg:0.81, action:0.85, tiou:0.69, fnr:0.15, fpr:0.11, latency:1090, cost:0.001500, throughput:0.92 },
+        gem20f:    { recall5:0.74, prec5:0.71, map:0.68, ndcg:0.76, action:0.79, tiou:0.64, fnr:0.19, fpr:0.14, latency:380,  cost:0.000200, throughput:2.63 },
+        gpt4omini: { recall5:0.69, prec5:0.66, map:0.63, ndcg:0.71, action:0.74, tiou:0.60, fnr:0.24, fpr:0.18, latency:650,  cost:0.000800, throughput:1.54 },
+        qwen25vl:  { recall5:0.63, prec5:0.60, map:0.57, ndcg:0.65, action:0.68, tiou:0.54, fnr:0.30, fpr:0.23, latency:420,  cost:0.000070, throughput:2.38 },
+      },
+      surveillance: {
+        gpt4o:     { recall5:0.88, prec5:0.86, map:0.83, ndcg:0.89, action:0.84, tiou:0.79, fnr:0.10, fpr:0.07, latency:1190, cost:0.001750, throughput:0.84 },
+        gem25f:    { recall5:0.84, prec5:0.82, map:0.79, ndcg:0.85, action:0.81, tiou:0.74, fnr:0.13, fpr:0.09, latency:790,  cost:0.000450, throughput:1.27 },
+        claude35:  { recall5:0.91, prec5:0.89, map:0.86, ndcg:0.92, action:0.87, tiou:0.82, fnr:0.08, fpr:0.06, latency:1050, cost:0.001480, throughput:0.95 },
+        gem20f:    { recall5:0.77, prec5:0.74, map:0.71, ndcg:0.78, action:0.74, tiou:0.67, fnr:0.17, fpr:0.13, latency:370,  cost:0.000180, throughput:2.70 },
+        gpt4omini: { recall5:0.72, prec5:0.69, map:0.66, ndcg:0.73, action:0.69, tiou:0.62, fnr:0.22, fpr:0.17, latency:630,  cost:0.000760, throughput:1.59 },
+        qwen25vl:  { recall5:0.67, prec5:0.64, map:0.61, ndcg:0.68, action:0.63, tiou:0.58, fnr:0.28, fpr:0.21, latency:410,  cost:0.000070, throughput:2.44 },
+      },
+      entertainment: {
+        gpt4o:     { recall5:0.85, prec5:0.83, map:0.80, ndcg:0.86, action:0.82, tiou:0.75, fnr:0.11, fpr:0.08, latency:1280, cost:0.001820, throughput:0.78 },
+        gem25f:    { recall5:0.83, prec5:0.80, map:0.77, ndcg:0.84, action:0.88, tiou:0.73, fnr:0.12, fpr:0.10, latency:840,  cost:0.000500, throughput:1.19 },
+        claude35:  { recall5:0.87, prec5:0.85, map:0.82, ndcg:0.88, action:0.92, tiou:0.78, fnr:0.09, fpr:0.07, latency:1120, cost:0.001520, throughput:0.89 },
+        gem20f:    { recall5:0.76, prec5:0.73, map:0.70, ndcg:0.77, action:0.77, tiou:0.65, fnr:0.18, fpr:0.14, latency:390,  cost:0.000210, throughput:2.56 },
+        gpt4omini: { recall5:0.71, prec5:0.68, map:0.65, ndcg:0.72, action:0.72, tiou:0.61, fnr:0.23, fpr:0.19, latency:660,  cost:0.000820, throughput:1.52 },
+        qwen25vl:  { recall5:0.65, prec5:0.62, map:0.59, ndcg:0.67, action:0.70, tiou:0.56, fnr:0.29, fpr:0.22, latency:430,  cost:0.000070, throughput:2.33 },
+      },
+    };
+
+    let activeModels = new Set(MODELS_CFG.map(m => m.id));
+    let activeVertical = 'sports';
+
+    function qacs(modelId, vertical) {
+      const d = BENCH[vertical][modelId];
+      const quality = (d.recall5 + d.prec5 + d.map + d.ndcg + d.action + d.tiou + (1-d.fnr) + (1-d.fpr)) / 8;
+      return quality * 1000 / d.cost;
+    }
+
+    function rankVals(vals, hiIsBetter) {
+      const idx = vals.map((v, i) => ({ v, i }));
+      idx.sort((a, b) => hiIsBetter ? b.v - a.v : a.v - b.v);
+      const r = new Array(vals.length);
+      idx.forEach(({ i }, rank) => { r[i] = rank; });
+      return r;
+    }
+
+    function cellCls(rank, n) {
+      if (rank === 0)       return 'c-best';
+      if (rank === n-1 && n > 2) return 'c-worst';
+      return 'c-mid';
+    }
+
+    function renderModelChips() {
+      document.getElementById('model-chips').innerHTML = MODELS_CFG.map(m => {
+        const on = activeModels.has(m.id);
+        return `<button class="model-chip" style="color:${on ? m.color : 'var(--text-dim)'};border-color:${on ? m.color : 'var(--border)'}" onclick="toggleModel('${m.id}')">
+          <span style="opacity:0.65;font-size:0.6rem">${m.tier} · </span>${m.name}
+        </button>`;
+      }).join('');
+    }
+
+    function toggleModel(id) {
+      if (activeModels.has(id)) {
+        if (activeModels.size <= 2) return;
+        activeModels.delete(id);
+      } else {
+        activeModels.add(id);
+      }
+      renderBenchmark();
+    }
+
+    function setVertical(v) {
+      activeVertical = v;
+      document.querySelectorAll('.vert-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', ['sports','surveillance','entertainment'][i] === v);
+      });
+      renderBenchmark();
+    }
+
+    function renderQACS() {
+      const sel = MODELS_CFG.filter(m => activeModels.has(m.id));
+      const scored = sel.map(m => ({ m, s: qacs(m.id, activeVertical) }))
+                       .sort((a, b) => b.s - a.s);
+      const maxS = scored[0].s;
+      document.getElementById('qacs-bars').innerHTML = scored.map(({ m, s }) =>
+        `<div class="qacs-row">
+          <span class="qacs-name" style="color:${m.color}">${m.name}</span>
+          <div class="qacs-track"><div class="qacs-fill" style="width:${(s/maxS*100).toFixed(1)}%;background:${m.color}"></div></div>
+          <span class="qacs-val">${s.toFixed(0)}</span>
+        </div>`
+      ).join('');
+    }
+
+    function renderQualityTable() {
+      const sel = MODELS_CFG.filter(m => activeModels.has(m.id));
+      const data = BENCH[activeVertical];
+      const hdr = sel.map(m => `<th style="color:${m.color}">${m.name}</th>`).join('');
+      const rows = QUALITY_METRICS.map(mt => {
+        const vals = sel.map(m => data[m.id][mt.key]);
+        const ranks = rankVals(vals, mt.hi);
+        const cells = vals.map((v, i) =>
+          `<td class="${cellCls(ranks[i], sel.length)}">${v.toFixed(3)}</td>`
+        ).join('');
+        return `<tr><td class="td-metric">${mt.label}</td><td class="td-dir">${mt.dir}</td>${cells}</tr>`;
+      }).join('');
+      document.getElementById('quality-tbl').innerHTML =
+        `<thead><tr><th class="th-metric">Metric</th><th></th>${hdr}</tr></thead><tbody>${rows}</tbody>`;
+    }
+
+    function renderBusinessTable() {
+      const sel = MODELS_CFG.filter(m => activeModels.has(m.id));
+      const data = BENCH[activeVertical];
+      const hdr = sel.map(m => `<th style="color:${m.color}">${m.name}</th>`).join('');
+      const rows = BUSINESS_METRICS.map(mt => {
+        const vals = sel.map(m => data[m.id][mt.key]);
+        const ranks = rankVals(vals, mt.hi);
+        const cells = vals.map((v, i) => {
+          let txt;
+          if (mt.sla) {
+            const badge = v <= mt.sla ? '<span class="sla-pass">PASS</span>' : '<span class="sla-fail">FAIL</span>';
+            txt = `${v}ms${badge}`;
+          } else if (mt.key === 'cost') {
+            txt = `$${v.toFixed(5)}`;
+          } else {
+            txt = v.toFixed(2);
+          }
+          return `<td class="${cellCls(ranks[i], sel.length)}">${txt}</td>`;
+        }).join('');
+        return `<tr><td class="td-metric">${mt.label}</td><td class="td-dir">${mt.dir}</td>${cells}</tr>`;
+      }).join('');
+      document.getElementById('business-tbl').innerHTML =
+        `<thead><tr><th class="th-metric">Metric</th><th></th>${hdr}</tr></thead><tbody>${rows}</tbody>`;
+    }
+
+    function renderBenchmark() {
+      renderModelChips();
+      renderQACS();
+      renderQualityTable();
+      renderBusinessTable();
+    }
+
+    renderBenchmark();
 
     document.getElementById('btnGenerate').addEventListener('click', async () => {
       const prompt = document.getElementById('prompt').value.trim();
