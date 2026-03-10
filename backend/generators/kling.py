@@ -9,12 +9,13 @@ KLING_ENDPOINT = "fal-ai/kling-video/v2.6/pro/text-to-video"
 
 def generate_kling(prompt: str, run_id: str, aspect_ratio: str = "16:9") -> Path:
     """Generate video with Kling 2.6 via fal.ai. Returns path to saved MP4."""
-    if not FAL_KEY:
+    key = (FAL_KEY or "").strip()
+    if not key:
         raise ValueError("FAL_KEY is not set. Add FAL_KEY to your .env (get one at https://fal.ai/dashboard/keys)")
     out_path = OUTPUT_DIR / f"{run_id}_kling.mp4"
 
     # Pass key explicitly so auth works even if env wasn't set when process started
-    client = SyncClient(key=FAL_KEY)
+    client = SyncClient(key=key)
     result = client.subscribe(
         KLING_ENDPOINT,
         arguments={

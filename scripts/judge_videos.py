@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Standalone judge script: send 2 videos + prompt to OpenRouter (Gemini) for evaluation.
+Uses a single full-video call. For the full frame-based 6-metric pipeline, use the web app (Run Judge).
 Usage:
   python scripts/judge_videos.py "Your prompt" outputs/runid_kling.mp4 outputs/runid_sora.mp4
 """
@@ -19,7 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "google/gemini-2.0-flash-exp:free")
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "google/gemini-2.5-flash")
 
 
 def video_to_data_url(path: str) -> str:

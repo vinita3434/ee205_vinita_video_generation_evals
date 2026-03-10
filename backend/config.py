@@ -4,6 +4,9 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
+# Load .env from project root first (parent of backend/), then cwd
+_env_path = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(_env_path)
 load_dotenv()
 
 
@@ -29,7 +32,8 @@ if FAL_KEY:
 
 # Judge (OpenRouter → Gemini)
 OPENROUTER_API_KEY = _k("OPENROUTER_API_KEY")
-JUDGE_MODEL = (os.getenv("JUDGE_MODEL") or "google/gemini-2.5-flash").strip()
+# Frame-based judge uses Gemini 1.5 Pro (multimodal); override with JUDGE_MODEL in .env
+JUDGE_MODEL = (os.getenv("JUDGE_MODEL") or "google/gemini-pro-1.5").strip()
 
 # Output directory for generated videos (absolute so it works from any cwd)
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "outputs")).resolve()

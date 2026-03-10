@@ -59,14 +59,20 @@
       color: var(--accent);
       text-shadow: 0 0 24px var(--glow-dim);
     }
-    .sub {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      letter-spacing: 0.3em;
-      margin-top: 0.5rem;
+    .sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.3em; margin-top: 0.5rem; }
+    section.form-section {
+      margin-bottom: 1.75rem;
+      padding: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
     }
-    .prompt-section {
-      margin-bottom: 2rem;
+    section.form-section h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 1rem;
     }
     label {
       display: block;
@@ -77,99 +83,86 @@
     }
     textarea {
       width: 100%;
-      min-height: 100px;
+      min-height: 80px;
       padding: 1rem 1.25rem;
-      background: var(--surface);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text);
       font-family: inherit;
       font-size: 0.9rem;
       resize: vertical;
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
     textarea:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--glow-dim);
     }
-    textarea::placeholder { color: var(--text-dim); }
-    .controls {
-      display: flex;
-      gap: 2rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .control-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .control-group label {
-      display: inline;
-      margin: 0;
-      white-space: nowrap;
-    }
     .btn-group {
       display: flex;
-      gap: 0;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
     .btn-group button {
       padding: 0.4rem 0.85rem;
       font-size: 0.75rem;
-      border-radius: 0;
-      border-right-width: 0;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
     }
-    .btn-group button:first-child { border-radius: 6px 0 0 6px; }
-    .btn-group button:last-child  { border-radius: 0 6px 6px 0; border-right-width: 1px; }
+    .btn-group button:hover { border-color: var(--accent); color: var(--accent); }
     .btn-group button.active {
       background: var(--accent);
       color: var(--bg);
+      border-color: var(--accent);
     }
-    .actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
+    select {
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      min-width: 180px;
     }
-    button {
+    .actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    button.primary {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.8rem;
       font-weight: 600;
       letter-spacing: 0.1em;
       padding: 0.75rem 1.5rem;
       border: 1px solid var(--accent);
-      background: transparent;
-      color: var(--accent);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    }
-    button:hover {
-      background: var(--glow-dim);
-      box-shadow: 0 0 20px var(--glow-dim);
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    button.primary {
       background: var(--accent);
       color: var(--bg);
+      border-radius: 6px;
+      cursor: pointer;
     }
-    button.primary:hover:not(:disabled) {
-      box-shadow: 0 0 24px rgba(0,212,170,0.4);
+    button.primary:hover:not(:disabled) { box-shadow: 0 0 24px rgba(0,212,170,0.4); }
+    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
     }
+    button.secondary:hover:not(:disabled) { background: var(--glow-dim); }
+    button.secondary:disabled { opacity: 0.5; cursor: not-allowed; }
     .videos-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
-      margin-bottom: 2rem;
+      margin: 2rem 0;
     }
-    @media (max-width: 700px) {
-      .videos-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 700px) { .videos-grid { grid-template-columns: 1fr; } }
     .video-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -192,59 +185,85 @@
       justify-content: center;
       position: relative;
     }
-    .video-wrap video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .video-wrap .placeholder {
-      color: var(--text-dim);
-      font-size: 0.75rem;
-      text-align: center;
-      padding: 1rem;
-    }
+    .video-wrap video { width: 100%; height: 100%; object-fit: contain; }
+    .video-wrap .placeholder { color: var(--text-dim); font-size: 0.75rem; text-align: center; padding: 1rem; }
     .video-wrap .spinner {
-      width: 32px;
-      height: 32px;
+      width: 32px; height: 32px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .judge-section {
+    .judge-cta {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .metrics-block {
       margin-top: 2rem;
       padding-top: 2rem;
       border-top: 1px solid var(--border);
     }
-    .judge-output {
-      margin-top: 1rem;
-      padding: 1.25rem;
+    .metrics-block h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .metrics-block .explain {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    table.metrics {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    table.metrics th,
+    table.metrics td {
+      padding: 0.6rem 1rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    table.metrics th {
+      background: var(--surface);
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    table.metrics td { background: var(--bg); }
+    .judge-summary {
+      padding: 1rem;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       font-size: 0.85rem;
       line-height: 1.6;
-      white-space: pre-wrap;
-      min-height: 80px;
+      margin-bottom: 1.5rem;
     }
-    .judge-output.empty { color: var(--text-dim); }
-    .error-msg {
-      color: var(--error);
+    table.metrics td.winner {
+      background: rgba(0, 212, 170, 0.12);
+      border-color: var(--accent);
+    }
+    .metric-reason { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem; }
+    .section-winner { font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; margin-top: 0.5rem; }
+    .error-msg { color: var(--error); font-size: 0.8rem; margin-top: 0.5rem; }
+    .status { font-size: 0.75rem; color: var(--accent); margin-top: 0.5rem; }
+    #builtPrompt {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
       font-size: 0.8rem;
-      margin-top: 0.5rem;
-    }
-    .status {
-      font-size: 0.75rem;
-      color: var(--accent);
-      margin-top: 0.5rem;
-    }
-    .latency {
-      font-size: 0.7rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
       color: var(--text-dim);
-      padding: 0.4rem 1rem;
-      border-top: 1px solid var(--border);
-      letter-spacing: 0.08em;
     }
   </style>
 </head>
@@ -252,64 +271,158 @@
   <div class="container">
     <header>
       <h1>VIDEO GEN EVALS</h1>
-      <p class="sub">KLING 2.6 · SORA 2 — ONE PROMPT, TWO MODELS</p>
+      <p class="sub">KLING 2.6 · SORA 2 — STANDARDIZED PROMPT → METRICS</p>
     </header>
 
-    <section class="prompt-section">
-      <label for="prompt">PROMPT</label>
-      <textarea id="prompt" placeholder="Describe the video you want to generate..."></textarea>
-      <div class="controls">
-        <div class="control-group">
-          <label>RATIO</label>
+    <!-- 1) What is exactly happening? -->
+    <section class="form-section">
+      <h2>1) SCENE DESCRIPTION</h2>
+      <label for="description">What is exactly happening? (subject, action, environment)</label>
+      <textarea id="description" placeholder="e.g. A blue car drives slowly on a snowy mountain road at dusk..."></textarea>
+    </section>
+
+    <!-- 2) Style -->
+    <section class="form-section">
+      <h2>2) VISUAL STYLE</h2>
+      <label>What style should the video look like?</label>
+      <div class="btn-group" id="styleGroup">
+        <button type="button" data-value="photorealistic" class="active">Photorealistic</button>
+        <button type="button" data-value="cinematic">Cinematic</button>
+        <button type="button" data-value="animated">Animated</button>
+        <button type="button" data-value="3D rendered">3D Rendered</button>
+        <button type="button" data-value="stylized">Stylized</button>
+      </div>
+    </section>
+
+    <!-- 3) Camera and framing -->
+    <section class="form-section">
+      <h2>3) CAMERA & FRAMING</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <label>Aspect ratio</label>
           <div class="btn-group" id="ratioGroup">
             <button type="button" data-value="16:9" class="active">16:9</button>
             <button type="button" data-value="9:16">9:16</button>
             <button type="button" data-value="1:1">1:1</button>
           </div>
         </div>
-        <div class="control-group">
-          <label>QUALITY <span style="color:var(--text-dim);font-size:0.65rem;">(SORA)</span></label>
-          <div class="btn-group" id="qualityGroup">
-            <button type="button" data-value="480p">480p</button>
-            <button type="button" data-value="720p" class="active">720p</button>
-            <button type="button" data-value="1080p">1080p</button>
-          </div>
+        <div>
+          <label>Camera style</label>
+          <select id="cameraStyle">
+            <option value="Close-up">Close-up</option>
+            <option value="Medium shot">Medium shot</option>
+            <option value="Wide shot">Wide shot</option>
+            <option value="Moving camera">Moving camera</option>
+            <option value="Static camera">Static camera</option>
+          </select>
         </div>
       </div>
+    </section>
+
+    <!-- 4) Video quality settings -->
+    <section class="form-section">
+      <h2>4) VIDEO QUALITY SETTINGS</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div>
+          <label>Resolution</label>
+          <div class="btn-group" id="resolutionGroup">
+            <button type="button" data-value="720p" class="active">720p</button>
+            <button type="button" data-value="1080p">1080p</button>
+            <button type="button" data-value="4K">4K</button>
+          </div>
+        </div>
+        <div>
+          <label>Video length</label>
+          <select id="videoLength">
+            <option value="5">5 seconds</option>
+            <option value="10">10 seconds</option>
+            <option value="custom">Custom</option>
+          </select>
+          <input type="number" id="customSeconds" placeholder="sec" min="1" max="30" style="width:80px;margin-left:0.5rem;padding:0.4rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);display:none;" />
+        </div>
+        <div>
+          <label>Motion detail</label>
+          <select id="motionDetail">
+            <option value="Low motion">Low motion</option>
+            <option value="Moderate motion" selected>Moderate motion</option>
+            <option value="High motion">High motion</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Built prompt preview + Generate -->
+    <section class="form-section">
+      <h2>COMBINED PROMPT (sent to both models)</h2>
+      <div id="builtPrompt">Fill the form above; the combined prompt will appear here.</div>
       <div class="actions">
+        <button type="button" id="btnBuildPrompt" class="secondary">REFRESH PROMPT</button>
         <button type="button" id="btnGenerate" class="primary">GENERATE 2 VIDEOS</button>
-        <button type="button" id="btnJudge" disabled>RUN JUDGE (GEMINI)</button>
       </div>
       <p id="generateStatus" class="status"></p>
       <p id="generateError" class="error-msg"></p>
     </section>
 
+    <!-- Videos -->
     <div class="videos-grid">
       <div class="video-card">
         <h3>KLING 2.6</h3>
-        <div class="video-wrap" id="wrapKling">
-          <span class="placeholder">—</span>
-        </div>
-        <div class="latency" id="latencyKling"></div>
-        <div class="latency" id="costKling"></div>
+        <div class="video-wrap" id="wrapKling"><span class="placeholder">—</span></div>
+        <div style="font-size:0.7rem;color:var(--text-dim);padding:0.5rem 1rem;" id="metaKling"></div>
       </div>
       <div class="video-card">
         <h3>SORA 2</h3>
-        <div class="video-wrap" id="wrapSora">
-          <span class="placeholder">—</span>
-        </div>
-        <div class="latency" id="latencySora"></div>
-        <div class="latency" id="costSora"></div>
+        <div class="video-wrap" id="wrapSora"><span class="placeholder">—</span></div>
+        <div style="font-size:0.7rem;color:var(--text-dim);padding:0.5rem 1rem;" id="metaSora"></div>
       </div>
     </div>
 
-    <section class="judge-section">
-      <label>JUDGE (GEMINI VIA OPENROUTER)</label>
-      <p class="sub" style="margin-bottom: 0.5rem;">Temporal stability & physics accuracy · 1–10</p>
-      <div class="judge-output empty" id="judgeOutput">Run judge after generating videos.</div>
+    <!-- Run Judge (only after generate) -->
+    <section class="judge-cta" id="judgeCta" style="display: none;">
+      <button type="button" id="btnJudge" class="primary">RUN JUDGE (GEMINI)</button>
       <p id="judgeStatus" class="status"></p>
       <p id="judgeError" class="error-msg"></p>
     </section>
+
+    <!-- Metrics (after judge) -->
+    <div class="metrics-block" id="metricsBlock" style="display: none;">
+      <h2>HOW WE CALCULATE LATENCY & COST</h2>
+      <p class="explain">
+        <strong>Latency</strong> = time from when we send the request to the API until the video file is fully received (generation_end_time − request_start_time), in seconds.<br>
+        <strong>Cost per model</strong> = we use fixed per-second rates from provider pricing: Kling 2.6 (fal.ai) and Sora 2 (OpenAI). Cost per video = video_duration_seconds × cost_per_second. These rates are set in backend config and can be updated when pricing changes.
+      </p>
+
+      <h2>QUALITY SECTION — 6 metrics (frame-based judge, 1–10)</h2>
+      <p class="explain">Frames at 0%, 25%, 50%, 75%, 100% sent to Gemini 1.5 Pro. One call per metric. Overall = average of 6.</p>
+      <table class="metrics" id="tableQuality">
+        <thead><tr><th>Metric</th><th>Kling 2.6</th><th>Sora 2</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="section-winner" id="qualityWinner"></p>
+
+      <h2>PERFORMANCE SECTION</h2>
+      <table class="metrics" id="tablePerf">
+        <thead><tr><th>Metric</th><th>Kling 2.6</th><th>Sora 2</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="explain">Latency = time between API request sent and video file received (s). Generation speed = video_duration / latency. Throughput = 60 / latency (videos/min).</p>
+      <p class="section-winner" id="perfWinner"></p>
+
+      <h2>COST SECTION</h2>
+      <table class="metrics" id="tableCost">
+        <thead><tr><th>Metric</th><th>Kling 2.6</th><th>Sora 2</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="explain">Cost per video = video_duration_seconds × cost_per_second_of_output. Cost per hour = cost_per_second × 3600. Value score = overall_quality_score / cost_per_video (higher = better value).</p>
+      <p class="section-winner" id="costWinner"></p>
+
+      <h2>LONG COST PROJECTION (1 HOUR)</h2>
+      <table class="metrics" id="tableProjection">
+        <thead><tr><th>Model</th><th>Cost (this clip)</th><th>Cost (1 hour)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="explain">Cost per hour = cost_per_second_of_output × 3600.</p>
+    </div>
   </div>
 
   <script>
@@ -322,54 +435,109 @@
     })();
 
     let lastResult = null;
-    let selectedRatio = '16:9';
-    let selectedQuality = '720p';
+    let lastPrompt = '';
+    const state = {
+      style: 'photorealistic',
+      ratio: '16:9',
+      cameraStyle: 'Close-up',
+      resolution: '720p',
+      videoLength: '5',
+      customSeconds: '',
+      motionDetail: 'Moderate motion',
+    };
 
-    function initBtnGroup(groupId, onSelect) {
+    function initBtnGroup(groupId, key) {
       const group = document.getElementById(groupId);
       group.addEventListener('click', e => {
         const btn = e.target.closest('button');
         if (!btn) return;
         group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        onSelect(btn.dataset.value);
+        state[key] = btn.dataset.value;
+        buildPromptText();
       });
     }
+    initBtnGroup('styleGroup', 'style');
+    initBtnGroup('ratioGroup', 'ratio');
+    initBtnGroup('resolutionGroup', 'resolution');
 
-    initBtnGroup('ratioGroup',   v => { selectedRatio   = v; });
-    initBtnGroup('qualityGroup', v => { selectedQuality = v; });
+    document.getElementById('cameraStyle').addEventListener('change', e => { state.cameraStyle = e.target.value; buildPromptText(); });
+    document.getElementById('motionDetail').addEventListener('change', e => { state.motionDetail = e.target.value; buildPromptText(); });
+    document.getElementById('videoLength').addEventListener('change', e => {
+      const sel = e.target;
+      document.getElementById('customSeconds').style.display = sel.value === 'custom' ? 'inline-block' : 'none';
+      state.videoLength = sel.value === 'custom' ? (document.getElementById('customSeconds').value || '5') : sel.value;
+      buildPromptText();
+    });
+    document.getElementById('customSeconds').addEventListener('input', e => {
+      state.customSeconds = e.target.value;
+      state.videoLength = e.target.value || '5';
+      buildPromptText();
+    });
+
+    function getVideoLengthSeconds() {
+      if (state.videoLength === 'custom') return (state.customSeconds && parseInt(state.customSeconds, 10)) || 5;
+      return parseInt(state.videoLength, 10) || 5;
+    }
+
+    function buildPromptText() {
+      const len = getVideoLengthSeconds();
+      const duration = len + ' second' + (len !== 1 ? 's' : '');
+      const desc = document.getElementById('description').value.trim() || '[Describe the scene]';
+      const prompt = `Generate a ${duration} video in ${state.resolution}.
+
+Scene:
+${desc}
+
+Style:
+${state.style}
+
+Camera framing:
+${state.cameraStyle}, aspect ratio ${state.ratio}
+
+Motion level:
+${state.motionDetail}
+
+The video should be visually realistic with smooth motion and consistent objects across frames.`;
+      lastPrompt = prompt;
+      document.getElementById('builtPrompt').textContent = prompt;
+      return prompt;
+    }
+
+    document.getElementById('btnBuildPrompt').addEventListener('click', () => buildPromptText());
 
     function setPlaceholder(id, html) {
-      const wrap = document.getElementById(id);
-      wrap.innerHTML = html;
+      document.getElementById(id).innerHTML = html;
     }
-
     function setVideo(id, src) {
-      const wrap = document.getElementById(id);
-      wrap.innerHTML = `<video src="${src}" controls playsinline></video>`;
-    }
-
-    function showSpinner(id) {
-      setPlaceholder(id, '<div class="spinner"></div>');
+      document.getElementById(id).innerHTML = `<video src="${src}" controls playsinline></video>`;
     }
 
     document.getElementById('btnGenerate').addEventListener('click', async () => {
-      const prompt = document.getElementById('prompt').value.trim();
-      if (!prompt) {
-        document.getElementById('generateError').textContent = 'Enter a prompt.';
+      buildPromptText();
+      const prompt = lastPrompt;
+      const desc = document.getElementById('description').value.trim();
+      if (!desc) {
+        document.getElementById('generateError').textContent = 'Please describe what is happening in the scene.';
         return;
       }
       document.getElementById('generateError').textContent = '';
-      document.getElementById('generateStatus').textContent = 'Starting 2 models…';
+      document.getElementById('generateStatus').textContent = 'Starting both models…';
       document.getElementById('btnGenerate').disabled = true;
       setPlaceholder('wrapKling', '<div class="spinner"></div>');
       setPlaceholder('wrapSora', '<div class="spinner"></div>');
+      document.getElementById('judgeCta').style.display = 'none';
+      document.getElementById('metricsBlock').style.display = 'none';
 
       try {
         const r = await fetch(`${API_BASE}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, quality: selectedQuality, ratio: selectedRatio }),
+          body: JSON.stringify({
+            prompt,
+            quality: state.resolution === '4K' ? '1080p' : state.resolution,
+            ratio: state.ratio,
+          }),
         });
         if (!r.ok) {
           const err = await r.json().catch(() => ({ detail: r.statusText }));
@@ -377,16 +545,27 @@
         }
         const data = await r.json();
         lastResult = data;
-        document.getElementById('generateStatus').textContent = `Run ${data.run_id} complete.`;
 
         const videoBase = `${API_BASE}/video`;
         setVideo('wrapKling', `${videoBase}/${encodeURIComponent(data.kling_path)}`);
         setVideo('wrapSora', `${videoBase}/${encodeURIComponent(data.sora_path)}`);
-        document.getElementById('latencyKling').textContent = `GENERATION TIME: ${data.kling_latency_s}s`;
-        document.getElementById('latencySora').textContent = `GENERATION TIME: ${data.sora_latency_s}s`;
-        document.getElementById('costKling').textContent = `EST. COST: $${data.kling_cost_usd.toFixed(4)}`;
-        document.getElementById('costSora').textContent = `EST. COST: $${data.sora_cost_usd.toFixed(4)}`;
 
+        const kLat = data.kling_latency_s;
+        const sLat = data.sora_latency_s;
+        const kDur = data.kling_duration_s;
+        const sDur = data.sora_duration_s;
+        const kSpeed = (kDur / kLat).toFixed(3);
+        const sSpeed = (sDur / sLat).toFixed(3);
+        const kThrough = (60 / kLat).toFixed(2);
+        const sThrough = (60 / sLat).toFixed(2);
+
+        document.getElementById('metaKling').innerHTML =
+          `Latency: ${kLat}s · Duration: ${kDur}s · Speed: ${kSpeed} · Throughput: ${kThrough}/min · Cost: $${data.kling_cost_usd.toFixed(4)}`;
+        document.getElementById('metaSora').innerHTML =
+          `Latency: ${sLat}s · Duration: ${sDur}s · Speed: ${sSpeed} · Throughput: ${sThrough}/min · Cost: $${data.sora_cost_usd.toFixed(4)}`;
+
+        document.getElementById('generateStatus').textContent = `Run ${data.run_id} complete. Click Run Judge below.`;
+        document.getElementById('judgeCta').style.display = 'block';
         document.getElementById('btnJudge').disabled = false;
       } catch (e) {
         document.getElementById('generateError').textContent = e.message || 'Generate failed';
@@ -399,14 +578,9 @@
 
     document.getElementById('btnJudge').addEventListener('click', async () => {
       if (!lastResult) return;
-      const prompt = document.getElementById('prompt').value.trim();
-      const out = document.getElementById('judgeOutput');
-      const status = document.getElementById('judgeStatus');
-      const errEl = document.getElementById('judgeError');
-      errEl.textContent = '';
-      out.textContent = 'Sending to judge…';
-      out.classList.remove('empty');
-      status.textContent = 'Calling OpenRouter (Gemini)…';
+      const prompt = lastPrompt;
+      document.getElementById('judgeError').textContent = '';
+      document.getElementById('judgeStatus').textContent = 'Calling judge…';
       document.getElementById('btnJudge').disabled = true;
 
       try {
@@ -424,15 +598,121 @@
           throw new Error(err.detail || r.statusText);
         }
         const data = await r.json();
-        out.textContent = data.result || '(No response)';
-        status.textContent = `Model: ${data.model}`;
+        document.getElementById('judgeStatus').textContent = `Judge: ${data.model}`;
+
+        const va = data.video_a || {};
+        const vb = data.video_b || {};
+        const oqA = data.overall_quality_a ?? 0;
+        const oqB = data.overall_quality_b ?? 0;
+        const d = lastResult;
+
+        const metricKeys = ['subject_consistency', 'background_consistency', 'motion_smoothness', 'prompt_fidelity', 'aesthetic_quality', 'dynamic_degree'];
+        const metricLabels = {
+          subject_consistency: 'Subject Consistency',
+          background_consistency: 'Background Consistency',
+          motion_smoothness: 'Motion Smoothness',
+          prompt_fidelity: 'Prompt Fidelity',
+          aesthetic_quality: 'Aesthetic Quality',
+          dynamic_degree: 'Dynamic Degree',
+        };
+
+        // QUALITY SECTION — 6 metrics + overall, with reasons and winners
+        const tq = document.querySelector('#tableQuality tbody');
+        tq.innerHTML = '';
+        let qualityWinsA = 0, qualityWinsB = 0;
+        metricKeys.forEach(k => {
+          const a = va[k] || {};
+          const b = vb[k] || {};
+          const sa = Number(a.score) || 0;
+          const sb = Number(b.score) || 0;
+          const ra = (a.reason || '').trim();
+          const rb = (b.reason || '').trim();
+          const winA = sa > sb;
+          const winB = sb > sa;
+          if (winA) qualityWinsA++; if (winB) qualityWinsB++;
+          const tr = document.createElement('tr');
+          const tdA = winA ? '<td class="winner">' : '<td>';
+          const tdB = winB ? '<td class="winner">' : '<td>';
+          tr.innerHTML = `<td>${metricLabels[k]}</td>
+            ${tdA}<strong>${sa}</strong>${ra ? `<div class="metric-reason">${escapeHtml(ra)}</div>` : ''}</td>
+            ${tdB}<strong>${sb}</strong>${rb ? `<div class="metric-reason">${escapeHtml(rb)}</div>` : ''}</td>`;
+          tq.appendChild(tr);
+        });
+        const overallWinA = oqA > oqB;
+        const overallWinB = oqB > oqA;
+        const trO = document.createElement('tr');
+        trO.innerHTML = `<td><strong>Overall Quality Score</strong></td>
+          <td class="${overallWinA ? 'winner' : ''}"><strong>${oqA}</strong></td>
+          <td class="${overallWinB ? 'winner' : ''}"><strong>${oqB}</strong></td>`;
+        tq.appendChild(trO);
+        document.getElementById('qualityWinner').textContent =
+          oqA > oqB ? 'Winner: Kling 2.6' : oqB > oqA ? 'Winner: Sora 2' : 'Tie';
+
+        // PERFORMANCE SECTION — lower latency wins, higher speed/throughput wins
+        const kLat = d.kling_latency_s;
+        const sLat = d.sora_latency_s;
+        const kDur = d.kling_duration_s;
+        const sDur = d.sora_duration_s;
+        const kSpeed = kDur / kLat;
+        const sSpeed = sDur / sLat;
+        const kThrough = 60 / kLat;
+        const sThrough = 60 / sLat;
+        const tp = document.querySelector('#tablePerf tbody');
+        tp.innerHTML = '';
+        tp.appendChild(rowWithWinner('Latency (s)', kLat.toFixed(2), sLat.toFixed(2), sLat < kLat, kLat > sLat));
+        tp.appendChild(rowWithWinner('Generation speed', kSpeed.toFixed(3), sSpeed.toFixed(3), kSpeed > sSpeed, sSpeed > kSpeed));
+        tp.appendChild(rowWithWinner('Throughput (videos/min)', kThrough.toFixed(2), sThrough.toFixed(2), kThrough > sThrough, sThrough > kThrough));
+        document.getElementById('perfWinner').textContent =
+          kLat < sLat ? 'Winner: Kling 2.6 (faster)' : sLat < kLat ? 'Winner: Sora 2 (faster)' : 'Tie';
+
+        // COST SECTION — lower cost wins, higher value score wins
+        const kCost = d.kling_cost_usd;
+        const sCost = d.sora_cost_usd;
+        const kVal = oqA / kCost;
+        const sVal = oqB / sCost;
+        const tc = document.querySelector('#tableCost tbody');
+        tc.innerHTML = '';
+        tc.appendChild(rowWithWinner('Cost per video ($)', kCost.toFixed(4), sCost.toFixed(4), kCost < sCost, sCost < kCost));
+        tc.appendChild(row('Cost per hour ($)', (kCost / kDur * 3600).toFixed(2), (sCost / sDur * 3600).toFixed(2)));
+        tc.appendChild(rowWithWinner('Value score (quality/$)', kVal.toFixed(2), sVal.toFixed(2), kVal > sVal, sVal > kVal));
+        document.getElementById('costWinner').textContent =
+          kVal > sVal ? 'Winner: Kling 2.6 (better value)' : sVal > kVal ? 'Winner: Sora 2 (better value)' : 'Tie';
+
+        // Long projection
+        const kPerS = kCost / kDur;
+        const sPerS = sCost / sDur;
+        const tproj = document.querySelector('#tableProjection tbody');
+        tproj.innerHTML = '';
+        tproj.appendChild(row('Kling 2.6', `$${kCost.toFixed(2)}`, `$${(kPerS * 3600).toFixed(2)}`));
+        tproj.appendChild(row('Sora 2', `$${sCost.toFixed(2)}`, `$${(sPerS * 3600).toFixed(2)}`));
+
+        document.getElementById('metricsBlock').style.display = 'block';
       } catch (e) {
-        errEl.textContent = e.message || 'Judge failed';
-        out.textContent = 'Judge request failed.';
+        document.getElementById('judgeError').textContent = e.message || 'Judge failed';
       } finally {
         document.getElementById('btnJudge').disabled = false;
       }
     });
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+    function row(label, a, b) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${label}</td><td>${a}</td><td>${b}</td>`;
+      return tr;
+    }
+    function rowWithWinner(label, a, b, winA, winB) {
+      const tr = document.createElement('tr');
+      const tdA = winA ? '<td class="winner">' : '<td>';
+      const tdB = winB ? '<td class="winner">' : '<td>';
+      tr.innerHTML = `<td>${label}</td>${tdA}${a}</td>${tdB}${b}</td>`;
+      return tr;
+    }
+
+    buildPromptText();
   </script>
 </body>
 </html>
