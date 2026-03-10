@@ -12,6 +12,13 @@ build/
 # Outputs
 outputs/
 
+# Generated video frames (extracted at runtime)
+video_analysis/data/frames/
+video_eval/data/frames/
+
+# Claude Code settings
+.claude/
+
 # IDE / OS
 .idea/
 .DS_Store

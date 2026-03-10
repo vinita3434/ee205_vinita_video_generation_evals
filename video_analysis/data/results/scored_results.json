@@ -155,10 +155,10 @@
     },
     "Gemini 2.0 Flash": {
       "accuracy": 1.0,
-      "avg_latency_ms": 6892.0,
-      "total_cost_usd": 0.016902,
-      "avg_cost_usd": 0.001537,
-      "qacs": 6.51,
+      "avg_latency_ms": 7352.1,
+      "total_cost_usd": 0.016922,
+      "avg_cost_usd": 0.001538,
+      "qacs": 6.5,
       "n_scored": 11,
       "per_clip": [
         {
@@ -234,9 +234,9 @@
           "ground_truth": "basketball",
           "score": 1.0,
           "verdict": "CORRECT",
-          "latency_ms": 4670.3,
-          "cost_usd": 0.002631,
-          "output_text": "Based on the video, the sport being played is basketball. The video shows the logos of the New York Knicks and the Los Angeles Lakers, along with players in basketball uniforms.",
+          "latency_ms": 9731.3,
+          "cost_usd": 0.0026507,
+          "output_text": "Here is what I can tell you about the video.\n\nThe video is about a basketball game. The teams playing are the New York Knicks and the Los Angeles Lakers. The video shows the logos of both teams, as well as footage of the cities they represent. It also shows footage of fans buying jerseys and enterin",
           "error": null
         },
         {
@@ -307,7 +307,7 @@
       ]
     }
   },
-  "run_timestamp": "2026-03-10T16:47:50.933280+00:00",
+  "run_timestamp": "2026-03-10T17:33:42.061299+00:00",
   "n_clips": 11,
   "judge_model": "anthropic/claude-haiku-4-5"
 }

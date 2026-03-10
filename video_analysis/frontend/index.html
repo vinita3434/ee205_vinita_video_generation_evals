@@ -366,20 +366,10 @@
     <div style="font-family:Inter,system-ui,sans-serif;font-size:11px;color:#9CA3AF;letter-spacing:0.05em">Video Intelligence Benchmarking</div>
   </div>
   <div style="display:flex;gap:8px">
-    <a id="navGen" href="http://localhost:8000" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid transparent;color:#9CA3AF;background:transparent">Video Generation</a>
-    <a id="navAnalysis" href="http://localhost:8001" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid #7EE8A2;color:#7EE8A2;background:#1F2937">Video Analysis</a>
+    <a href="http://localhost:8000" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid transparent;color:#9CA3AF;background:transparent">Video Generation</a>
+    <a href="http://localhost:8001" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid #7EE8A2;color:#7EE8A2;background:#1F2937">Video Analysis</a>
   </div>
 </nav>
-<script>
-(function() {
-  var h = window.location.hostname;
-  if (h !== 'localhost' && h !== '127.0.0.1') {
-    var origin = window.location.origin;
-    document.getElementById('navGen').href      = origin + '/';
-    document.getElementById('navAnalysis').href = origin + '/analysis';
-  }
-})();
-</script>
 <div class="page">
 
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
@@ -650,16 +640,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 // Config
 // ════════════════════════════════════════════════════════════════════════════
-const API_BASE = (() => {
-  try {
-    const u = new URL(window.location.href);
-    if (u.protocol === 'file:') return 'http://localhost:8001';
-    const base = u.origin.replace(/\/$/, '');
-    // Combined deployment: page is served from /analysis path
-    if (u.pathname.startsWith('/analysis')) return base + '/analysis';
-    return base;  // standalone mode (localhost:8001 or direct)
-  } catch (_) { return 'http://localhost:8001'; }
-})();
+const API_BASE = 'http://localhost:8001';
 
 // ════════════════════════════════════════════════════════════════════════════
 // State
