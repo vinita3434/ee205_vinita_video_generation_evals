@@ -1,8 +1,14 @@
+[variables]
+NIXPACKS_BUILD_CMD = "pip install -r requirements.txt"
+
 [phases.setup]
-nixPkgs = ["python311", "libglib2-0", "libGL"]
+nixPkgs = ["python311", "gcc", "libglib2", "libGL"]
 
 [phases.install]
 cmds = ["pip install -r requirements.txt"]
+
+[phases.build]
+cmds = []
 
 [start]
 cmd = "uvicorn combined:app --host 0.0.0.0 --port $PORT"
