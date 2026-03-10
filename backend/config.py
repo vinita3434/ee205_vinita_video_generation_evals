@@ -4,6 +4,9 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
+# Load .env from project root first (parent of backend/), then cwd
+_env_path = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(_env_path)
 load_dotenv()
 
 
@@ -29,8 +32,15 @@ if FAL_KEY:
 
 # Judge (OpenRouter → Gemini)
 OPENROUTER_API_KEY = _k("OPENROUTER_API_KEY")
-JUDGE_MODEL = (os.getenv("JUDGE_MODEL") or "google/gemini-2.5-flash").strip()
+# Frame-based judge uses Gemini 1.5 Pro (multimodal); override with JUDGE_MODEL in .env
+JUDGE_MODEL = (os.getenv("JUDGE_MODEL") or "google/gemini-pro-1.5").strip()
 
 # Output directory for generated videos (absolute so it works from any cwd)
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "outputs")).resolve()
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Published per-second generation costs (USD) — update if pricing changes
+# Kling 2.6 Pro via fal.ai: $0.07/s without audio (fal.ai/models/fal-ai/kling-video/v2.6/pro/text-to-video)
+# Sora 2 via OpenAI: $0.10/s at 720p (openai.com/api/pricing)
+KLING_COST_PER_S: float = 0.07   # generates 5s → $0.35/run
+SORA_COST_PER_S: float = 0.10    # generates 8s → $0.80/run
