@@ -9,23 +9,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #050608;
-      --surface: #0c0e12;
-      --surface-elevated: #111318;
-      --border: #1a1d24;
-      --accent: #00d4aa;
-      --accent-dim: rgba(0, 212, 170, 0.12);
-      --text: #f1f5f9;
-      --text-dim: #94a3b8;
-      --text-muted: #64748b;
-      --error: #f43f5e;
-      --quality-bg: rgba(0, 212, 170, 0.06);
+      --bg: #0A0E1A;
+      --surface: #111827;
+      --surface-elevated: #111827;
+      --border: #1F2937;
+      --accent: #7EE8A2;
+      --accent-dim: rgba(126, 232, 162, 0.12);
+      --text: #F9FAFB;
+      --text-dim: #9CA3AF;
+      --text-muted: #9CA3AF;
+      --error: #F87171;
+      --quality-bg: rgba(126, 232, 162, 0.06);
       --perf-bg: rgba(99, 102, 241, 0.06);
-      --cost-bg: rgba(34, 197, 94, 0.06);
+      --cost-bg: rgba(126, 232, 162, 0.06);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -224,7 +224,7 @@
     }
     .actions { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
     button.primary {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', system-ui, sans-serif;
       font-size: 0.75rem;
       font-weight: 600;
       letter-spacing: 0.1em;
@@ -351,7 +351,7 @@
     }
     table.metrics td { background: var(--bg); }
     table.metrics td.winner {
-      background: rgba(0, 212, 170, 0.12);
+      background: rgba(126, 232, 162, 0.12);
       border-color: var(--accent);
     }
     .metric-reason { font-size: 0.65rem; color: var(--text-dim); margin-top: 0.2rem; }
@@ -473,9 +473,17 @@
   </style>
 </head>
 <body>
-  <nav class="nav-bar">
-    <div class="logo">Gruve Atlas</div>
-  </nav>
+<nav style="background:#111827;border-bottom:1px solid #1F2937;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100">
+  <div>
+    <div style="font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:700;color:#F9FAFB;letter-spacing:0.04em">GRUVE ATLAS</div>
+    <div style="font-family:Inter,system-ui,sans-serif;font-size:11px;color:#9CA3AF;letter-spacing:0.05em">Video Intelligence Benchmarking</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a id="navGen2" href="http://localhost:8000" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid #7EE8A2;color:#7EE8A2;background:#1F2937">Video Generation</a>
+    <a id="navAnalysis2" href="http://localhost:8001" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid transparent;color:#9CA3AF;background:transparent">Video Analysis</a>
+  </div>
+</nav>
+<script>(function(){var h=window.location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'){var o=window.location.origin;document.getElementById('navGen2').href=o+'/';document.getElementById('navAnalysis2').href=o+'/analysis';}})();</script>
   <header class="hero">
     <h1>Video Gen Evals</h1>
     <p class="tagline">Compare AI video models side by side — standardized prompts, frame-based quality metrics, and cost projection at scale.</p>
@@ -865,17 +873,17 @@
           data: {
             labels,
             datasets: [
-              { label: 'Model A (Sora 2)', data: b.monthlyA, borderColor: '#94a3b8', backgroundColor: 'transparent', tension: 0.2, fill: false },
-              { label: 'Model B (Kling 2.6)', data: b.monthlyB, borderColor: '#00d4aa', backgroundColor: 'transparent', tension: 0.2, fill: false },
+              { label: 'Model A (Sora 2)', data: b.monthlyA, borderColor: '#9CA3AF', backgroundColor: 'transparent', tension: 0.2, fill: false },
+              { label: 'Model B (Kling 2.6)', data: b.monthlyB, borderColor: '#7EE8A2', backgroundColor: 'transparent', tension: 0.2, fill: false },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { title: { display: true, text: 'Monthly cost at scale', color: '#f1f5f9', font: { size: 12 } }, legend: { labels: { color: '#94a3b8' } } },
+            plugins: { title: { display: true, text: 'Monthly cost at scale', color: '#F9FAFB', font: { size: 12 } }, legend: { labels: { color: '#9CA3AF' } } },
             scales: {
-              x: { ticks: { color: '#64748b', maxRotation: 0 } },
-              y: { beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#1a1d24' } },
+              x: { ticks: { color: '#9CA3AF', maxRotation: 0 } },
+              y: { beginAtZero: true, ticks: { color: '#9CA3AF' }, grid: { color: '#1F2937' } },
             },
           },
         });
@@ -920,19 +928,19 @@
           data: {
             labels: b.volumes.map(v => v >= 1000 ? (v / 1000) + 'K' : String(v)),
             datasets: [
-              { label: 'Model A cost', data: b.monthlyA, borderColor: '#94a3b8', backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y' },
-              { label: 'Model B cost', data: b.monthlyB, borderColor: '#00d4aa', backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y' },
-              { label: 'Cost gap', data: b.gaps, borderColor: '#f43f5e', borderDash: [5, 5], backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y1' },
+              { label: 'Model A cost', data: b.monthlyA, borderColor: '#9CA3AF', backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y' },
+              { label: 'Model B cost', data: b.monthlyB, borderColor: '#7EE8A2', backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y' },
+              { label: 'Cost gap', data: b.gaps, borderColor: '#F87171', borderDash: [5, 5], backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y1' },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { title: { display: true, text: 'How model choice compounds at scale', color: '#f1f5f9' }, legend: { labels: { color: '#94a3b8' } } },
+            plugins: { title: { display: true, text: 'How model choice compounds at scale', color: '#F9FAFB' }, legend: { labels: { color: '#9CA3AF' } } },
             scales: {
-              x: { ticks: { color: '#64748b' } },
-              y: { type: 'linear', position: 'left', beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#1a1d24' } },
-              y1: { type: 'linear', position: 'right', ticks: { color: '#f43f5e' }, grid: { drawOnChartArea: false } },
+              x: { ticks: { color: '#9CA3AF' } },
+              y: { type: 'linear', position: 'left', beginAtZero: true, ticks: { color: '#9CA3AF' }, grid: { color: '#1F2937' } },
+              y1: { type: 'linear', position: 'right', ticks: { color: '#F87171' }, grid: { drawOnChartArea: false } },
             },
           },
         });

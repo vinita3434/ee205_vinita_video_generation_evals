@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gruve Atlas — Video Intelligence Benchmarking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Design tokens ─────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0A0E1A;
+      --card:        #111827;
+      --border:      #1F2937;
+      --border-dim:  #162031;
+      --green:       #7EE8A2;
+      --green-dim:   #4ADE80;
+      --green-bg:    rgba(126,232,162,0.08);
+      --green-bg2:   rgba(126,232,162,0.14);
+      --text:        #F9FAFB;
+      --text-sec:    #9CA3AF;
+      --text-muted:  #6B7280;
+      --yellow:      #FCD34D;
+      --red:         #F87171;
+      --radius:      8px;
+      --radius-sm:   6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────────────── */
+    .page { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+    .logo { display: flex; align-items: baseline; gap: 12px; }
+    .logo-name { font-size: 18px; font-weight: 700; letter-spacing: 0.06em; color: var(--green); }
+    .logo-tag  { font-size: 12px; color: var(--text-muted); letter-spacing: 0.02em; }
+    .header-status { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Section titles ──────────────────────────────────────────────────── */
+    .section { margin-bottom: 48px; }
+    .section-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px;
+    }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+    .section-badge {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 99px;
+      background: var(--green-bg); color: var(--green);
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    /* ── Labels ──────────────────────────────────────────────────────────── */
+    .field-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 10px; display: block;
+    }
+
+    /* ── Pill selectors ──────────────────────────────────────────────────── */
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      font-family: inherit; font-size: 13px; font-weight: 500;
+      padding: 6px 14px; border-radius: 99px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-sec); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--green); color: var(--text); }
+    .pill.active { background: var(--green-bg); border-color: var(--green); color: var(--green); font-weight: 600; }
+
+    /* ── Segmented toggle ─────────────────────────────────────────────── */
+    .seg { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    .seg-btn {
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      padding: 6px 16px; border: none; background: transparent;
+      color: var(--text-sec); cursor: pointer; transition: all 0.15s;
+      border-right: 1px solid var(--border);
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn:hover { color: var(--text); background: var(--border-dim); }
+    .seg-btn.active { background: var(--green-bg); color: var(--green); font-weight: 600; }
+
+    /* ── Form elements ──────────────────────────────────────────────────── */
+    select, input[type=number], textarea {
+      font-family: inherit; font-size: 13px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      padding: 8px 12px; width: 100%;
+      transition: border-color 0.15s;
+    }
+    select:focus, input:focus, textarea:focus {
+      outline: none; border-color: var(--green);
+    }
+    textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+    select option { background: #1a2030; }
+
+    /* ── Prompt box ──────────────────────────────────────────────────────── */
+    .prompt-box {
+      background: var(--bg); border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      font-size: 13px; color: var(--text-sec); line-height: 1.6;
+      position: relative;
+    }
+    .prompt-box.editing { border-color: var(--green); }
+    .prompt-edit-btn {
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.15s; margin-left: 8px;
+    }
+    .prompt-edit-btn:hover { border-color: var(--green); color: var(--green); }
+
+    /* ── Sliders ─────────────────────────────────────────────────────────── */
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-val { font-size: 14px; font-weight: 600; color: var(--green); min-width: 60px; text-align: right; }
+    input[type=range] {
+      flex: 1; height: 4px; border-radius: 2px;
+      background: var(--border); border: none; padding: 0;
+      accent-color: var(--green); cursor: pointer;
+    }
+
+    /* ── Main CTA ────────────────────────────────────────────────────────── */
+    .run-btn {
+      width: 100%; padding: 14px;
+      background: var(--green); color: #0A0E1A;
+      border: none; border-radius: var(--radius);
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      letter-spacing: 0.05em; cursor: pointer;
+      transition: opacity 0.2s, box-shadow 0.2s;
+    }
+    .run-btn:hover:not(:disabled) { box-shadow: 0 0 28px rgba(126,232,162,0.35); }
+    .run-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .run-status { font-size: 12px; color: var(--green); min-height: 18px; margin-top: 10px; }
+    .run-error  { font-size: 12px; color: var(--red);   min-height: 18px; margin-top: 10px; }
+
+    /* ── Config grid ─────────────────────────────────────────────────────── */
+    .config-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; }
+    .config-left  { display: flex; flex-direction: column; gap: 24px; }
+    .config-right { display: flex; flex-direction: column; gap: 20px; }
+    @media (max-width: 900px) { .config-grid { grid-template-columns: 1fr; } }
+
+    /* ── Result cards ────────────────────────────────────────────────────── */
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 700px) { .result-grid { grid-template-columns: 1fr; } }
+    .result-card { display: flex; flex-direction: column; gap: 14px; }
+
+    .model-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .model-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .badge-closed { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .badge-open   { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .badge-video  { background: rgba(245,158,11,0.15);  color: #fcd34d; }
+    .badge-frames { background: rgba(156,163,175,0.1);  color: var(--text-muted); }
+
+    .stats-row { display: flex; gap: 20px; flex-wrap: wrap; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .stat { font-size: 12px; color: var(--text-muted); }
+    .stat strong { display: block; font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+
+    .output-text {
+      font-size: 13px; line-height: 1.65; color: var(--text-sec);
+      background: var(--bg); border-radius: 6px;
+      padding: 12px 14px; border: 1px solid var(--border-dim);
+      white-space: pre-wrap; word-break: break-word;
+      flex: 1;
+    }
+    .output-text.err { color: var(--red); font-style: italic; }
+
+    .judge-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 6px;
+    }
+    .judge-correct   { background: rgba(126,232,162,0.08); }
+    .judge-incorrect { background: rgba(248,113,113,0.08); }
+    .judge-unknown   { background: rgba(156,163,175,0.06); }
+    .judge-badge { font-size: 13px; font-weight: 700; }
+    .judge-correct .judge-badge   { color: var(--green); }
+    .judge-incorrect .judge-badge { color: var(--red); }
+    .judge-unknown .judge-badge   { color: var(--text-muted); }
+    .judge-gt { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Benchmark history ───────────────────────────────────────────────── */
+    .bench-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 8px;
+    }
+    .bench-meta { font-size: 12px; color: var(--text-muted); }
+    .flash-updated {
+      font-size: 11px; font-weight: 600; color: var(--green);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .flash-updated.show { opacity: 1; }
+
+    /* QACS gauges */
+    .gauge-row { display: flex; gap: 32px; margin-bottom: 28px; flex-wrap: wrap; }
+    .gauge-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .gauge-label { font-size: 13px; font-weight: 600; color: var(--text-sec); text-align: center; max-width: 140px; }
+
+    /* Metrics table */
+    .metrics-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .metrics-tbl th {
+      padding: 8px 14px; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    .metrics-tbl th:first-child { text-align: left; }
+    .metrics-tbl td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border-dim);
+      text-align: right; font-variant-numeric: tabular-nums;
+    }
+    .metrics-tbl td:first-child { text-align: left; color: var(--text-sec); }
+    .c-win  { color: var(--green) !important; font-weight: 600; }
+    .c-lose { color: var(--red)   !important; }
+    .c-tie  { color: var(--text); }
+    .arrow-win { color: var(--green); font-size: 12px; margin-left: 4px; }
+
+    /* Per-clip details */
+    .details-toggle {
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); background: none; border: none;
+      cursor: pointer; padding: 8px 0; display: flex; align-items: center; gap: 6px;
+    }
+    .details-toggle:hover { color: var(--green); }
+    .details-body { display: none; margin-top: 12px; }
+    .details-body.open { display: block; }
+    .clip-row {
+      padding: 12px 0; border-bottom: 1px solid var(--border-dim);
+      font-size: 12px;
+    }
+    .clip-row:last-child { border-bottom: none; }
+    .clip-q { color: var(--text-sec); margin-bottom: 6px; font-weight: 500; }
+    .clip-gt { color: var(--text-muted); margin-bottom: 6px; }
+    .clip-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .clip-model { background: var(--bg); border-radius: 4px; padding: 8px 10px; }
+    .clip-model-name { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .clip-model-ans  { color: var(--text-sec); line-height: 1.4; }
+    .clip-verdict-ok  { color: var(--green); font-weight: 600; }
+    .clip-verdict-bad { color: var(--red);   font-weight: 600; }
+
+    /* ── Decision engine ─────────────────────────────────────────────────── */
+    .decision-section {
+      border-left: 4px solid var(--green);
+      background: rgba(126,232,162,0.03);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 28px 28px 28px 24px;
+    }
+    .decision-title { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 20px; }
+    .decision-panels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .decision-panels { grid-template-columns: 1fr; } }
+    .decision-panel { }
+    .dp-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+    .verdict-win  { font-size: 16px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+    .verdict-warn { font-size: 15px; font-weight: 600; color: var(--yellow); margin-bottom: 6px; }
+    .verdict-sub  { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+
+    .cost-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .cost-tbl th { padding: 4px 8px; text-align: right; color: var(--text-muted); font-weight: 500; }
+    .cost-tbl th:first-child { text-align: left; }
+    .cost-tbl td { padding: 5px 8px; text-align: right; border-top: 1px solid var(--border-dim); }
+    .cost-tbl td:first-child { text-align: left; color: var(--text-sec); }
+    .savings-line {
+      margin-top: 12px; padding: 10px 12px;
+      background: var(--green-bg); border-radius: 6px;
+      font-size: 13px; font-weight: 600; color: var(--green);
+    }
+
+    .gruve-panel { }
+    .gruve-cost  { font-size: 22px; font-weight: 700; color: var(--green); margin: 10px 0 4px; }
+    .gruve-sub   { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+    .gruve-note  { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+    .gruve-cta   {
+      display: inline-block; margin-top: 14px;
+      font-size: 13px; font-weight: 600; color: var(--green);
+      text-decoration: none; border-bottom: 1px solid var(--green-bg);
+      padding-bottom: 1px; transition: border-color 0.15s;
+    }
+    .gruve-cta:hover { border-color: var(--green); }
+
+    /* ── QACS tooltip ────────────────────────────────────────────────────── */
+    .qacs-info { position: relative; display: inline-flex; align-items: center; gap: 6px; cursor: help; }
+    .qacs-q {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--border); color: var(--text-muted);
+      font-size: 10px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .tooltip {
+      position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: #1a2535; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      width: 280px; font-size: 12px; color: var(--text-sec);
+      line-height: 1.6; z-index: 50;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .tooltip::after {
+      content: ''; position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1a2535;
+    }
+    .qacs-info:hover .tooltip { opacity: 1; }
+    .tooltip-tiers { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+    .tooltip-tier { display: flex; gap: 8px; }
+    .tt-range { color: var(--text-muted); min-width: 60px; }
+    .tt-label.green  { color: var(--green); }
+    .tt-label.yellow { color: var(--yellow); }
+    .tt-label.red    { color: var(--red); }
+
+    /* ── Fader ───────────────────────────────────────────────────────────── */
+    .fade-in { opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    /* ── Video domain badge ──────────────────────────────────────────────── */
+    .domain-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 1px 6px; border-radius: 3px; margin-left: 6px;
+    }
+    .domain-sports  { background: rgba(245,158,11,0.15); color: #fcd34d; }
+    .domain-qivd    { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+
+    /* ── Misc ────────────────────────────────────────────────────────────── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+    .row-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 600px) { .row-2 { grid-template-columns: 1fr; } }
+    .spinner {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border); border-top-color: var(--green);
+      animation: spin 0.7s linear infinite; display: inline-block; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<nav style="background:#111827;border-bottom:1px solid #1F2937;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100">
+  <div>
+    <div style="font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:700;color:#F9FAFB;letter-spacing:0.04em">GRUVE ATLAS</div>
+    <div style="font-family:Inter,system-ui,sans-serif;font-size:11px;color:#9CA3AF;letter-spacing:0.05em">Video Intelligence Benchmarking</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a id="navGen" href="http://localhost:8000" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid transparent;color:#9CA3AF;background:transparent">Video Generation</a>
+    <a id="navAnalysis" href="http://localhost:8001" style="font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;text-decoration:none;border:1px solid #7EE8A2;color:#7EE8A2;background:#1F2937">Video Analysis</a>
+  </div>
+</nav>
+<script>
+(function() {
+  var h = window.location.hostname;
+  if (h !== 'localhost' && h !== '127.0.0.1') {
+    var origin = window.location.origin;
+    document.getElementById('navGen').href      = origin + '/';
+    document.getElementById('navAnalysis').href = origin + '/analysis';
+  }
+})();
+</script>
+<div class="page">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">
+      <span class="logo-name">GRUVE ATLAS</span>
+      <span class="logo-tag">Video Intelligence Benchmarking</span>
+    </div>
+    <span class="header-status" id="serverStatus">Connecting…</span>
+  </header>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       SECTION 1 — Workload Configuration
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">Workload Configuration</span>
+    </div>
+
+    <div class="card">
+      <div class="config-grid">
+
+        <!-- Left column -->
+        <div class="config-left">
+
+          <!-- Use case -->
+          <div>
+            <span class="field-label">Use Case</span>
+            <div class="pills" id="useCasePills">
+              <button class="pill active" data-val="sports_archive"       onclick="setUseCase(this)">Sports Archive</button>
+              <button class="pill"        data-val="security_surveillance" onclick="setUseCase(this)">Security &amp; Surveillance</button>
+              <button class="pill"        data-val="retail_analytics"      onclick="setUseCase(this)">Retail Analytics</button>
+              <button class="pill"        data-val="custom"                onclick="setUseCase(this)">Custom</button>
+            </div>
+          </div>
+
+          <!-- Video selector -->
+          <div>
+            <span class="field-label">Select Video</span>
+            <select id="videoSelect" onchange="onVideoSelected()">
+              <option value="">Loading test clips…</option>
+            </select>
+          </div>
+
+          <!-- Analysis type -->
+          <div>
+            <span class="field-label">What Are You Analyzing? <span style="color:var(--text-muted);font-weight:400;letter-spacing:0">(multi-select)</span></span>
+            <div class="pills" id="analysisTypePills">
+              <button class="pill active" data-val="object_detection"  onclick="toggleAnalysisType(this)">Object Detection</button>
+              <button class="pill"        data-val="action_recognition" onclick="toggleAnalysisType(this)">Action Recognition</button>
+              <button class="pill"        data-val="event_counting"     onclick="toggleAnalysisType(this)">Event Counting</button>
+              <button class="pill"        data-val="scene_description"  onclick="toggleAnalysisType(this)">Scene Description</button>
+            </div>
+          </div>
+
+          <!-- Detail level -->
+          <div>
+            <span class="field-label">Analysis Detail</span>
+            <div class="seg" id="detailSeg">
+              <button class="seg-btn"        data-val="brief"    onclick="setDetail(this)">Brief — 3 words</button>
+              <button class="seg-btn active" data-val="standard" onclick="setDetail(this)">Standard — 1 sentence</button>
+              <button class="seg-btn"        data-val="detailed" onclick="setDetail(this)">Detailed — full description</button>
+            </div>
+          </div>
+
+          <!-- Reasoning Mode -->
+          <div>
+            <span class="field-label">Reasoning Mode
+              <span class="qacs-info" style="margin-left:4px">
+                <span class="qacs-q">?</span>
+                <div class="tooltip">
+                  <strong style="color:var(--text)">Reasoning Mode</strong><br/>
+                  <strong>Spatial:</strong> where objects are and their arrangement.<br/><br/>
+                  <strong>Temporal:</strong> what changed over time in the video.<br/><br/>
+                  <strong>Causal:</strong> why events occurred. Temporal and Causal force the model to actually use the video, not just one frame.
+                </div>
+              </span>
+            </span>
+            <div class="pills" id="reasoningPills">
+              <button class="pill" data-val="spatial" onclick="setReasoning(this)">Spatial</button>
+              <button class="pill active" data-val="temporal" onclick="setReasoning(this)">Temporal</button>
+              <button class="pill" data-val="causal" onclick="setReasoning(this)">Causal</button>
+            </div>
+          </div>
+
+          <!-- Temporal Scope -->
+          <div>
+            <span class="field-label">Temporal Scope
+              <span class="qacs-info" style="margin-left:4px">
+                <span class="qacs-q">?</span>
+                <div class="tooltip">
+                  <strong style="color:var(--text)">Temporal Scope</strong><br/>
+                  How much of the video the model needs to reason across.<br/><br/>
+                  <strong>Key moment:</strong> single most important instant.<br/>
+                  <strong>Sequence:</strong> ordered chain of events.<br/>
+                  <strong>Full clip:</strong> entire timeline required.
+                </div>
+              </span>
+            </span>
+            <div class="pills" id="temporalPills">
+              <button class="pill" data-val="key_moment" onclick="setTemporalScope(this)">Key moment</button>
+              <button class="pill active" data-val="sequence" onclick="setTemporalScope(this)">Sequence</button>
+              <button class="pill" data-val="full_clip" onclick="setTemporalScope(this)">Full clip</button>
+            </div>
+          </div>
+
+          <!-- Generated prompt -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <span class="field-label" style="margin:0">Generated Prompt</span>
+              <button class="prompt-edit-btn" id="editPromptBtn" onclick="toggleEditPrompt()">Edit prompt</button>
+            </div>
+            <div id="promptReadonly" class="prompt-box" style="display:block"></div>
+            <textarea id="promptEditable" style="display:none" oninput="onPromptEdited()"></textarea>
+          </div>
+
+          <!-- Models -->
+          <div class="row-2">
+            <div>
+              <span class="field-label">Model A</span>
+              <select id="modelA"><option value="">Loading…</option></select>
+            </div>
+            <div>
+              <span class="field-label">Model B</span>
+              <select id="modelB"><option value="">Loading…</option></select>
+            </div>
+          </div>
+
+        </div><!-- /config-left -->
+
+        <!-- Right column -->
+        <div class="config-right">
+
+          <div style="padding:20px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;gap:24px">
+            <div>
+              <span class="field-label">Your Quality Bar</span>
+              <div style="font-size:13px;color:var(--text-sec);margin-bottom:10px">
+                I need at least <span id="qualityLabel" style="color:var(--green);font-weight:600">75%</span> accuracy
+              </div>
+              <div class="slider-row">
+                <input type="range" id="qualitySlider" min="0" max="100" value="75" oninput="onSliderChange()"/>
+                <span class="slider-val" id="qualityVal">75%</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Cost Budget</span>
+              <div style="font-size:13px;color:var(--text-sec);margin-bottom:10px">
+                Max <span id="costLabel" style="color:var(--green);font-weight:600">$5.00</span> per 1,000 queries
+              </div>
+              <div class="slider-row">
+                <input type="range" id="costSlider" min="50" max="5000" value="500" step="50" oninput="onSliderChange()"/>
+                <span class="slider-val" id="costVal">$5.00</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Daily Query Volume</span>
+              <input type="number" id="dailyVolume" value="10000" min="1" max="10000000" step="1000" oninput="onSliderChange()"/>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Used for cost projection in Section 4</div>
+            </div>
+          </div>
+
+          <!-- Comparison Mode -->
+          <div>
+            <span class="field-label">Comparison Mode
+              <span class="qacs-info" style="margin-left:4px">
+                <span class="qacs-q">?</span>
+                <div class="tooltip">
+                  <strong style="color:var(--text)">Comparison Mode</strong><br/>
+                  <strong>Frames vs Frames:</strong> both models see extracted frames. Isolates model quality independently of input format.<br/><br/>
+                  <strong>Native vs Native:</strong> both models receive the full video. Best for Gemini-class models.<br/><br/>
+                  <strong>Mixed (Real-world):</strong> GPT-4o sees frames, Gemini sees native video. Reflects production conditions.
+                </div>
+              </span>
+            </span>
+            <div class="pills" id="modalityPills">
+              <button class="pill" data-val="frames_vs_frames" onclick="setModality(this)">Frames vs Frames</button>
+              <button class="pill" data-val="native_vs_native" onclick="setModality(this)">Native vs Native</button>
+              <button class="pill active" data-val="mixed" onclick="setModality(this)">Mixed (Real-world)</button>
+            </div>
+          </div>
+
+          <!-- Run button -->
+          <div>
+            <button class="run-btn" id="runBtn" onclick="runBenchmark()">RUN BENCHMARK</button>
+            <div class="run-status" id="runStatus"></div>
+            <div class="run-error"  id="runError"></div>
+          </div>
+
+        </div><!-- /config-right -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       SECTION 2 — Live Model Results (hidden until run)
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <section class="section fade-in" id="section2" style="display:none">
+    <div class="section-header">
+      <span class="section-title">Live Analysis Results</span>
+      <span class="section-badge" id="s2RunId"></span>
+    </div>
+    <div class="result-grid" id="resultCards"></div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       SECTION 3 — Benchmark History
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <section class="section fade-in" id="section3" style="display:none">
+    <div class="bench-header">
+      <div>
+        <div class="section-title" style="margin-bottom:4px">
+          Benchmark Results
+          <span class="qacs-info" style="margin-left:8px">
+            QACS <span class="qacs-q">?</span>
+            <div class="tooltip">
+              <strong style="color:var(--text)">Quality-Adjusted Cost Score (0–100)</strong><br/>
+              Measures how much accuracy you get per dollar at scale.<br/>
+              <strong style="color:var(--text-sec)">Formula:</strong> (accuracy% × weight) / (cost_per_query × 10,000), capped at 100
+              <div class="tooltip-tiers">
+                <div class="tooltip-tier"><span class="tt-range">80–100</span><span class="tt-label green">Excellent</span></div>
+                <div class="tooltip-tier"><span class="tt-range">60–79</span><span class="tt-label green" style="color:#86efac">Good</span></div>
+                <div class="tooltip-tier"><span class="tt-range">40–59</span><span class="tt-label yellow">Moderate</span></div>
+                <div class="tooltip-tier"><span class="tt-range">0–39</span><span class="tt-label red">Poor</span></div>
+              </div>
+            </div>
+          </span>
+        </div>
+        <div class="bench-meta" id="benchMeta"></div>
+      </div>
+      <span class="flash-updated" id="flashUpdated">✓ Updated</span>
+    </div>
+
+    <!-- QACS gauges -->
+    <div class="gauge-row" id="gaugeRow"></div>
+
+    <!-- Winner badges -->
+    <div id="winner-badges" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px"></div>
+
+    <!-- Metrics table -->
+    <div style="overflow-x:auto;margin-bottom:20px">
+      <table class="metrics-tbl" id="metricsTable"></table>
+    </div>
+
+
+    <!-- Per-clip details -->
+    <button class="details-toggle" onclick="toggleDetails()">
+      <span id="detailsArrow">▶</span> Show clip details
+    </button>
+    <div class="details-body" id="detailsBody"></div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       SECTION 4 — Decision Engine
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <section class="section fade-in" id="section4" style="display:none">
+    <div class="decision-section">
+      <div class="decision-title">Recommendation</div>
+      <div class="decision-panels" id="decisionPanels"></div>
+    </div>
+  </section>
+
+</div><!-- /page -->
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// Config
+// ════════════════════════════════════════════════════════════════════════════
+const API_BASE = (() => {
+  try {
+    const u = new URL(window.location.href);
+    if (u.protocol === 'file:') return 'http://localhost:8001';
+    const base = u.origin.replace(/\/$/, '');
+    // Combined deployment: page is served from /analysis path
+    if (u.pathname.startsWith('/analysis')) return base + '/analysis';
+    return base;  // standalone mode (localhost:8001 or direct)
+  } catch (_) { return 'http://localhost:8001'; }
+})();
+
+// ════════════════════════════════════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════════════════════════════════════
+let selectedUseCase      = 'sports_archive';
+let selectedAnalysisTypes = new Set(['object_detection']);
+let selectedDetail       = 'standard';
+let selectedReasoning   = 'temporal';
+let selectedTemporalScope = 'sequence';
+let selectedVideoPath    = null;
+let selectedVideoGT      = [];    // ground_truth[] for selected video
+let promptEdited         = false;
+let qualityThreshold     = 75;    // %
+let costBudgetPer1K      = 5.00;  // $ per 1,000 queries
+let dailyVolume          = 10000;
+let benchData            = null;  // from /benchmark-results
+let testVideos           = [];
+let selectedModality     = 'mixed';
+
+// ════════════════════════════════════════════════════════════════════════════
+// Init
+// ════════════════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadModels();
+  loadTestVideos();
+  loadBenchmarkResults();
+  updatePrompt();
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// Data loaders
+// ════════════════════════════════════════════════════════════════════════════
+async function loadModels() {
+  try {
+    const r = await fetch(`${API_BASE}/vision-models`);
+    const data = await r.json();
+    document.getElementById('serverStatus').textContent = '● Connected';
+    document.getElementById('serverStatus').style.color = 'var(--green)';
+
+    const all = [
+      ...data.closed.map(m => ({ ...m, tag: 'closed' })),
+      ...data.open.map(m   => ({ ...m, tag: 'open'   })),
+    ];
+    const opts  = all.map(m => `<option value="${m.id}">${m.name} [${m.tag}]</option>`).join('');
+    const optsB = all.map((m,i) => `<option value="${m.id}"${i===1?' selected':''}>${m.name} [${m.tag}]</option>`).join('');
+    document.getElementById('modelA').innerHTML = opts;
+    document.getElementById('modelB').innerHTML = optsB;
+  } catch (e) {
+    document.getElementById('serverStatus').textContent = '● Server offline';
+    document.getElementById('serverStatus').style.color = 'var(--red)';
+  }
+}
+
+async function loadTestVideos() {
+  try {
+    const r = await fetch(`${API_BASE}/test-videos`);
+    testVideos  = await r.json();
+    const sel   = document.getElementById('videoSelect');
+    if (!testVideos.length) {
+      sel.innerHTML = '<option value="">No clips found — add .mp4 files to data/test_clips/</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— select a test clip —</option>' +
+      testVideos.map(v => {
+        const domTag = v.domain === 'sports_archive' ? 'SPORTS' : 'QIVD';
+        return `<option value="${v.path}" data-domain="${v.domain}">${v.label} [${domTag}]</option>`;
+      }).join('');
+  } catch (_) {}
+}
+
+async function loadBenchmarkResults(flash = false) {
+  try {
+    const r = await fetch(`${API_BASE}/benchmark-results`);
+    if (!r.ok) throw new Error();
+    benchData = await r.json();
+    renderBenchmarkHistory();
+    renderDecisionEngine();
+    showSection('section3');
+    showSection('section4');
+    if (flash) {
+      const el = document.getElementById('flashUpdated');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    }
+  } catch (_) {
+    hideSection('section3');
+    hideSection('section4');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Section 1 interactions
+// ════════════════════════════════════════════════════════════════════════════
+function setUseCase(btn) {
+  document.querySelectorAll('#useCasePills .pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedUseCase = btn.dataset.val;
+  promptEdited = false;
+  updatePrompt();
+}
+
+function toggleAnalysisType(btn) {
+  const val = btn.dataset.val;
+  if (selectedAnalysisTypes.has(val) && selectedAnalysisTypes.size > 1) {
+    selectedAnalysisTypes.delete(val);
+    btn.classList.remove('active');
+  } else {
+    selectedAnalysisTypes.add(val);
+    btn.classList.add('active');
+  }
+  promptEdited = false;
+  updatePrompt();
+}
+
+function setDetail(btn) {
+  document.querySelectorAll('#detailSeg .seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedDetail = btn.dataset.val;
+  promptEdited = false;
+  updatePrompt();
+}
+
+function setReasoning(btn) {
+  document.querySelectorAll('#reasoningPills .pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedReasoning = btn.dataset.val;
+  promptEdited = false;
+  updatePrompt();
+}
+
+function setTemporalScope(btn) {
+  document.querySelectorAll('#temporalPills .pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTemporalScope = btn.dataset.val;
+  promptEdited = false;
+  updatePrompt();
+}
+
+function setModality(btn) {
+  document.querySelectorAll('#modalityPills .pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedModality = btn.dataset.val;
+}
+
+function onVideoSelected() {
+  const sel = document.getElementById('videoSelect');
+  selectedVideoPath = sel.value || null;
+  const vid = testVideos.find(v => v.path === selectedVideoPath);
+  selectedVideoGT   = vid ? (vid.ground_truth || []) : [];
+  promptEdited = false;
+  updatePrompt();
+}
+
+function onSliderChange() {
+  qualityThreshold = parseInt(document.getElementById('qualitySlider').value);
+  costBudgetPer1K  = parseInt(document.getElementById('costSlider').value) / 100;
+  dailyVolume      = parseInt(document.getElementById('dailyVolume').value) || 10000;
+  document.getElementById('qualityVal').textContent   = `${qualityThreshold}%`;
+  document.getElementById('qualityLabel').textContent = `${qualityThreshold}%`;
+  document.getElementById('costVal').textContent      = `$${costBudgetPer1K.toFixed(2)}`;
+  document.getElementById('costLabel').textContent    = `$${costBudgetPer1K.toFixed(2)}`;
+  renderDecisionEngine();
+}
+
+// ── Prompt generation ──────────────────────────────────────────────────────
+function buildPrompt() {
+  // Custom mode: user writes their own
+  if (selectedUseCase === 'custom') return document.getElementById('promptEditable').value || '';
+
+  // If video has non-TBD ground truth, use its question as Part 2
+  const validGT = selectedVideoGT.find(g => g.answer && !g.answer.startsWith('TBD'));
+
+  // PART 1 — Temporal anchor
+  const temporalAnchors = {
+    'temporal+key_moment': 'Focus on the most important moment in this video.',
+    'temporal+sequence':   'Pay attention to how events unfold over time in this video.',
+    'temporal+full_clip':  'Reason across the entire video timeline before answering.',
+    'spatial+key_moment':  'Focus on the spatial arrangement of objects at the key moment.',
+    'spatial+sequence':    'Track how object positions change throughout this video.',
+    'spatial+full_clip':   'Analyze the full spatial context across all scenes.',
+    'causal+key_moment':   'Identify what caused the key event in this video.',
+    'causal+sequence':     'Explain the cause-and-effect chain of events in this video.',
+    'causal+full_clip':    'Reason about what caused the overall outcome shown in this video.',
+  };
+  const part1 = temporalAnchors[`${selectedReasoning}+${selectedTemporalScope}`] || '';
+
+  // PART 2 — Task instruction
+  const taskMap = {
+    sports_archive: {
+      object_detection: {
+        brief:    'List the main objects visible. Answer in 3 words or less.',
+        standard: 'Identify the key objects visible including players, equipment, and environment. Answer in one sentence.',
+        detailed: 'Describe all visible objects in this sports footage in detail, including players, equipment, numbers, and environmental context.',
+      },
+      action_recognition: {
+        brief:    'Name the main action occurring. Answer in 3 words or less.',
+        standard: 'Describe the primary athletic action or play occurring. Answer in one sentence.',
+        detailed: 'Provide a detailed description of all actions, player movements, and game events. Include sequence and timing of events.',
+      },
+      event_counting: {
+        brief:    'Count the main events. Answer with a number only.',
+        standard: 'Count and name each key event occurring in this clip.',
+        detailed: 'List every event in sequence with timing and context.',
+      },
+      scene_description: {
+        brief:    'Describe the scene in 3 words.',
+        standard: 'Describe the sports scene including venue, teams visible, and game context. Answer in one sentence.',
+        detailed: 'Provide a comprehensive scene description including venue, teams, score indicators, crowd, weather, and full context.',
+      },
+    },
+    security_surveillance: {
+      object_detection: {
+        brief:    'List detected objects of interest. Answer in 3 words or less.',
+        standard: 'Identify all people, vehicles, or objects of interest in this footage. Answer in one sentence.',
+        detailed: 'Describe all objects of interest with their locations, movements, and any identifying features.',
+      },
+      action_recognition: {
+        brief:    'Name the activity detected. Answer in 3 words or less.',
+        standard: 'Describe any notable or suspicious activity visible in this security footage. Answer in one sentence.',
+        detailed: 'Provide a detailed account of all activities, their sequence, duration, and any anomalies detected.',
+      },
+      event_counting: {
+        brief:    'Count people or vehicles. Answer with a number only.',
+        standard: 'Count and describe the movements of people or vehicles visible in this clip.',
+        detailed: 'Track and count every person and vehicle, including entry, exit, dwell time, and movement patterns.',
+      },
+      scene_description: {
+        brief:    'Describe the location in 3 words.',
+        standard: 'Describe the location, lighting conditions, and general activity level in this security footage.',
+        detailed: 'Provide a comprehensive scene assessment including location type, coverage quality, lighting, activity patterns, and any security concerns.',
+      },
+    },
+    retail_analytics: {
+      object_detection: {
+        brief:    'List visible products. Answer in 3 words or less.',
+        standard: 'Identify the products and items visible in this retail footage.',
+        detailed: 'Describe all visible products including placement, quantity, shelf position, and any pricing or promotional signage.',
+      },
+      action_recognition: {
+        brief:    'Describe customer behavior in 3 words.',
+        standard: 'Describe customer behavior and product interactions visible in this clip. Answer in one sentence.',
+        detailed: 'Provide a detailed analysis of customer behavior including browsing patterns, dwell time, product interactions, and purchase intent signals.',
+      },
+      event_counting: {
+        brief:    'Count customers. Answer with a number only.',
+        standard: 'Count the number of customers visible and summarize their key actions.',
+        detailed: 'Track every customer interaction: count, dwell time, products touched, and conversion signals.',
+      },
+      scene_description: {
+        brief:    'Describe the retail scene in 3 words.',
+        standard: 'Describe the retail environment including layout, product categories, and customer traffic level.',
+        detailed: 'Provide a full retail scene assessment: layout, product placement, traffic patterns, queue length, staff activity, and overall store health indicators.',
+      },
+    },
+  };
+
+  // PART 3 — Anti-hallucination
+  const antiHallucination = {
+    brief:    "Do not guess. If you cannot determine the answer from the video, say 'Cannot determine'.",
+    standard: 'Base your answer only on what is directly visible or audible in the video. Do not infer from context alone.',
+    detailed: 'Ground every claim in specific visual evidence from the video. Do not rely on assumptions about what typically happens in this type of scene.',
+  };
+
+  // If there's matching GT, use its question as part 2
+  let part2 = '';
+  if (validGT) {
+    part2 = validGT.question;
+  } else {
+    const useCaseMap = taskMap[selectedUseCase] || taskMap.sports_archive;
+    const tasks = [...selectedAnalysisTypes];
+    const instructions = tasks.map(t => {
+      const typeMap = useCaseMap[t];
+      return typeMap ? typeMap[selectedDetail] || typeMap.standard : null;
+    }).filter(Boolean);
+    part2 = instructions.join(' Also, ');
+  }
+
+  const part3 = antiHallucination[selectedDetail] || antiHallucination.standard;
+  return [part1, part2, part3].filter(Boolean).join(' ');
+}
+
+function updatePrompt() {
+  if (promptEdited) return;
+  const p = buildPrompt();
+  document.getElementById('promptReadonly').textContent  = p;
+  document.getElementById('promptEditable').value        = p;
+}
+
+function toggleEditPrompt() {
+  const ro  = document.getElementById('promptReadonly');
+  const ed  = document.getElementById('promptEditable');
+  const btn = document.getElementById('editPromptBtn');
+  if (ed.style.display === 'none') {
+    ro.style.display = 'none';
+    ed.style.display = 'block';
+    ed.focus();
+    btn.textContent  = 'Lock prompt';
+  } else {
+    ro.style.display  = 'block';
+    ed.style.display  = 'none';
+    btn.textContent   = 'Edit prompt';
+    if (promptEdited) ro.textContent = ed.value;
+  }
+}
+
+function onPromptEdited() {
+  promptEdited = document.getElementById('promptEditable').value !== buildPrompt();
+}
+
+function getPrompt() {
+  return promptEdited
+    ? document.getElementById('promptEditable').value
+    : buildPrompt();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RUN BENCHMARK
+// ════════════════════════════════════════════════════════════════════════════
+async function runBenchmark() {
+  const btn    = document.getElementById('runBtn');
+  const status = document.getElementById('runStatus');
+  const errEl  = document.getElementById('runError');
+
+  errEl.textContent   = '';
+  status.textContent  = '';
+
+  if (!selectedVideoPath) { errEl.textContent = 'Select a test video first.'; return; }
+
+  // Clear previous live results
+  hideSection('section2');
+  document.getElementById('resultCards').innerHTML = '';
+
+  btn.disabled        = true;
+  status.innerHTML    = '<span class="spinner"></span> Extracting frames and querying models…';
+
+  try {
+    const modalityA = selectedModality === 'native_vs_native' ? 'native' : 'frames';
+    const modalityB = selectedModality === 'frames_vs_frames' ? 'frames' : 'native';
+    const r = await fetch(`${API_BASE}/analyze`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_path:      selectedVideoPath,
+        prompt:          getPrompt(),
+        closed_model:    document.getElementById('modelA').value,
+        open_model:      document.getElementById('modelB').value,
+        max_tokens:      200,
+        closed_modality: modalityA,
+        open_modality:   modalityB,
+      }),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: r.statusText }));
+      throw new Error(err.detail || r.statusText);
+    }
+    const data = await r.json();
+    const nf   = data.n_frames;
+    status.textContent = `✓ Run ${data.run_id} complete · ${nf} frame(s) extracted`;
+    document.getElementById('s2RunId').textContent = `run ${data.run_id}`;
+
+    // Render live results
+    await renderLiveResults(data);
+    showSection('section2');
+
+    // Re-fetch benchmark history and flash update
+    await loadBenchmarkResults(true);
+
+  } catch (e) {
+    errEl.textContent  = e.message || 'Analysis failed';
+    status.textContent = '';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Section 2 — Live results renderer
+// ════════════════════════════════════════════════════════════════════════════
+async function renderLiveResults(data) {
+  const [rA, rB] = data.results;
+  const cards    = document.getElementById('resultCards');
+  cards.innerHTML = makeResultCard(rA) + makeResultCard(rB);
+
+  const gt = selectedVideoGT.find(g => g.answer && !g.answer.startsWith('TBD'));
+  if (!gt) return;
+
+  // Judge all model outputs concurrently, wait for all verdicts
+  const judgeResults = await Promise.all(
+    data.results
+      .filter(r => r.output_text && !r.error)
+      .map(async r => {
+        try {
+          const res = await fetch(`${API_BASE}/judge-answer`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: gt.question, model_output: r.output_text, ground_truth: gt.answer }),
+          });
+          const { verdict } = await res.json();
+          updateJudgeBadge(r.model_id, verdict, gt.answer);
+          return { ...r, verdict };
+        } catch (_) {
+          updateJudgeBadge(r.model_id, 'UNKNOWN', gt.answer);
+          return { ...r, verdict: 'UNKNOWN' };
+        }
+      })
+  );
+
+  // Append result to benchmark history → live Section 3 update
+  const vid = testVideos.find(v => v.path === selectedVideoPath) || {};
+  const gtEntry = (vid.ground_truth || []).find(g => !g.answer?.startsWith('TBD'));
+  if (judgeResults.length > 0) {
+    fetch(`${API_BASE}/append-run`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clip_id:      gtEntry?.clip_id || data.run_id,
+        filename:     vid.id || '',
+        question:     gt.question,
+        ground_truth: gt.answer,
+        category:     gtEntry?.category || '',
+        domain:       gtEntry?.domain   || 'qivd',
+        results: judgeResults.map(r => ({
+          model_name:  r.model_name,
+          model_id:    r.model_id,
+          model_type:  r.model_type,
+          verdict:     r.verdict,
+          latency_ms:  r.latency_ms,
+          cost_usd:    r.cost_usd,
+          output_text: r.output_text,
+          error:       r.error,
+        })),
+      }),
+    }).then(() => loadBenchmarkResults(true)).catch(() => {});
+  }
+}
+
+function updateJudgeBadge(modelId, verdict, groundTruth) {
+  const cardId  = `judge-${modelId.replace(/\//g,'-')}`;
+  const el      = document.getElementById(cardId);
+  if (!el) return;
+  const isOk    = verdict === 'CORRECT';
+  el.className  = `judge-row judge-${isOk ? 'correct' : verdict === 'INCORRECT' ? 'incorrect' : 'unknown'}`;
+  el.innerHTML  = `
+    <span class="judge-badge">${isOk ? '✓ CORRECT' : verdict === 'INCORRECT' ? '✗ INCORRECT' : 'Judge unavailable'}</span>
+    ${groundTruth ? `<span class="judge-gt">vs ground truth: <em>${groundTruth}</em></span>` : ''}`;
+}
+
+function makeResultCard(r) {
+  const isGemini   = r.model_id && r.model_id.includes('gemini');
+  const inputMode  = r.input_mode === 'video' ? 'NATIVE VIDEO' : 'FRAMES @ 1fps';
+  const typeTag    = r.model_type === 'closed' ? 'closed' : 'open';
+  const modeTag    = r.input_mode === 'video' ? 'video' : 'frames';
+  const fmt        = (v, d, sfx='') => v != null ? `${Number(v).toFixed(d)}${sfx}` : '—';
+
+  return `<div class="card result-card" id="card-${r.model_id.replace(/\//g,'-')}">
+    <div class="model-header">
+      <span class="model-name">${r.model_name || r.model_id}</span>
+      <span class="badge badge-${typeTag}">${typeTag.toUpperCase()}</span>
+      <span class="badge badge-${modeTag}">${inputMode}</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><strong>${fmt(r.latency_ms, 0)} ms</strong>Latency</div>
+      <div class="stat"><strong>${fmt(r.input_tokens, 0)}</strong>In tokens</div>
+      <div class="stat"><strong>${fmt(r.output_tokens, 0)}</strong>Out tokens</div>
+      <div class="stat"><strong>${r.cost_usd != null ? '$' + r.cost_usd.toFixed(5) : '—'}</strong>Cost</div>
+    </div>
+    <div class="output-text ${r.error ? 'err' : ''}">${
+      r.error ? 'Error: ' + r.error : (r.output_text || '(no output)')
+    }</div>
+    <div id="judge-${r.model_id.replace(/\//g,'-')}" class="judge-row judge-unknown">
+      <span class="judge-badge">…</span>
+      <span class="judge-gt">Evaluating answer…</span>
+    </div>
+  </div>`;
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// Section 3 — Benchmark history
+// ════════════════════════════════════════════════════════════════════════════
+function renderBenchmarkHistory() {
+  if (!benchData) return;
+  const models  = Object.keys(benchData.models);
+  const ts      = benchData.run_timestamp ? new Date(benchData.run_timestamp).toLocaleString() : '—';
+  document.getElementById('benchMeta').textContent =
+    `${benchData.n_clips} clips · Last updated: ${ts}`;
+
+  // Gauges
+  const gauges = document.getElementById('gaugeRow');
+  gauges.innerHTML = models.map(name => {
+    const d     = benchData.models[name];
+    const score = d.qacs;
+    return gaugeHTML(score, name);
+  }).join('');
+
+  // Metrics table
+  const tbl = document.getElementById('metricsTable');
+  const mA  = models[0], mB = models[1];
+  const dA  = benchData.models[mA], dB = benchData.models[mB];
+
+  // Winner badges
+  const accWinner   = dA.accuracy >= dB.accuracy ? mA : mB;
+  const accScore    = Math.round(Math.max(dA.accuracy, dB.accuracy) * 100);
+  const latWinner   = dA.avg_latency_ms <= dB.avg_latency_ms ? mA : mB;
+  const latScore    = Math.round(Math.min(dA.avg_latency_ms, dB.avg_latency_ms));
+  const qacsWinner  = dA.qacs >= dB.qacs ? mA : mB;
+  const qacsScore   = Math.max(dA.qacs, dB.qacs).toFixed(1);
+
+  const badgeStyle = 'display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#111827;border:1px solid #7EE8A2;border-radius:8px;font-size:12px;color:#7EE8A2;font-weight:600';
+  document.getElementById('winner-badges').innerHTML = `
+    <span style="${badgeStyle}">🎯 Accuracy Leader: ${accWinner} · ${accScore}%</span>
+    <span style="${badgeStyle}">⚡ Speed Leader: ${latWinner} · ${latScore}ms</span>
+    <span style="${badgeStyle}">💰 Value Leader: ${qacsWinner} · QACS ${qacsScore}</span>
+  `;
+
+  const rows = [
+    { label: 'Answer Accuracy', dir: '↑',
+      vA: (dA.accuracy * 100).toFixed(0) + '%',
+      vB: (dB.accuracy * 100).toFixed(0) + '%',
+      rawA: dA.accuracy, rawB: dB.accuracy },
+    { label: 'Avg Latency',     dir: '↓',
+      vA: Math.round(dA.avg_latency_ms) + ' ms',
+      vB: Math.round(dB.avg_latency_ms) + ' ms',
+      rawA: dA.avg_latency_ms, rawB: dB.avg_latency_ms },
+    { label: 'Cost / Query',    dir: '↓',
+      vA: '$' + (dA.avg_cost_usd || dA.total_cost_usd / benchData.n_clips).toFixed(5),
+      vB: '$' + (dB.avg_cost_usd || dB.total_cost_usd / benchData.n_clips).toFixed(5),
+      rawA: dA.avg_cost_usd || dA.total_cost_usd, rawB: dB.avg_cost_usd || dB.total_cost_usd },
+    { label: 'QACS',            dir: '↑',
+      vA: dA.qacs.toFixed(1), vB: dB.qacs.toFixed(1),
+      rawA: dA.qacs, rawB: dB.qacs },
+  ];
+
+  tbl.innerHTML = `<thead><tr>
+    <th style="text-align:left">Metric</th>
+    <th>${mA}</th><th>${mB}</th><th>Better</th>
+  </tr></thead><tbody>` +
+  rows.map(row => {
+    const aWins = row.dir === '↑' ? row.rawA > row.rawB : row.rawA < row.rawB;
+    const bWins = row.dir === '↑' ? row.rawB > row.rawA : row.rawB < row.rawA;
+    const winner = aWins ? mA : bWins ? mB : 'Tie';
+    return `<tr>
+      <td>${row.label}</td>
+      <td class="${aWins ? 'c-win' : bWins ? 'c-lose' : 'c-tie'}">${row.vA}</td>
+      <td class="${bWins ? 'c-win' : aWins ? 'c-lose' : 'c-tie'}">${row.vB}</td>
+      <td style="color:var(--green);font-size:12px">${winner !== 'Tie' ? '← ' + winner : 'Tie'}</td>
+    </tr>`;
+  }).join('') + '</tbody>';
+
+  // Per-clip details
+  renderClipDetails(models, dA, dB);
+
+}
+
+function gaugeHTML(score, name) {
+  const circ   = 2 * Math.PI * 40;
+  const offset = circ * (1 - Math.min(100, score) / 100);
+  const color = score >= 60 ? '#7EE8A2' : score >= 40 ? '#F59E0B' : '#EF4444';
+  const tier  = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Moderate' : 'Poor';
+  return `<div class="gauge-wrap">
+    <svg viewBox="0 0 100 100" width="110" height="110">
+      <circle cx="50" cy="50" r="40" fill="none" stroke="#1F2937" stroke-width="8"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="8"
+        stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
+        transform="rotate(-90 50 50)" stroke-linecap="round"/>
+      <text x="50" y="46" text-anchor="middle" fill="${color}" font-size="19" font-weight="700" font-family="Inter,sans-serif">${Math.round(score)}</text>
+      <text x="50" y="62" text-anchor="middle" fill="#6B7280" font-size="9" font-family="Inter,sans-serif">QACS</text>
+    </svg>
+    <div class="gauge-label">${name}</div>
+    <div style="font-size:10px;color:${color};margin-top:2px">${tier}</div>
+  </div>`;
+}
+
+function renderClipDetails(models, dA, dB) {
+  const body   = document.getElementById('detailsBody');
+  const clips  = dA.per_clip || [];
+  body.innerHTML = clips.map(clip => {
+    const clipB = (dB.per_clip || []).find(c => c.clip_id === clip.clip_id) || {};
+    const vA = clip.verdict,  vB = clipB.verdict;
+    return `<div class="clip-row">
+      <div class="clip-q">${clip.question}</div>
+      <div class="clip-gt">Ground truth: <em>${clip.ground_truth || '—'}</em></div>
+      <div class="clip-answers">
+        <div class="clip-model">
+          <div class="clip-model-name">${models[0]}</div>
+          <div class="clip-model-ans">${(clip.output_text || '—').slice(0,150)}</div>
+          <div class="${vA==='CORRECT'?'clip-verdict-ok':'clip-verdict-bad'}" style="margin-top:4px;font-size:11px">
+            ${vA==='CORRECT'?'✓ Correct':vA==='INCORRECT'?'✗ Incorrect':vA||'—'}
+          </div>
+        </div>
+        <div class="clip-model">
+          <div class="clip-model-name">${models[1]}</div>
+          <div class="clip-model-ans">${(clipB.output_text || '—').slice(0,150)}</div>
+          <div class="${vB==='CORRECT'?'clip-verdict-ok':'clip-verdict-bad'}" style="margin-top:4px;font-size:11px">
+            ${vB==='CORRECT'?'✓ Correct':vB==='INCORRECT'?'✗ Incorrect':vB||'—'}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+let detailsOpen = false;
+function toggleDetails() {
+  detailsOpen = !detailsOpen;
+  document.getElementById('detailsBody').classList.toggle('open', detailsOpen);
+  document.getElementById('detailsArrow').textContent = detailsOpen ? '▼' : '▶';
+  document.querySelector('.details-toggle').childNodes[1].nodeValue =
+    ' ' + (detailsOpen ? 'Hide clip details' : 'Show clip details');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Section 4 — Decision Engine
+// ════════════════════════════════════════════════════════════════════════════
+function renderDecisionEngine() {
+  if (!benchData) return;
+  const models = Object.keys(benchData.models);
+  if (models.length < 2) return;
+
+  const [nameA, nameB] = models;
+  const dA = benchData.models[nameA];
+  const dB = benchData.models[nameB];
+
+  const accA  = dA.accuracy * 100;
+  const accB  = dB.accuracy * 100;
+  const cpqA  = dA.avg_cost_usd || (dA.total_cost_usd / benchData.n_clips);
+  const cpqB  = dB.avg_cost_usd || (dB.total_cost_usd / benchData.n_clips);
+  const c1kA  = cpqA * 1000;
+  const c1kB  = cpqB * 1000;
+
+  const aQual = accA >= qualityThreshold;
+  const bQual = accB >= qualityThreshold;
+  const aCost = c1kA <= costBudgetPer1K;
+  const bCost = c1kB <= costBudgetPer1K;
+
+  let winner, loser, winnerCPQ, loserCPQ;
+  if (aQual && bQual) {
+    if (cpqA <= cpqB) { winner=nameA; loser=nameB; winnerCPQ=cpqA; loserCPQ=cpqB; }
+    else              { winner=nameB; loser=nameA; winnerCPQ=cpqB; loserCPQ=cpqA; }
+  } else if (aQual) { winner=nameA; loser=nameB; winnerCPQ=cpqA; loserCPQ=cpqB; }
+  else if (bQual)   { winner=nameB; loser=nameA; winnerCPQ=cpqB; loserCPQ=cpqA; }
+  else {
+    if (accA >= accB) { winner=nameA; loser=nameB; winnerCPQ=cpqA; loserCPQ=cpqB; }
+    else              { winner=nameB; loser=nameA; winnerCPQ=cpqB; loserCPQ=cpqA; }
+  }
+
+  const anymeets = aQual || bQual;
+  const winnerAcc = winner === nameA ? accA : accB;
+  const loserAcc  = loser  === nameA ? accA : accB;
+  const effRatio  = winnerCPQ > 0 ? (loserCPQ / winnerCPQ).toFixed(1) : '∞';
+
+  // Panel A — Verdict
+  let panelA;
+  if (anymeets) {
+    panelA = `<div class="dp-title">Model Verdict</div>
+      <div class="verdict-win">✓ ${winner} Recommended</div>
+      <div class="verdict-sub">
+        ${winnerAcc.toFixed(0)}% accuracy · $${(winnerCPQ*1000).toFixed(4)}/1K queries<br/>
+        ${effRatio}× more cost-efficient than ${loser}
+      </div>`;
+  } else {
+    panelA = `<div class="dp-title">Model Verdict</div>
+      <div class="verdict-warn">⚠ Neither meets ${qualityThreshold}% bar</div>
+      <div class="verdict-sub">
+        Closest: ${winner} at ${winnerAcc.toFixed(0)}%<br/>
+        Consider lowering threshold or testing additional models.
+      </div>`;
+  }
+
+  // Panel B — Cost at Scale
+  const vol     = dailyVolume;
+  const daily   = (n, cpq) => (n * cpq).toFixed(2);
+  const monthly = (n, cpq) => (n * cpq * 30).toFixed(2);
+  const annual  = (n, cpq) => (n * cpq * 365).toFixed(2);
+  const savingsMonthly = Math.abs((cpqA - cpqB) * vol * 30);
+  const cheaperModel   = cpqA <= cpqB ? nameA : nameB;
+  const pricierModel   = cpqA <= cpqB ? nameB : nameA;
+  const cpqCheap       = Math.min(cpqA, cpqB);
+  const cpqPricey      = Math.max(cpqA, cpqB);
+
+  const panelB = `<div class="dp-title">Cost at Scale</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">At ${vol.toLocaleString()} queries/day:</div>
+    <table class="cost-tbl">
+      <thead><tr><th></th><th>${nameA}</th><th>${nameB}</th></tr></thead>
+      <tbody>
+        <tr><td>Daily</td><td>$${daily(vol,cpqA)}</td><td>$${daily(vol,cpqB)}</td></tr>
+        <tr><td>Monthly</td><td>$${monthly(vol,cpqA)}</td><td>$${monthly(vol,cpqB)}</td></tr>
+        <tr><td>Annual</td><td>$${annual(vol,cpqA)}</td><td>$${annual(vol,cpqB)}</td></tr>
+      </tbody>
+    </table>
+    <div class="savings-line">Potential monthly savings: $${savingsMonthly.toFixed(2)}<br/>
+      <span style="font-size:11px;font-weight:400;color:var(--green-dim)">(${pricierModel} → ${cheaperModel})</span>
+    </div>
+    <div id="costScaleStats" style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>`;
+
+  // Panel C — Gruve Advantage
+  const gruveCPQ     = winnerCPQ * 0.65;
+  const gruveMonthlySave = (winnerCPQ - gruveCPQ) * vol * 30;
+  const panelC = `<div class="dp-title">Gruve Advantage <span style="font-size:10px;color:var(--text-muted);font-weight:400">(estimated)</span></div>
+    <div style="font-size:12px;color:var(--text-muted)">On Gruve Infrastructure:</div>
+    <div class="gruve-cost">$${(gruveCPQ * 1000).toFixed(4)}<span style="font-size:13px;font-weight:400;color:var(--text-muted)">/1K queries</span></div>
+    <div class="gruve-sub">
+      35% cheaper than ${winner} on standard infrastructure<br/>
+      Monthly savings vs current: <strong style="color:var(--green)">$${gruveMonthlySave.toFixed(2)}</strong>
+    </div>
+    <div class="gruve-note">Based on Gruve's infrastructure cost advantage.<br/>Contact us for a production quote.</div>
+    <a class="gruve-cta" href="https://gruve.ai/contact-us/" target="_blank" rel="noopener">→ Talk to Gruve</a>`;
+
+  document.getElementById('decisionPanels').innerHTML =
+    `<div class="decision-panel">${panelA}</div>
+     <div class="decision-panel">${panelB}</div>
+     <div class="decision-panel gruve-panel">${panelC}</div>`;
+
+  renderCostScaleStats(benchData);
+}
+
+function renderCostScaleStats(bd) {
+  if (!bd) return;
+  const el = document.getElementById('costScaleStats');
+  if (!el) return;
+  const models  = Object.keys(bd.models);
+  const vol     = dailyVolume;
+  const colors  = ['#7EE8A2', '#4ADE80', '#6B7280'];
+  el.innerHTML  = models.map((name, i) => {
+    const cpq     = bd.models[name].avg_cost_usd || (bd.models[name].total_cost_usd / bd.n_clips);
+    const monthly = cpq * vol * 30;
+    const fmtM    = monthly >= 1000 ? '$' + (monthly/1000).toFixed(1) + 'K' : '$' + monthly.toFixed(0);
+    const color   = colors[i] || '#6B7280';
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px">
+      <div style="font-size:10px;color:${color};letter-spacing:0.06em;margin-bottom:4px">${name.toUpperCase()}</div>
+      <div style="font-size:20px;font-weight:700;color:${color}">${fmtM}<span style="font-size:11px;font-weight:400;color:var(--text-muted)">/mo</span></div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:3px">$${(cpq*1000).toFixed(4)} per 1K queries</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Helpers
+// ════════════════════════════════════════════════════════════════════════════
+function showSection(id) {
+  const el = document.getElementById(id);
+  el.style.display = '';
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+}
+function hideSection(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('visible');
+  el.style.display = 'none';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+[
+  {
+    "clip_id": "object_referencing__what_am_i_holding_in",
+    "filename": "object_referencing__what_am_i_holding_in.mp4",
+    "source_file": "00000000.mp4",
+    "category": "object referencing",
+    "question": "What am I holding in my left hand?",
+    "answer": "You are holding a Rubik's cube in your left hand.",
+    "short_answer": "A Rubik's cube",
+    "answer_timestamp": "00:04.4"
+  },
+  {
+    "clip_id": "action_attributes__am_i_standing_sideways",
+    "filename": "action_attributes__am_i_standing_sideways.mp4",
+    "source_file": "00000001.mp4",
+    "category": "action attributes",
+    "question": "Am I standing sideways?",
+    "answer": "Yes, you are standing sideways.",
+    "short_answer": "Yes",
+    "answer_timestamp": "00:05.2"
+  },
+  {
+    "clip_id": "object_referencing__what_do_i_have_in",
+    "filename": "object_referencing__what_do_i_have_in.mp4",
+    "source_file": "00000002.mp4",
+    "category": "object referencing",
+    "question": "What do I have in my hand?",
+    "answer": "You are holding an apple in your hand.",
+    "short_answer": "An apple",
+    "answer_timestamp": "00:03.7"
+  },
+  {
+    "clip_id": "action_detection__do_i_open_the_window",
+    "filename": "action_detection__do_i_open_the_window.mp4",
+    "source_file": "00000003.mp4",
+    "category": "action detection",
+    "question": "Do I open the window now?",
+    "answer": "Yes, you briefly opened the window just now.",
+    "short_answer": "Yes",
+    "answer_timestamp": "00:05.0"
+  },
+  {
+    "clip_id": "action_detection__did_i_jump_a_moment",
+    "filename": "action_detection__did_i_jump_a_moment.mp4",
+    "source_file": "00000004.mp4",
+    "category": "action detection",
+    "question": "Did I jump a moment ago?",
+    "answer": "Yes, you jumped.",
+    "short_answer": "Yes",
+    "answer_timestamp": "00:04.4"
+  },
+  {
+    "clip_id": "nba_sport_type",
+    "filename": "nba_highlight.mp4",
+    "category": "sports",
+    "domain": "sports_archive",
+    "question": "What sport is being played?",
+    "answer": "basketball",
+    "short_answer": "basketball",
+    "answer_timestamp": "0"
+  },
+  {
+    "clip_id": "nba_jersey_color",
+    "filename": "nba_highlight.mp4",
+    "category": "object_attributes",
+    "domain": "sports_archive",
+    "question": "What color jersey is the scoring player wearing?",
+    "answer": "Blue and orange jersey",
+    "short_answer": "Blue and orange",
+    "answer_timestamp": "5"
+  },
+  {
+    "clip_id": "nba_player_count",
+    "filename": "nba_highlight.mp4",
+    "category": "counting",
+    "domain": "sports_archive",
+    "question": "How many players are visible on the court?",
+    "answer": "10 players are visible on the court",
+    "short_answer": "10",
+    "answer_timestamp": "3"
+  },
+  {
+    "clip_id": "nfl_sport_type",
+    "filename": "nfl_highlight.mp4",
+    "category": "sports",
+    "domain": "sports_archive",
+    "question": "What sport is being played?",
+    "answer": "football",
+    "short_answer": "football",
+    "answer_timestamp": "0"
+  },
+  {
+    "clip_id": "nfl_jersey_color",
+    "filename": "nfl_highlight.mp4",
+    "category": "object_attributes",
+    "domain": "sports_archive",
+    "question": "What color jersey is the team with the ball wearing?",
+    "answer": "Orange and white jersey",
+    "short_answer": "Orange and white",
+    "answer_timestamp": "5"
+  },
+  {
+    "clip_id": "nfl_player_count",
+    "filename": "nfl_highlight.mp4",
+    "category": "counting",
+    "domain": "sports_archive",
+    "question": "How many players are visible in the frame?",
+    "answer": "22 players are visible in the frame",
+    "short_answer": "22",
+    "answer_timestamp": "3"
+  }
+]

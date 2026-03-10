@@ -11,3 +11,9 @@ python-multipart>=0.0.12
 
 # Env
 python-dotenv>=1.0.0
+
+# Video analysis
+opencv-python-headless>=4.8.0
+Pillow>=10.0.0
+requests>=2.32.0
+yt-dlp>=2024.1.1
