@@ -3,164 +3,273 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Video Gen Evals | Kling · Sora</title>
+  <title>Video Gen Evals | Model A · Model B</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a0c10;
-      --surface: #12151c;
-      --border: #1e2430;
-      --glow: #00d4aa;
-      --glow-dim: rgba(0, 212, 170, 0.15);
-      --text: #e2e8f0;
-      --text-dim: #64748b;
+      --bg: #050608;
+      --surface: #0c0e12;
+      --surface-elevated: #111318;
+      --border: #1a1d24;
       --accent: #00d4aa;
+      --accent-dim: rgba(0, 212, 170, 0.12);
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
       --error: #f43f5e;
+      --quality-bg: rgba(0, 212, 170, 0.06);
+      --perf-bg: rgba(99, 102, 241, 0.06);
+      --cost-bg: rgba(34, 197, 94, 0.06);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
+      line-height: 1.5;
     }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
-      background-size: 32px 32px;
-      pointer-events: none;
-      z-index: 0;
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(5, 6, 8, 0.85);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .nav-bar .logo {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+    .nav-bar .logo span { color: var(--accent); }
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: clamp(2.25rem, 5vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .hero .tagline {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
     }
     .container {
       position: relative;
       z-index: 1;
       max-width: 1400px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 0 2rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
     }
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border);
+    @media (max-width: 1100px) {
+      .container { grid-template-columns: 1fr; }
     }
-    h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
-      font-size: 1.75rem;
-      letter-spacing: 0.2em;
-      color: var(--accent);
-      text-shadow: 0 0 24px var(--glow-dim);
-    }
-    .sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.3em; margin-top: 0.5rem; }
-    section.form-section {
-      margin-bottom: 1.75rem;
-      padding: 1.25rem;
+    .input-panel {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 12px;
+      padding: 1.5rem;
     }
-    section.form-section h2 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.8rem;
-      letter-spacing: 0.15em;
-      color: var(--accent);
-      margin-bottom: 1rem;
+    .input-panel .form-section {
+      margin-bottom: 1.25rem;
+      padding: 1rem 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      border-bottom: 1px solid var(--border);
     }
-    label {
+    .input-panel .form-section:last-of-type {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .left-col { min-width: 0; }
+    .right-col { min-width: 0; }
+    .prefs-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .prefs-card .section-label { margin-bottom: 1.25rem; }
+    .slider-wrap {
+      margin-bottom: 1.5rem;
+    }
+    .slider-wrap label {
       display: block;
       font-size: 0.7rem;
       color: var(--text-dim);
-      letter-spacing: 0.15em;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+    .slider-label { font-size: 0.85rem; color: var(--accent); margin-top: 0.4rem; }
+    .cost-range-est { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.3rem; }
+    section.form-section {
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    section.form-section h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 500;
       margin-bottom: 0.5rem;
     }
     textarea {
       width: 100%;
-      min-height: 80px;
-      padding: 1rem 1.25rem;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 0.9rem;
-      resize: vertical;
-    }
-    textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--glow-dim);
-    }
-    .btn-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .btn-group button {
-      padding: 0.4rem 0.85rem;
-      font-size: 0.75rem;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .btn-group button:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-group button.active {
-      background: var(--accent);
-      color: var(--bg);
-      border-color: var(--accent);
-    }
-    select {
-      padding: 0.5rem 1rem;
+      min-height: 72px;
+      padding: 0.85rem 1rem;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text);
       font-family: inherit;
       font-size: 0.85rem;
-      min-width: 180px;
+      resize: vertical;
     }
-    .actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .btn-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .btn-group button {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-group button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .btn-group button.active {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    select {
+      padding: 0.45rem 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      min-width: 160px;
+    }
+    .actions { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
     button.primary {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 600;
       letter-spacing: 0.1em;
-      padding: 0.75rem 1.5rem;
+      padding: 0.65rem 1.25rem;
       border: 1px solid var(--accent);
       background: var(--accent);
       color: var(--bg);
       border-radius: 6px;
       cursor: pointer;
     }
-    button.primary:hover:not(:disabled) { box-shadow: 0 0 24px rgba(0,212,170,0.4); }
+    button.primary:hover:not(:disabled) { filter: brightness(1.08); }
     button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
     button.secondary {
       background: transparent;
       color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
+      border: 1px solid var(--border);
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
       cursor: pointer;
       font-family: inherit;
       font-size: 0.8rem;
+      font-weight: 500;
     }
-    button.secondary:hover:not(:disabled) { background: var(--glow-dim); }
-    button.secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary:hover:not(:disabled) { background: var(--accent-dim); border-color: var(--accent); }
+    #builtPrompt {
+      margin-top: 0.75rem;
+      padding: 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      color: var(--text-dim);
+    }
+    .error-msg { color: var(--error); font-size: 0.75rem; margin-top: 0.4rem; }
+    .status { font-size: 0.7rem; color: var(--accent); margin-top: 0.4rem; }
+
+    /* Videos + Model dropdowns */
+    .videos-section { grid-column: 1 / -1; margin-top: 0.5rem; }
     .videos-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
-      margin: 2rem 0;
+      gap: 1.25rem;
+      margin-bottom: 1rem;
     }
     @media (max-width: 700px) { .videos-grid { grid-template-columns: 1fr; } }
     .video-card {
@@ -169,14 +278,16 @@
       border-radius: 8px;
       overflow: hidden;
     }
-    .video-card h3 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      color: var(--text-dim);
-      padding: 0.75rem 1rem;
+    .video-card .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 1rem;
       border-bottom: 1px solid var(--border);
+      background: var(--bg);
     }
+    .video-card .card-header label { margin: 0; font-size: 0.65rem; }
+    .video-card .card-header select { min-width: 140px; font-size: 0.75rem; }
     .video-wrap {
       aspect-ratio: 16/9;
       background: var(--bg);
@@ -186,50 +297,52 @@
       position: relative;
     }
     .video-wrap video { width: 100%; height: 100%; object-fit: contain; }
-    .video-wrap .placeholder { color: var(--text-dim); font-size: 0.75rem; text-align: center; padding: 1rem; }
+    .video-wrap .placeholder { color: var(--text-dim); font-size: 0.7rem; text-align: center; padding: 1rem; }
     .video-wrap .spinner {
-      width: 32px; height: 32px;
+      width: 28px; height: 28px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .judge-cta {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-    .metrics-block {
-      margin-top: 2rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-    }
-    .metrics-block h2 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.9rem;
-      letter-spacing: 0.1em;
-      color: var(--accent);
+    .video-meta { font-size: 0.65rem; color: var(--text-dim); padding: 0.4rem 1rem; }
+    .judge-cta { margin-top: 1rem; text-align: center; }
+    .judge-cta button { margin-bottom: 0.5rem; }
+
+    /* Metrics — always visible, segmented with colors */
+    .metrics-section { grid-column: 1 / -1; margin-top: 1.5rem; }
+    .metrics-section h2 {
+      font-size: 1rem;
+      font-weight: 600;
       margin-bottom: 0.75rem;
+      color: var(--text);
     }
-    .metrics-block .explain {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      margin-bottom: 1rem;
-      line-height: 1.5;
+    .metrics-section .segment {
+      margin-bottom: 1.25rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .metrics-section .segment.quality .segment-head { background: var(--quality-bg); color: var(--accent); border-bottom: 1px solid var(--border); }
+    .metrics-section .segment.perf .segment-head { background: var(--perf-bg); color: #818cf8; border-bottom: 1px solid var(--border); }
+    .metrics-section .segment.cost-seg .segment-head { background: var(--cost-bg); color: #22c55e; border-bottom: 1px solid var(--border); }
+    .segment-head {
+      padding: 0.6rem 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      text-transform: uppercase;
     }
     table.metrics {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.8rem;
-      margin-bottom: 1.5rem;
+      font-size: 0.78rem;
     }
-    table.metrics th,
-    table.metrics td {
-      padding: 0.6rem 1rem;
+    table.metrics th, table.metrics td {
+      padding: 0.5rem 1rem;
       text-align: left;
-      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
     }
     table.metrics th {
       background: var(--surface);
@@ -237,194 +350,350 @@
       letter-spacing: 0.05em;
     }
     table.metrics td { background: var(--bg); }
-    .judge-summary {
-      padding: 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.85rem;
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-    }
     table.metrics td.winner {
       background: rgba(0, 212, 170, 0.12);
       border-color: var(--accent);
     }
-    .metric-reason { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem; }
-    .section-winner { font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; margin-top: 0.5rem; }
-    .error-msg { color: var(--error); font-size: 0.8rem; margin-top: 0.5rem; }
-    .status { font-size: 0.75rem; color: var(--accent); margin-top: 0.5rem; }
-    #builtPrompt {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: var(--bg);
+    .metric-reason { font-size: 0.65rem; color: var(--text-dim); margin-top: 0.2rem; }
+    .section-winner { font-size: 0.68rem; color: var(--accent); margin-top: 0.4rem; }
+    .explain { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 0.75rem; line-height: 1.4; }
+
+    /* Cost & Performance — Layer 1 Summary + Layer 2 Detailed */
+    .cost-perf-section { grid-column: 1 / -1; margin-top: 2rem; }
+    .summary-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .winner-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .winner-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .winner-badge .icon { font-size: 1.1rem; }
+    .winner-badge.winner { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+    .chart-wrap-summary { height: 200px; max-height: 200px; margin: 1rem 0; position: relative; }
+    .insight-line { font-size: 0.9rem; color: var(--text-dim); margin: 1rem 0; line-height: 1.5; }
+    .btn-detail-toggle {
+      margin-top: 1rem;
+      padding: 0.65rem 1.25rem;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
       font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-detail-toggle:hover { background: var(--accent-dim); }
+    .detail-layer {
+      overflow: hidden;
+      transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    }
+    .detail-layer.collapsed { max-height: 0; opacity: 0; }
+    .detail-layer.expanded { max-height: 5000px; opacity: 1; }
+    .detail-inner { padding-top: 1.5rem; }
+    .kpi-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 800px) { .kpi-cards { grid-template-columns: 1fr; } }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .kpi-card .label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .kpi-card .values { font-size: 0.9rem; }
+    .kpi-card .values .winner { color: var(--accent); }
+    .chart-wrap-spiral { height: 400px; margin: 1rem 0; position: relative; }
+    .segment-title { font-size: 0.95rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: var(--text); }
+    .segment-subtitle { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.75rem; line-height: 1.4; }
+    .resolution-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+    .resolution-table th, .resolution-table td { padding: 0.6rem 1rem; border: 1px solid var(--border); text-align: left; }
+    .resolution-table th { background: var(--surface); color: var(--text-dim); }
+    .resolution-table td { background: var(--bg); }
+    .resolution-table .cheaper { color: var(--accent); }
+    .callout-box {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.85rem;
       line-height: 1.5;
-      white-space: pre-wrap;
       color: var(--text-dim);
+      margin-bottom: 1rem;
+    }
+    .deploy-card {
+      border-left: 4px solid var(--accent);
+      background: var(--surface-elevated);
+      padding: 1.25rem 1.5rem;
+      border-radius: 0 12px 12px 0;
+      margin-top: 1rem;
+    }
+    .deploy-card .title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+    .deploy-card .verdict-row { font-size: 0.85rem; margin: 0.4rem 0; }
+    .deploy-card .verdict-row .accent { color: var(--accent); }
+    .deploy-card .paragraphs { margin-top: 1rem; font-size: 0.85rem; line-height: 1.6; color: var(--text-dim); }
+    .deploy-card .paragraphs p { margin-bottom: 0.75rem; }
+    .zone-label { font-size: 0.7rem; fill: var(--error); }
+    .quality-subtitle { margin-bottom: 0.75rem; }
+    .judge-scores-small { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.2rem; }
+    .variance-flag { font-size: 0.68rem; color: var(--error); margin-top: 0.25rem; }
+    .video-top-metrics {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      padding: 0.5rem 1rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.4;
+    }
+    .video-top-metrics strong { color: var(--accent); }
+    .recommendation-card {
+      border-left: 4px solid var(--accent);
+      background: var(--surface-elevated);
+      padding: 1.25rem 1.5rem;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: var(--text);
     }
   </style>
 </head>
 <body>
+  <nav class="nav-bar">
+    <div class="logo">Gruve Atlas</div>
+  </nav>
+  <header class="hero">
+    <h1>Video Gen Evals</h1>
+    <p class="tagline">Compare AI video models side by side — standardized prompts, frame-based quality metrics, and cost projection at scale.</p>
+  </header>
   <div class="container">
-    <header>
-      <h1>VIDEO GEN EVALS</h1>
-      <p class="sub">KLING 2.6 · SORA 2 — STANDARDIZED PROMPT → METRICS</p>
-    </header>
-
-    <!-- 1) What is exactly happening? -->
-    <section class="form-section">
-      <h2>1) SCENE DESCRIPTION</h2>
-      <label for="description">What is exactly happening? (subject, action, environment)</label>
-      <textarea id="description" placeholder="e.g. A blue car drives slowly on a snowy mountain road at dusk..."></textarea>
-    </section>
-
-    <!-- 2) Style -->
-    <section class="form-section">
-      <h2>2) VISUAL STYLE</h2>
-      <label>What style should the video look like?</label>
-      <div class="btn-group" id="styleGroup">
-        <button type="button" data-value="photorealistic" class="active">Photorealistic</button>
-        <button type="button" data-value="cinematic">Cinematic</button>
-        <button type="button" data-value="animated">Animated</button>
-        <button type="button" data-value="3D rendered">3D Rendered</button>
-        <button type="button" data-value="stylized">Stylized</button>
-      </div>
-    </section>
-
-    <!-- 3) Camera and framing -->
-    <section class="form-section">
-      <h2>3) CAMERA & FRAMING</h2>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <div>
-          <label>Aspect ratio</label>
-          <div class="btn-group" id="ratioGroup">
-            <button type="button" data-value="16:9" class="active">16:9</button>
-            <button type="button" data-value="9:16">9:16</button>
-            <button type="button" data-value="1:1" disabled title="Not supported by Sora">1:1</button>
+    <div class="left-col">
+      <p class="section-label">Input</p>
+      <div class="input-panel">
+      <section class="form-section">
+        <h2>1) Scene description</h2>
+        <label for="description">What is exactly happening? (subject, action, environment)</label>
+        <textarea id="description" placeholder="e.g. A blue car drives slowly on a snowy mountain road at dusk..."></textarea>
+      </section>
+      <section class="form-section">
+        <h2>2) Visual style</h2>
+        <label>What style should the video look like?</label>
+        <div class="btn-group" id="styleGroup">
+          <button type="button" data-value="photorealistic" class="active">Photorealistic</button>
+          <button type="button" data-value="cinematic">Cinematic</button>
+          <button type="button" data-value="animated">Animated</button>
+          <button type="button" data-value="3D rendered">3D Rendered</button>
+          <button type="button" data-value="stylized">Stylized</button>
+        </div>
+      </section>
+      <section class="form-section">
+        <h2>3) Camera & framing</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label>Aspect ratio</label>
+            <div class="btn-group" id="ratioGroup">
+              <button type="button" data-value="16:9" class="active">16:9</button>
+              <button type="button" data-value="9:16">9:16</button>
+              <button type="button" data-value="1:1">1:1</button>
+            </div>
+          </div>
+          <div>
+            <label>Camera style</label>
+            <select id="cameraStyle">
+              <option value="Close-up">Close-up</option>
+              <option value="Medium shot">Medium shot</option>
+              <option value="Wide shot">Wide shot</option>
+              <option value="Moving camera">Moving camera</option>
+              <option value="Static camera">Static camera</option>
+            </select>
           </div>
         </div>
-        <div>
-          <label>Camera style</label>
-          <select id="cameraStyle">
-            <option value="Close-up">Close-up</option>
-            <option value="Medium shot">Medium shot</option>
-            <option value="Wide shot">Wide shot</option>
-            <option value="Moving camera">Moving camera</option>
-            <option value="Static camera">Static camera</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4) Video quality settings -->
-    <section class="form-section">
-      <h2>4) VIDEO QUALITY SETTINGS</h2>
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-        <div>
-          <label>Resolution</label>
-          <div class="btn-group" id="resolutionGroup">
-            <button type="button" data-value="720p" class="active">720p</button>
-            <button type="button" data-value="1080p">1080p</button>
-            <button type="button" data-value="4K">4K</button>
+      </section>
+      <section class="form-section">
+        <h2>4) Video quality settings</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label>Resolution</label>
+            <div class="btn-group" id="resolutionGroup">
+              <button type="button" data-value="720p" class="active">720p</button>
+              <button type="button" data-value="1080p">1080p</button>
+              <button type="button" data-value="4K">4K</button>
+            </div>
+          </div>
+          <div>
+            <label>Video length</label>
+            <select id="videoLength">
+              <option value="5">5 seconds</option>
+              <option value="10">10 seconds</option>
+              <option value="custom">Custom</option>
+            </select>
+            <input type="number" id="customSeconds" placeholder="sec" min="1" max="30" style="width:70px;margin-left:0.4rem;padding:0.35rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);display:none;" />
+          </div>
+          <div>
+            <label>Motion detail</label>
+            <select id="motionDetail">
+              <option value="Low motion">Low motion</option>
+              <option value="Moderate motion" selected>Moderate motion</option>
+              <option value="High motion">High motion</option>
+            </select>
           </div>
         </div>
-        <div>
-          <label>Video length</label>
-          <select id="videoLength">
-            <option value="5">5 seconds</option>
-            <option value="10">10 seconds</option>
-            <option value="custom">Custom</option>
-          </select>
-          <input type="number" id="customSeconds" placeholder="sec" min="1" max="30" style="width:80px;margin-left:0.5rem;padding:0.4rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);display:none;" />
+      </section>
+      <section class="form-section">
+        <h2>Combined prompt (sent to both models)</h2>
+        <div id="builtPrompt">Fill the form above; the combined prompt will appear here.</div>
+        <div class="actions">
+          <button type="button" id="btnBuildPrompt" class="secondary">REFRESH PROMPT</button>
+          <button type="button" id="btnGenerate" class="primary">GENERATE 2 VIDEOS</button>
         </div>
-        <div>
-          <label>Motion detail</label>
-          <select id="motionDetail">
-            <option value="Low motion">Low motion</option>
-            <option value="Moderate motion" selected>Moderate motion</option>
-            <option value="High motion">High motion</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- Built prompt preview + Generate -->
-    <section class="form-section">
-      <h2>COMBINED PROMPT (sent to both models)</h2>
-      <div id="builtPrompt">Fill the form above; the combined prompt will appear here.</div>
-      <div class="actions">
-        <button type="button" id="btnBuildPrompt" class="secondary">REFRESH PROMPT</button>
-        <button type="button" id="btnGenerate" class="primary">GENERATE 2 VIDEOS</button>
-      </div>
-      <p id="generateStatus" class="status"></p>
-      <p id="generateError" class="error-msg"></p>
-    </section>
-
-    <!-- Videos -->
-    <div class="videos-grid">
-      <div class="video-card">
-        <h3>KLING 2.6</h3>
-        <div class="video-wrap" id="wrapKling"><span class="placeholder">—</span></div>
-        <div style="font-size:0.7rem;color:var(--text-dim);padding:0.5rem 1rem;" id="metaKling"></div>
-      </div>
-      <div class="video-card">
-        <h3>SORA 2</h3>
-        <div class="video-wrap" id="wrapSora"><span class="placeholder">—</span></div>
-        <div style="font-size:0.7rem;color:var(--text-dim);padding:0.5rem 1rem;" id="metaSora"></div>
+        <p id="generateStatus" class="status"></p>
+        <p id="generateError" class="error-msg"></p>
+      </section>
       </div>
     </div>
 
-    <!-- Run Judge (only after generate) -->
-    <section class="judge-cta" id="judgeCta" style="display: none;">
-      <button type="button" id="btnJudge" class="primary">RUN JUDGE (GEMINI)</button>
-      <p id="judgeStatus" class="status"></p>
-      <p id="judgeError" class="error-msg"></p>
-    </section>
-
-    <!-- Metrics (after judge) -->
-    <div class="metrics-block" id="metricsBlock" style="display: none;">
-      <h2>HOW WE CALCULATE LATENCY & COST</h2>
-      <p class="explain">
-        <strong>Latency</strong> = time from when we send the request to the API until the video file is fully received (generation_end_time − request_start_time), in seconds.<br>
-        <strong>Cost per model</strong> = we use fixed per-second rates from provider pricing: Kling 2.6 (fal.ai) and Sora 2 (OpenAI). Cost per video = video_duration_seconds × cost_per_second. These rates are set in backend config and can be updated when pricing changes.
-      </p>
-
-      <h2>QUALITY SECTION — 6 metrics (frame-based judge, 1–10)</h2>
-      <p class="explain">Frames at 0%, 25%, 50%, 75%, 100% sent to Gemini 1.5 Pro. One call per metric. Overall = average of 6.</p>
-      <table class="metrics" id="tableQuality">
-        <thead><tr><th>Metric</th><th>Kling 2.6</th><th>Sora 2</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p class="section-winner" id="qualityWinner"></p>
-
-      <h2>PERFORMANCE SECTION</h2>
-      <table class="metrics" id="tablePerf">
-        <thead><tr><th>Metric</th><th>Kling 2.6</th><th>Sora 2</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p class="explain">Latency = time between API request sent and video file received (s). Generation speed = video_duration / latency. Throughput = 60 / latency (videos/min).</p>
-      <p class="section-winner" id="perfWinner"></p>
-
-      <h2>COST SECTION</h2>
-      <table class="metrics" id="tableCost">
-        <thead><tr><th>Metric</th><th>Kling 2.6</th><th>Sora 2</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p class="explain">Cost per video = video_duration_seconds × cost_per_second_of_output. Cost per hour = cost_per_second × 3600. Value score = overall_quality_score / cost_per_video (higher = better value).</p>
-      <p class="section-winner" id="costWinner"></p>
-
-      <h2>LONG COST PROJECTION (1 HOUR)</h2>
-      <table class="metrics" id="tableProjection">
-        <thead><tr><th>Model</th><th>Cost (this clip)</th><th>Cost (1 hour)</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p class="explain">Cost per hour = cost_per_second_of_output × 3600.</p>
+    <div class="right-col">
+      <p class="section-label">Preferences</p>
+      <div class="prefs-card">
+        <div class="slider-wrap">
+          <label>Quality Scale</label>
+          <input type="range" id="qualityScale" min="0" max="100" value="50" />
+          <div class="slider-label" id="qualityScaleLabel">Balanced</div>
+        </div>
+        <div class="slider-wrap">
+          <label>Cost Appetite</label>
+          <input type="range" id="costAppetite" min="0" max="100" value="50" />
+          <div class="slider-label" id="costAppetiteLabel">Balanced</div>
+          <div class="cost-range-est" id="costRangeEst">~$0.50–$2.50 per video</div>
+        </div>
+      </div>
     </div>
+
+    <section class="videos-section">
+      <p class="section-label" style="margin-top:1rem">Outcome</p>
+      <div class="videos-grid">
+        <div class="video-card">
+          <div class="card-header">
+            <label>Model A</label>
+            <select id="modelA">
+              <option value="sora">Sora 2 (OpenAI)</option>
+            </select>
+          </div>
+          <div class="video-wrap" id="wrapSora"><span class="placeholder">—</span></div>
+          <div class="video-meta" id="metaSora"></div>
+          <div class="video-top-metrics" id="topMetricsSora"></div>
+        </div>
+        <div class="video-card">
+          <div class="card-header">
+            <label>Model B</label>
+            <select id="modelB">
+              <option value="kling">Kling 2.6 (Kuaishou)</option>
+            </select>
+          </div>
+          <div class="video-wrap" id="wrapKling"><span class="placeholder">—</span></div>
+          <div class="video-meta" id="metaKling"></div>
+          <div class="video-top-metrics" id="topMetricsKling"></div>
+        </div>
+      </div>
+      <section class="judge-cta" id="judgeCta">
+        <button type="button" id="btnJudge" class="primary" disabled>RUN JUDGE (3-PANEL)</button>
+        <p id="judgeStatus" class="status"></p>
+        <p id="judgeError" class="error-msg"></p>
+      </section>
+
+      <!-- Metrics — always visible -->
+      <p class="section-label" style="margin-top:2rem">Metrics</p>
+      <div class="metrics-section" id="metricsSection">
+        <h2>Metrics comparison</h2>
+        <p class="explain">Pre-generation values show —. After running judge, scores and performance populate. Winners highlighted in teal.</p>
+        <div class="segment quality">
+          <div class="segment-head">QUALITY (frame-based judge, 1–10)</div>
+          <p class="explain quality-subtitle">Weighted scores across 3 independent multimodal judges — Gemini 1.5 Pro, GPT-4o, Claude 3.5 Sonnet</p>
+          <table class="metrics" id="tableQuality">
+            <thead><tr><th>Metric</th><th>Model A (Sora 2)</th><th>Model B (Kling 2.6)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="section-winner" id="qualityWinner"></p>
+        </div>
+        <div class="segment perf">
+          <div class="segment-head">PERFORMANCE</div>
+          <table class="metrics" id="tablePerf">
+            <thead><tr><th>Metric</th><th>Model A</th><th>Model B</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="section-winner" id="perfWinner"></p>
+        </div>
+        <div class="segment cost-seg">
+          <div class="segment-head">COST</div>
+          <table class="metrics" id="tableCost">
+            <thead><tr><th>Metric</th><th>Model A</th><th>Model B</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="section-winner" id="costWinner"></p>
+        </div>
+      </div>
+
+      <!-- Cost & Performance — Two layers -->
+      <p class="section-label" style="margin-top:2.5rem">Cost & Performance</p>
+      <div class="cost-perf-section">
+        <!-- LAYER 1 — Summary (always visible) -->
+        <div class="summary-card">
+          <div class="winner-badges" id="winnerBadges">
+            <span class="winner-badge">🏆 Quality Leader: —</span>
+            <span class="winner-badge">⚡ Speed Leader: —</span>
+            <span class="winner-badge">💰 Value Leader: —</span>
+          </div>
+          <div class="chart-wrap-summary">
+            <canvas id="chartSummary"></canvas>
+          </div>
+          <p class="insight-line" id="insightLine">Generate videos and run judge to see cost at scale.</p>
+          <button type="button" class="btn-detail-toggle" id="btnDetailToggle">View Detailed Analysis ↓</button>
+        </div>
+        <!-- LAYER 2 — Detailed (expands on click) -->
+        <div class="detail-layer collapsed" id="detailLayer">
+          <div class="detail-inner">
+            <div class="segment-title">SECTION A — Unit Economics</div>
+            <div class="kpi-cards" id="kpiCards"></div>
+            <div class="segment-title">SECTION B — How model choice compounds at scale</div>
+            <p class="segment-subtitle" id="spiralSubtitle"></p>
+            <div class="chart-wrap-spiral">
+              <canvas id="chartSpiral"></canvas>
+            </div>
+            <div class="segment-title">SECTION C — Performance breakdown</div>
+            <table class="metrics" id="perfBreakdownTable">
+              <thead><tr><th>Metric</th><th>Model A</th><th>Model B</th><th>Winner</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <p class="insight-line" id="perfInsight"></p>
+            <div class="segment-title">SECTION D — Resolution multiplier</div>
+            <table class="resolution-table" id="resolutionMultiplierTable">
+              <thead><tr><th>Resolution</th><th>Model A $/video</th><th>Model B $/video</th><th>Multiplier</th><th>Monthly at 50K gens</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <div class="callout-box" id="resolutionCallout"></div>
+            <div class="segment-title">SECTION E — Deployment recommendation</div>
+            <div class="deploy-card" id="deployCard"></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     const API_BASE = (() => {
       try {
@@ -434,8 +703,18 @@
       } catch (_) { return 'http://localhost:8000'; }
     })();
 
+    // Pricing per second (user spec)
+    const SORA_RATE = { '720p': 0.10, '1080p': 0.50 };
+    const KLING_RATE = { '720p': 0.08, '1080p': 0.16, '4K': 0.32 };
+    const VOLUME_TIERS = [1000, 5000, 10000, 50000, 100000, 500000]; // videos/month
+    const SORA_DUR_DEFAULT = 8;
+    const KLING_DUR_DEFAULT = 5;
+
     let lastResult = null;
+    let lastJudgeResult = null;
     let lastPrompt = '';
+    let chartSummaryInstance = null;
+    let chartSpiralInstance = null;
     const state = {
       style: 'photorealistic',
       ratio: '16:9',
@@ -444,7 +723,17 @@
       videoLength: '5',
       customSeconds: '',
       motionDetail: 'Moderate motion',
+      qualityScale: 50,
+      costAppetite: 50,
     };
+
+    function getSoraRate() {
+      const r = state.resolution === '4K' ? '1080p' : state.resolution;
+      return SORA_RATE[r] ?? 0.10;
+    }
+    function getKlingRate() {
+      return KLING_RATE[state.resolution] ?? KLING_RATE['720p'];
+    }
 
     function initBtnGroup(groupId, key) {
       const group = document.getElementById(groupId);
@@ -455,6 +744,8 @@
         btn.classList.add('active');
         state[key] = btn.dataset.value;
         buildPromptText();
+        updateCostRange();
+        updateProjection();
       });
     }
     initBtnGroup('styleGroup', 'style');
@@ -475,6 +766,249 @@
       buildPromptText();
     });
 
+    // Sliders
+    const qualityScaleEl = document.getElementById('qualityScale');
+    const costAppetiteEl = document.getElementById('costAppetite');
+    qualityScaleEl.addEventListener('input', () => {
+      state.qualityScale = parseInt(qualityScaleEl.value, 10);
+      document.getElementById('qualityScaleLabel').textContent =
+        state.qualityScale < 25 ? 'Draft' : state.qualityScale < 75 ? 'Balanced' : 'Maximum quality';
+      updateCostRange();
+      updateProjection();
+    });
+    costAppetiteEl.addEventListener('input', () => {
+      state.costAppetite = parseInt(costAppetiteEl.value, 10);
+      document.getElementById('costAppetiteLabel').textContent =
+        state.costAppetite < 25 ? 'Minimize cost' : state.costAppetite < 75 ? 'Balanced' : 'No limit';
+      updateCostRange();
+      updateProjection();
+    });
+
+    function updateCostRange() {
+      const sora = getSoraRate();
+      const kling = getKlingRate();
+      const dur = 5; // typical clip
+      const low = Math.min(sora * dur, kling * dur);
+      const high = Math.max(sora * dur, kling * dur);
+      const appetite = state.costAppetite / 100;
+      const minC = (low + (high - low) * (1 - appetite)).toFixed(2);
+      const maxC = (low + (high - low) * appetite).toFixed(2);
+      if (state.costAppetite < 25) {
+        document.getElementById('costRangeEst').textContent = `~$${minC}–$${(parseFloat(minC) + 0.5).toFixed(2)} per video (cost-focused)`;
+      } else if (state.costAppetite > 75) {
+        document.getElementById('costRangeEst').textContent = `~$${low.toFixed(2)}–$${high.toFixed(2)} per video`;
+      } else {
+        document.getElementById('costRangeEst').textContent = `~$${low.toFixed(2)}–$${high.toFixed(2)} per video`;
+      }
+    }
+
+    function getBenchmarkData() {
+      const soraRate = getSoraRate();
+      const klingRate = getKlingRate();
+      const d = lastResult;
+      const j = lastJudgeResult;
+      const soraDur = d ? d.sora_duration_s : SORA_DUR_DEFAULT;
+      const klingDur = d ? d.kling_duration_s : KLING_DUR_DEFAULT;
+      const costPerVideoA = d ? d.sora_cost_usd : (soraDur * soraRate);
+      const costPerVideoB = d ? d.kling_cost_usd : (klingDur * klingRate);
+      const qualityA = j ? (j.overall_quality_b ?? 0) : 0;
+      const qualityB = j ? (j.overall_quality_a ?? 0) : 0;
+      const latencyA = d ? d.sora_latency_s : 0;
+      const latencyB = d ? d.kling_latency_s : 0;
+      const speedA = d && latencyA ? (soraDur / latencyA) : 0;
+      const speedB = d && latencyB ? (klingDur / latencyB) : 0;
+      const throughputA = latencyA ? (60 / latencyA) : 0;
+      const throughputB = latencyB ? (60 / latencyB) : 0;
+      const costPerPointA = qualityA > 0 ? (costPerVideoA / qualityA) : 0;
+      const costPerPointB = qualityB > 0 ? (costPerVideoB / qualityB) : 0;
+      const volumes = VOLUME_TIERS;
+      const monthlyA = volumes.map(v => v * costPerVideoA);
+      const monthlyB = volumes.map(v => v * costPerVideoB);
+      const gaps = volumes.map((v, i) => monthlyA[i] - monthlyB[i]);
+      const cheaperAt100k = monthlyA[4] <= monthlyB[4] ? 'Model A (Sora 2)' : 'Model B (Kling 2.6)';
+      const cheaperAt50k = monthlyA[3] <= monthlyB[3] ? 'Model A (Sora 2)' : 'Model B (Kling 2.6)';
+      const save100k = Math.abs(monthlyA[4] - monthlyB[4]);
+      const save100kYear = save100k * 12;
+      const save50k = Math.abs(monthlyA[3] - monthlyB[3]);
+      const save50kYear = save50k * 12;
+      return {
+        costPerVideoA, costPerVideoB, qualityA, qualityB, latencyA, latencyB,
+        speedA, speedB, throughputA, throughputB, costPerPointA, costPerPointB,
+        volumes, monthlyA, monthlyB, gaps, cheaperAt100k, cheaperAt50k, save100k, save100kYear, save50k, save50kYear,
+        soraRate, klingRate, soraDur, klingDur,
+      };
+    }
+
+    function updateCostPerfSummary() {
+      const b = getBenchmarkData();
+      const hasData = lastResult && lastJudgeResult;
+      const qualityLeader = hasData && b.qualityA >= b.qualityB ? 'Model A (Sora 2)' : hasData ? 'Model B (Kling 2.6)' : '—';
+      const qualityScore = hasData ? (b.qualityA >= b.qualityB ? b.qualityA : b.qualityB).toFixed(1) : '—';
+      const speedLeader = hasData && b.latencyA <= b.latencyB ? 'Model A (Sora 2)' : hasData ? 'Model B (Kling 2.6)' : '—';
+      const speedVal = hasData ? (b.latencyA <= b.latencyB ? b.latencyA : b.latencyB).toFixed(1) : '—';
+      const valueLeader = hasData && b.costPerPointA <= b.costPerPointB ? 'Model A (Sora 2)' : hasData ? 'Model B (Kling 2.6)' : '—';
+      const valueVal = hasData ? '$' + (b.costPerPointA <= b.costPerPointB ? b.costPerPointA : b.costPerPointB).toFixed(2) : '—';
+      const badgesEl = document.getElementById('winnerBadges');
+      if (badgesEl) {
+        badgesEl.innerHTML = `
+          <span class="winner-badge winner">🏆 Quality Leader: ${qualityLeader} — ${qualityScore}/10</span>
+          <span class="winner-badge winner">⚡ Speed Leader: ${speedLeader} — ${speedVal}s latency</span>
+          <span class="winner-badge winner">💰 Value Leader: ${valueLeader} — ${valueVal} per quality point</span>
+        `;
+      }
+      const labels = b.volumes.map(v => v >= 1000 ? (v / 1000) + 'K' : String(v));
+      if (chartSummaryInstance) chartSummaryInstance.destroy();
+      const ctx = document.getElementById('chartSummary');
+      if (ctx && typeof Chart !== 'undefined') {
+        chartSummaryInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              { label: 'Model A (Sora 2)', data: b.monthlyA, borderColor: '#94a3b8', backgroundColor: 'transparent', tension: 0.2, fill: false },
+              { label: 'Model B (Kling 2.6)', data: b.monthlyB, borderColor: '#00d4aa', backgroundColor: 'transparent', tension: 0.2, fill: false },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { title: { display: true, text: 'Monthly cost at scale', color: '#f1f5f9', font: { size: 12 } }, legend: { labels: { color: '#94a3b8' } } },
+            scales: {
+              x: { ticks: { color: '#64748b', maxRotation: 0 } },
+              y: { beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#1a1d24' } },
+            },
+          },
+        });
+      }
+      const insightEl = document.getElementById('insightLine');
+      if (insightEl) {
+        if (hasData && b.save100k > 0) {
+          insightEl.textContent = `At 100K monthly generations — a realistic mid-scale production volume — ${b.cheaperAt100k} saves $${b.save100k.toFixed(0)}/month ($${b.save100kYear.toFixed(0)}/year)`;
+        } else if (hasData) {
+          insightEl.textContent = `At 100K monthly generations, both models cost $${b.monthlyA[4].toFixed(0)}/month at current resolution.`;
+        } else {
+          insightEl.textContent = 'Generate videos and run judge to see cost at scale.';
+        }
+      }
+      const detailLayer = document.getElementById('detailLayer');
+      if (detailLayer && detailLayer.classList.contains('expanded')) fillDetailLayer();
+    }
+
+    function fillDetailLayer() {
+      const b = getBenchmarkData();
+      const hasData = lastResult && lastJudgeResult;
+      const costPointAStr = '$' + (b.costPerPointA).toFixed(2);
+      const costPointBStr = '$' + (b.costPerPointB).toFixed(2);
+      const costPerPointWinnerIsA = b.costPerPointA <= b.costPerPointB;
+      const qualPct = b.qualityB > 0 ? (((Math.max(b.qualityA, b.qualityB) - Math.min(b.qualityA, b.qualityB)) / Math.min(b.qualityA, b.qualityB)) * 100).toFixed(0) : 0;
+      const costPct = b.costPerVideoB > 0 ? (Math.abs(b.costPerVideoA - b.costPerVideoB) / Math.min(b.costPerVideoA, b.costPerVideoB) * 100).toFixed(0) : 0;
+      const higherQual = b.qualityA >= b.qualityB ? 'Model A' : 'Model B';
+      const higherCost = b.costPerVideoA >= b.costPerVideoB ? 'Model A' : 'Model B';
+      const kpiEl = document.getElementById('kpiCards');
+      if (kpiEl) kpiEl.innerHTML = `
+        <div class="kpi-card"><div class="label">Cost per generation</div><div class="values">Model A: $${b.costPerVideoA.toFixed(4)} | Model B: $${b.costPerVideoB.toFixed(4)}</div></div>
+        <div class="kpi-card"><div class="label">Cost per unit of quality</div><div class="values">Model A: ${costPerPointWinnerIsA ? `<span class="accent">${costPointAStr}</span>` : costPointAStr} | Model B: ${!costPerPointWinnerIsA ? `<span class="accent">${costPointBStr}</span>` : costPointBStr}</div></div>
+        <div class="kpi-card"><div class="label">Quality premium analysis</div><div class="values">${higherQual} scores ${qualPct}% higher quality but ${higherCost} costs ${costPct}% more per video</div></div>
+      `;
+      const spiralSub = document.getElementById('spiralSubtitle');
+      if (spiralSub) spiralSub.textContent = 'Cost gap grows non-linearly with volume — at 500K monthly generations this becomes a board-level infrastructure decision';
+      if (chartSpiralInstance) chartSpiralInstance.destroy();
+      const ctxSpiral = document.getElementById('chartSpiral');
+      if (ctxSpiral && typeof Chart !== 'undefined') {
+        chartSpiralInstance = new Chart(ctxSpiral, {
+          type: 'line',
+          data: {
+            labels: b.volumes.map(v => v >= 1000 ? (v / 1000) + 'K' : String(v)),
+            datasets: [
+              { label: 'Model A cost', data: b.monthlyA, borderColor: '#94a3b8', backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y' },
+              { label: 'Model B cost', data: b.monthlyB, borderColor: '#00d4aa', backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y' },
+              { label: 'Cost gap', data: b.gaps, borderColor: '#f43f5e', borderDash: [5, 5], backgroundColor: 'transparent', tension: 0.2, yAxisID: 'y1' },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { title: { display: true, text: 'How model choice compounds at scale', color: '#f1f5f9' }, legend: { labels: { color: '#94a3b8' } } },
+            scales: {
+              x: { ticks: { color: '#64748b' } },
+              y: { type: 'linear', position: 'left', beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#1a1d24' } },
+              y1: { type: 'linear', position: 'right', ticks: { color: '#f43f5e' }, grid: { drawOnChartArea: false } },
+            },
+          },
+        });
+      }
+      const perfTable = document.querySelector('#perfBreakdownTable tbody');
+      if (perfTable) {
+        const latWinner = b.latencyA <= b.latencyB ? 'Model A' : 'Model B';
+        const speedWinner = b.speedA >= b.speedB ? 'Model A' : 'Model B';
+        const thruWinner = b.throughputA >= b.throughputB ? 'Model A' : 'Model B';
+        perfTable.innerHTML = `
+          <tr><td>Latency</td><td>${b.latencyA.toFixed(2)}s</td><td>${b.latencyB.toFixed(2)}s</td><td><span class="winner">${latWinner}</span></td></tr>
+          <tr><td>Generation speed</td><td>${b.speedA.toFixed(3)}</td><td>${b.speedB.toFixed(3)}</td><td><span class="winner">${speedWinner}</span></td></tr>
+          <tr><td>Throughput</td><td>${(b.throughputA).toFixed(2)}/min</td><td>${(b.throughputB).toFixed(2)}/min</td><td><span class="winner">${thruWinner}</span></td></tr>
+        `;
+      }
+      const faster = b.throughputA >= b.throughputB ? 'Model A' : 'Model B';
+      const pct = Math.max(b.throughputA, b.throughputB) > 0 ? (Math.abs(b.throughputA - b.throughputB) / Math.min(b.throughputA, b.throughputB) * 100).toFixed(0) : 0;
+      const perfInsight = document.getElementById('perfInsight');
+      if (perfInsight) perfInsight.textContent = `${faster} processes ${pct}% more videos per hour — critical for real-time or interactive workflows`;
+      const resRows = [
+        { res: '720p', mult: '1x', s: SORA_RATE['720p'] * b.soraDur, k: KLING_RATE['720p'] * b.klingDur },
+        { res: '1080p', mult: '2.5x', s: SORA_RATE['1080p'] * b.soraDur, k: KLING_RATE['1080p'] * b.klingDur },
+        { res: '4K', mult: '8x', s: (SORA_RATE['1080p'] || 0.5) * b.soraDur, k: KLING_RATE['4K'] * b.klingDur },
+      ];
+      const resTbody = document.querySelector('#resolutionMultiplierTable tbody');
+      if (resTbody) {
+        resTbody.innerHTML = resRows.map(r => {
+          const month50A = (50000 * r.s).toFixed(0);
+          const month50B = (50000 * r.k).toFixed(0);
+          return `<tr><td>${r.res}</td><td>$${r.s.toFixed(4)}</td><td>$${r.k.toFixed(4)}</td><td>${r.mult}</td><td>A: $${month50A} / B: $${month50B}</td></tr>`;
+        }).join('');
+      }
+      const res720 = resRows[0];
+      const res4k = resRows[2];
+      const jumpKling = 50000 * (res4k.k - res720.k);
+      const resCallout = document.getElementById('resolutionCallout');
+      if (resCallout) resCallout.innerHTML = `Resolution scales quadratically — 4K inference costs ~8x more than 720p due to attention computation across frames.<br><br>At 50K monthly generations — typical for a mid-sized video AI company like Synthesia or HeyGen — that resolution jump equals $${jumpKling.toFixed(0)}/month in additional infrastructure spend.`;
+      const bestQual = b.qualityA >= b.qualityB ? 'Model A (Sora 2)' : 'Model B (Kling 2.6)';
+      const bestQualScore = Math.max(b.qualityA, b.qualityB).toFixed(1);
+      const fastModel = b.latencyA <= b.latencyB ? 'Model A (Sora 2)' : 'Model B (Kling 2.6)';
+      const fastLat = (Math.min(b.latencyA, b.latencyB)).toFixed(1);
+      const bestVal = b.costPerPointA <= b.costPerPointB ? 'Model A (Sora 2)' : 'Model B (Kling 2.6)';
+      const bestValNum = (Math.min(b.costPerPointA, b.costPerPointB)).toFixed(2);
+      const qualGap = b.qualityB > 0 ? (((Math.max(b.qualityA, b.qualityB) - Math.min(b.qualityA, b.qualityB)) / Math.min(b.qualityA, b.qualityB)) * 100).toFixed(0) : 0;
+      const deployEl = document.getElementById('deployCard');
+      if (deployEl) deployEl.innerHTML = `
+        <div class="title">Deployment Recommendation</div>
+        <div class="verdict-row">✦ Best Quality: <span class="accent">${bestQual}</span> — ${bestQualScore}/10</div>
+        <div class="verdict-row">✦ Fastest Inference: <span class="accent">${fastModel}</span> — ${fastLat}s latency</div>
+        <div class="verdict-row">✦ Best Value at Scale: <span class="accent">${bestVal}</span> — $${bestValNum} per quality point</div>
+        <div class="paragraphs">
+          <p>${bestQual} leads on quality scoring ${bestQualScore}/10 vs ${(Math.min(b.qualityA, b.qualityB)).toFixed(1)} — a ${qualGap}% advantage.</p>
+          <p>${fastModel} generates faster at ${fastLat}s latency — meaningfully better for interactive or real-time generation workflows.</p>
+          <p>At 50K monthly generations — a realistic volume for a mid-sized video AI company — choosing ${b.cheaperAt50k} saves $${b.save50k.toFixed(0)}/month, a $${b.save50kYear.toFixed(0)} annual saving.</p>
+          <p>For maximum cinematic quality: deploy ${bestQual}. For cost-efficient production at scale: deploy ${bestVal}.</p>
+        </div>
+      `;
+    }
+
+    const btnDetailToggle = document.getElementById('btnDetailToggle');
+    if (btnDetailToggle) {
+      btnDetailToggle.addEventListener('click', () => {
+        const layer = document.getElementById('detailLayer');
+        const btn = document.getElementById('btnDetailToggle');
+        if (!layer || !btn) return;
+        layer.classList.toggle('collapsed');
+        layer.classList.toggle('expanded');
+        btn.textContent = layer.classList.contains('expanded') ? 'Hide Detailed Analysis ↑' : 'View Detailed Analysis ↓';
+        if (layer.classList.contains('expanded')) fillDetailLayer();
+      });
+    }
+
+    function updateProjection() {
+      updateCostPerfSummary();
+    }
+
     function getVideoLengthSeconds() {
       if (state.videoLength === 'custom') return (state.customSeconds && parseInt(state.customSeconds, 10)) || 5;
       return parseInt(state.videoLength, 10) || 5;
@@ -484,21 +1018,7 @@
       const len = getVideoLengthSeconds();
       const duration = len + ' second' + (len !== 1 ? 's' : '');
       const desc = document.getElementById('description').value.trim() || '[Describe the scene]';
-      const prompt = `Generate a ${duration} video in ${state.resolution}.
-
-Scene:
-${desc}
-
-Style:
-${state.style}
-
-Camera framing:
-${state.cameraStyle}, aspect ratio ${state.ratio}
-
-Motion level:
-${state.motionDetail}
-
-The video should be visually realistic with smooth motion and consistent objects across frames.`;
+      const prompt = `Generate a ${duration} video in ${state.resolution}.\n\nScene:\n${desc}\n\nStyle:\n${state.style}\n\nCamera framing:\n${state.cameraStyle}, aspect ratio ${state.ratio}\n\nMotion level:\n${state.motionDetail}\n\nThe video should be visually realistic with smooth motion and consistent objects across frames.`;
       lastPrompt = prompt;
       document.getElementById('builtPrompt').textContent = prompt;
       return prompt;
@@ -513,6 +1033,42 @@ The video should be visually realistic with smooth motion and consistent objects
       document.getElementById(id).innerHTML = `<video src="${src}" controls playsinline></video>`;
     }
 
+    // Teal fill for range inputs (progress)
+    [qualityScaleEl, costAppetiteEl].forEach(el => {
+      el.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${el.value}%, var(--border) ${el.value}%, var(--border) 100%)`;
+      el.addEventListener('input', function() {
+        this.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${this.value}%, var(--border) ${this.value}%, var(--border) 100%)`;
+      });
+    });
+
+    // Initial metrics rows (dashes)
+    function fillMetricsPlaceholder() {
+      const metricKeys = ['Identity Preservation', 'Scene Coherence', 'Temporal Fluency', 'Semantic Alignment', 'Cinematic Quality'];
+      const tq = document.querySelector('#tableQuality tbody');
+      tq.innerHTML = '';
+      metricKeys.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${m}</td><td>—</td><td>—</td>`;
+        tq.appendChild(tr);
+      });
+      tq.innerHTML += '<tr><td><strong>Overall Quality Score</strong></td><td>—</td><td>—</td></tr>';
+      document.getElementById('topMetricsSora').innerHTML = '';
+      document.getElementById('topMetricsKling').innerHTML = '';
+      const tp = document.querySelector('#tablePerf tbody');
+      tp.innerHTML = '';
+      ['Latency (s)', 'Generation speed', 'Throughput (videos/min)'].forEach(m => {
+        tp.innerHTML += `<tr><td>${m}</td><td>—</td><td>—</td></tr>`;
+      });
+      const tc = document.querySelector('#tableCost tbody');
+      tc.innerHTML = '';
+      ['Cost per video ($)', 'Cost per hour ($)', 'Value score (quality/$)'].forEach(m => {
+        tc.innerHTML += `<tr><td>${m}</td><td>—</td><td>—</td></tr>`;
+      });
+    }
+    fillMetricsPlaceholder();
+    updateCostRange();
+    updateProjection();
+
     document.getElementById('btnGenerate').addEventListener('click', async () => {
       buildPromptText();
       const prompt = lastPrompt;
@@ -526,8 +1082,8 @@ The video should be visually realistic with smooth motion and consistent objects
       document.getElementById('btnGenerate').disabled = true;
       setPlaceholder('wrapKling', '<div class="spinner"></div>');
       setPlaceholder('wrapSora', '<div class="spinner"></div>');
-      document.getElementById('judgeCta').style.display = 'none';
-      document.getElementById('metricsBlock').style.display = 'none';
+      document.getElementById('btnJudge').disabled = true;
+      fillMetricsPlaceholder();
 
       try {
         const r = await fetch(`${API_BASE}/generate`, {
@@ -547,25 +1103,19 @@ The video should be visually realistic with smooth motion and consistent objects
         lastResult = data;
 
         const videoBase = `${API_BASE}/video`;
-        setVideo('wrapKling', `${videoBase}/${encodeURIComponent(data.kling_path)}`);
         setVideo('wrapSora', `${videoBase}/${encodeURIComponent(data.sora_path)}`);
+        setVideo('wrapKling', `${videoBase}/${encodeURIComponent(data.kling_path)}`);
 
         const kLat = data.kling_latency_s;
         const sLat = data.sora_latency_s;
         const kDur = data.kling_duration_s;
         const sDur = data.sora_duration_s;
-        const kSpeed = (kDur / kLat).toFixed(3);
-        const sSpeed = (sDur / sLat).toFixed(3);
-        const kThrough = (60 / kLat).toFixed(2);
-        const sThrough = (60 / sLat).toFixed(2);
-
         document.getElementById('metaKling').innerHTML =
-          `Latency: ${kLat}s · Duration: ${kDur}s · Speed: ${kSpeed} · Throughput: ${kThrough}/min · Cost: $${data.kling_cost_usd.toFixed(4)}`;
+          `Latency: ${kLat}s · Duration: ${kDur}s · Cost: $${data.kling_cost_usd.toFixed(4)}`;
         document.getElementById('metaSora').innerHTML =
-          `Latency: ${sLat}s · Duration: ${sDur}s · Speed: ${sSpeed} · Throughput: ${sThrough}/min · Cost: $${data.sora_cost_usd.toFixed(4)}`;
+          `Latency: ${sLat}s · Duration: ${sDur}s · Cost: $${data.sora_cost_usd.toFixed(4)}`;
 
         document.getElementById('generateStatus').textContent = `Run ${data.run_id} complete. Click Run Judge below.`;
-        document.getElementById('judgeCta').style.display = 'block';
         document.getElementById('btnJudge').disabled = false;
       } catch (e) {
         document.getElementById('generateError').textContent = e.message || 'Generate failed';
@@ -600,93 +1150,89 @@ The video should be visually realistic with smooth motion and consistent objects
         const data = await r.json();
         document.getElementById('judgeStatus').textContent = `Judge: ${data.model}`;
 
+        // Backend: video_a = Kling (Model B), video_b = Sora (Model A); panel returns weighted_score, gemini/gpt4o/claude scores, high_variance
         const va = data.video_a || {};
         const vb = data.video_b || {};
-        const oqA = data.overall_quality_a ?? 0;
-        const oqB = data.overall_quality_b ?? 0;
+        const oqModelA = data.overall_quality_b ?? 0;
+        const oqModelB = data.overall_quality_a ?? 0;
+        const overallReasonA = data.overall_reason_a || '';
+        const overallReasonB = data.overall_reason_b || '';
         const d = lastResult;
-
-        const metricKeys = ['subject_consistency', 'background_consistency', 'motion_smoothness', 'prompt_fidelity', 'aesthetic_quality', 'dynamic_degree'];
+        const metricKeys = ['identity_preservation', 'scene_coherence', 'temporal_fluency', 'semantic_alignment', 'cinematic_quality'];
         const metricLabels = {
-          subject_consistency: 'Subject Consistency',
-          background_consistency: 'Background Consistency',
-          motion_smoothness: 'Motion Smoothness',
-          prompt_fidelity: 'Prompt Fidelity',
-          aesthetic_quality: 'Aesthetic Quality',
-          dynamic_degree: 'Dynamic Degree',
+          identity_preservation: 'Identity Preservation',
+          scene_coherence: 'Scene Coherence',
+          temporal_fluency: 'Temporal Fluency',
+          semantic_alignment: 'Semantic Alignment',
+          cinematic_quality: 'Cinematic Quality',
         };
 
-        // QUALITY SECTION — 6 metrics + overall, with reasons and winners
         const tq = document.querySelector('#tableQuality tbody');
         tq.innerHTML = '';
-        let qualityWinsA = 0, qualityWinsB = 0;
         metricKeys.forEach(k => {
-          const a = va[k] || {};
-          const b = vb[k] || {};
-          const sa = Number(a.score) || 0;
-          const sb = Number(b.score) || 0;
-          const ra = (a.reason || '').trim();
-          const rb = (b.reason || '').trim();
-          const winA = sa > sb;
-          const winB = sb > sa;
-          if (winA) qualityWinsA++; if (winB) qualityWinsB++;
+          const soraData = vb[k] || {};
+          const klingData = va[k] || {};
+          const weightedA = soraData.weighted_score ?? 0;
+          const weightedB = klingData.weighted_score ?? 0;
+          const judgeLineA = [soraData.gemini_score, soraData.gpt4o_score, soraData.claude_score].filter(x => x != null).length
+            ? `Gemini: ${soraData.gemini_score ?? '—'} | GPT4o: ${soraData.gpt4o_score ?? '—'} | Claude: ${soraData.claude_score ?? '—'}`
+            : '';
+          const judgeLineB = [klingData.gemini_score, klingData.gpt4o_score, klingData.claude_score].filter(x => x != null).length
+            ? `Gemini: ${klingData.gemini_score ?? '—'} | GPT4o: ${klingData.gpt4o_score ?? '—'} | Claude: ${klingData.claude_score ?? '—'}`
+            : '';
+          const varianceA = soraData.high_variance ? (soraData.variance_note || 'Judges disagree — consider human review') : '';
+          const varianceB = klingData.high_variance ? (klingData.variance_note || 'Judges disagree — consider human review') : '';
+          const winA = weightedA > weightedB;
+          const winB = weightedB > weightedA;
           const tr = document.createElement('tr');
           const tdA = winA ? '<td class="winner">' : '<td>';
           const tdB = winB ? '<td class="winner">' : '<td>';
           tr.innerHTML = `<td>${metricLabels[k]}</td>
-            ${tdA}<strong>${sa}</strong>${ra ? `<div class="metric-reason">${escapeHtml(ra)}</div>` : ''}</td>
-            ${tdB}<strong>${sb}</strong>${rb ? `<div class="metric-reason">${escapeHtml(rb)}</div>` : ''}</td>`;
+            ${tdA}<strong>${weightedA}</strong>${judgeLineA ? `<div class="judge-scores-small">${escapeHtml(judgeLineA)}</div>` : ''}${varianceA ? `<div class="variance-flag">High Variance: ${escapeHtml(varianceA)}</div>` : ''}</td>
+            ${tdB}<strong>${weightedB}</strong>${judgeLineB ? `<div class="judge-scores-small">${escapeHtml(judgeLineB)}</div>` : ''}${varianceB ? `<div class="variance-flag">High Variance: ${escapeHtml(varianceB)}</div>` : ''}</td>`;
           tq.appendChild(tr);
         });
-        const overallWinA = oqA > oqB;
-        const overallWinB = oqB > oqA;
         const trO = document.createElement('tr');
         trO.innerHTML = `<td><strong>Overall Quality Score</strong></td>
-          <td class="${overallWinA ? 'winner' : ''}"><strong>${oqA}</strong></td>
-          <td class="${overallWinB ? 'winner' : ''}"><strong>${oqB}</strong></td>`;
+          <td class="${oqModelA > oqModelB ? 'winner' : ''}"><strong>${oqModelA}</strong>${overallReasonA ? `<div class="metric-reason">${escapeHtml(overallReasonA)}</div>` : ''}</td>
+          <td class="${oqModelB > oqModelA ? 'winner' : ''}"><strong>${oqModelB}</strong>${overallReasonB ? `<div class="metric-reason">${escapeHtml(overallReasonB)}</div>` : ''}</td>`;
         tq.appendChild(trO);
         document.getElementById('qualityWinner').textContent =
-          oqA > oqB ? 'Winner: Kling 2.6' : oqB > oqA ? 'Winner: Sora 2' : 'Tie';
+          oqModelA > oqModelB ? 'Winner: Model A (Sora 2)' : oqModelB > oqModelA ? 'Winner: Model B (Kling 2.6)' : 'Tie';
 
-        // PERFORMANCE SECTION — lower latency wins, higher speed/throughput wins
+        // Top 2-3 metrics for each video (highest weighted scores for that model)
+        const sortedA = metricKeys.map(k => ({ k, label: metricLabels[k], score: vb[k]?.weighted_score ?? 0 })).sort((a, b) => b.score - a.score);
+        const sortedB = metricKeys.map(k => ({ k, label: metricLabels[k], score: va[k]?.weighted_score ?? 0 })).sort((a, b) => b.score - a.score);
+        const topA = sortedA.slice(0, 3).filter(x => x.score > 0).map(x => `<strong>${x.label}</strong> ${x.score}`).join(' · ');
+        const topB = sortedB.slice(0, 3).filter(x => x.score > 0).map(x => `<strong>${x.label}</strong> ${x.score}`).join(' · ');
+        document.getElementById('topMetricsSora').innerHTML = topA ? `Top metrics: ${topA}` : '';
+        document.getElementById('topMetricsKling').innerHTML = topB ? `Top metrics: ${topB}` : '';
+
         const kLat = d.kling_latency_s;
         const sLat = d.sora_latency_s;
         const kDur = d.kling_duration_s;
         const sDur = d.sora_duration_s;
-        const kSpeed = kDur / kLat;
-        const sSpeed = sDur / sLat;
-        const kThrough = 60 / kLat;
-        const sThrough = 60 / sLat;
         const tp = document.querySelector('#tablePerf tbody');
         tp.innerHTML = '';
-        tp.appendChild(rowWithWinner('Latency (s)', kLat.toFixed(2), sLat.toFixed(2), sLat < kLat, kLat > sLat));
-        tp.appendChild(rowWithWinner('Generation speed', kSpeed.toFixed(3), sSpeed.toFixed(3), kSpeed > sSpeed, sSpeed > kSpeed));
-        tp.appendChild(rowWithWinner('Throughput (videos/min)', kThrough.toFixed(2), sThrough.toFixed(2), kThrough > sThrough, sThrough > kThrough));
+        tp.appendChild(rowWithWinner('Latency (s)', sLat.toFixed(2), kLat.toFixed(2), sLat < kLat, kLat < sLat));
+        tp.appendChild(rowWithWinner('Generation speed', (sDur / sLat).toFixed(3), (kDur / kLat).toFixed(3), (sDur / sLat) > (kDur / kLat), (kDur / kLat) > (sDur / sLat)));
+        tp.appendChild(rowWithWinner('Throughput (videos/min)', (60 / sLat).toFixed(2), (60 / kLat).toFixed(2), (60 / sLat) > (60 / kLat), (60 / kLat) > (60 / sLat)));
         document.getElementById('perfWinner').textContent =
-          kLat < sLat ? 'Winner: Kling 2.6 (faster)' : sLat < kLat ? 'Winner: Sora 2 (faster)' : 'Tie';
+          sLat < kLat ? 'Winner: Model A (faster)' : kLat < sLat ? 'Winner: Model B (faster)' : 'Tie';
 
-        // COST SECTION — lower cost wins, higher value score wins
         const kCost = d.kling_cost_usd;
         const sCost = d.sora_cost_usd;
-        const kVal = oqA / kCost;
-        const sVal = oqB / sCost;
+        const kVal = oqModelB / kCost;
+        const sVal = oqModelA / sCost;
         const tc = document.querySelector('#tableCost tbody');
         tc.innerHTML = '';
-        tc.appendChild(rowWithWinner('Cost per video ($)', kCost.toFixed(4), sCost.toFixed(4), kCost < sCost, sCost < kCost));
-        tc.appendChild(row('Cost per hour ($)', (kCost / kDur * 3600).toFixed(2), (sCost / sDur * 3600).toFixed(2)));
-        tc.appendChild(rowWithWinner('Value score (quality/$)', kVal.toFixed(2), sVal.toFixed(2), kVal > sVal, sVal > kVal));
+        tc.appendChild(rowWithWinner('Cost per video ($)', sCost.toFixed(4), kCost.toFixed(4), sCost < kCost, kCost < sCost));
+        tc.appendChild(row('Cost per hour ($)', (sCost / sDur * 3600).toFixed(2), (kCost / kDur * 3600).toFixed(2)));
+        tc.appendChild(rowWithWinner('Value score (quality/$)', sVal.toFixed(2), kVal.toFixed(2), sVal > kVal, kVal > sVal));
         document.getElementById('costWinner').textContent =
-          kVal > sVal ? 'Winner: Kling 2.6 (better value)' : sVal > kVal ? 'Winner: Sora 2 (better value)' : 'Tie';
-
-        // Long projection
-        const kPerS = kCost / kDur;
-        const sPerS = sCost / sDur;
-        const tproj = document.querySelector('#tableProjection tbody');
-        tproj.innerHTML = '';
-        tproj.appendChild(row('Kling 2.6', `$${kCost.toFixed(2)}`, `$${(kPerS * 3600).toFixed(2)}`));
-        tproj.appendChild(row('Sora 2', `$${sCost.toFixed(2)}`, `$${(sPerS * 3600).toFixed(2)}`));
-
-        document.getElementById('metricsBlock').style.display = 'block';
+          kVal > sVal ? 'Winner: Model B (better value)' : sVal > kVal ? 'Winner: Model A (better value)' : 'Tie';
+        lastJudgeResult = data;
+        updateCostPerfSummary();
       } catch (e) {
         document.getElementById('judgeError').textContent = e.message || 'Judge failed';
       } finally {
