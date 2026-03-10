@@ -191,72 +191,77 @@ def _frame_paths_to_data_urls(frame_paths: list[Path]) -> list[str]:
     return urls
 
 
-# STEP 2 — Judge rubrics (one API call per metric; each call gets 10 images: 5 from A, 5 from B)
-METRIC_RUBRICS = [
+# Weighted panel: 3 judges via OpenRouter
+JUDGE_PANEL = [
+    ("gemini", "google/gemini-pro-1.5", "Gemini 1.5 Pro"),
+    ("gpt4o", "openai/gpt-4o", "GPT-4o"),
+    ("claude", "anthropic/claude-3.5-sonnet", "Claude 3.5 Sonnet"),
+]
+# Per-metric weights: metric_key -> judge_key -> weight (sum = 1.0)
+PANEL_WEIGHTS = {
+    "identity_preservation": {"gemini": 0.60, "gpt4o": 0.25, "claude": 0.15},
+    "scene_coherence": {"gemini": 0.50, "gpt4o": 0.25, "claude": 0.25},
+    "temporal_fluency": {"gemini": 0.60, "gpt4o": 0.20, "claude": 0.20},
+    "semantic_alignment": {"gpt4o": 0.50, "gemini": 0.30, "claude": 0.20},
+    "cinematic_quality": {"claude": 0.50, "gpt4o": 0.30, "gemini": 0.20},
+}
+VARIANCE_THRESHOLD = 2.0  # flag if max - min judge score > this
+
+# 5 metrics for weighted panel (same frames + rubric sent to all 3 judges)
+PANEL_METRIC_RUBRICS = [
     (
-        "subject_consistency",
-        "Subject Consistency",
+        "identity_preservation",
+        "Identity Preservation",
         "You are evaluating frames from an AI-generated video in chronological order. "
-        "Score Subject Consistency from 1-10. "
+        "Score Identity Preservation from 1-10. "
         "Criteria: Do the main subjects (people, objects) maintain the same appearance, "
         "color, and shape across all frames? "
         "10 = perfectly consistent. 1 = subject changes drastically across frames. "
-        "First 5 images are Video A (Kling 2.6), next 5 are Video B (Sora 2), each in chronological order. "
+        "First 5 images are Video A, next 5 are Video B, each in chronological order. "
         "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
     ),
     (
-        "background_consistency",
-        "Background Consistency",
+        "scene_coherence",
+        "Scene Coherence",
         "You are evaluating frames from an AI-generated video in chronological order. "
-        "Score Background Consistency from 1-10. "
+        "Score Scene Coherence from 1-10. "
         "Criteria: Does the environment and background remain stable across frames? "
-        "10 = perfectly stable background. 1 = background changes or flickers heavily. "
-        "First 5 images are Video A (Kling 2.6), next 5 are Video B (Sora 2), each in chronological order. "
+        "10 = perfectly stable. 1 = background changes or flickers heavily. "
+        "First 5 images are Video A, next 5 are Video B, each in chronological order. "
         "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
     ),
     (
-        "motion_smoothness",
-        "Motion Smoothness",
+        "temporal_fluency",
+        "Temporal Fluency",
         "You are evaluating frames from an AI-generated video in chronological order. "
-        "Score Motion Smoothness from 1-10. "
-        "Criteria: Do objects and subjects move naturally and fluidly between frames? "
+        "Score Temporal Fluency from 1-10. "
+        "Criteria: Do objects move naturally and fluidly between frames? "
         "Look for unnatural jumps, jerky movement, or frozen subjects. "
-        "10 = perfectly smooth motion. 1 = very jerky or unnatural movement. "
-        "First 5 images are Video A (Kling 2.6), next 5 are Video B (Sora 2), each in chronological order. "
+        "10 = perfectly smooth. 1 = very jerky or unnatural. "
+        "First 5 images are Video A, next 5 are Video B, each in chronological order. "
         "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
     ),
     (
-        "prompt_fidelity",
-        "Prompt Fidelity",
+        "semantic_alignment",
+        "Semantic Alignment",
         None,  # filled with prompt at runtime
     ),
     (
-        "aesthetic_quality",
-        "Aesthetic Quality",
+        "cinematic_quality",
+        "Cinematic Quality",
         "You are evaluating frames from an AI-generated video. "
-        "Score Aesthetic Quality from 1-10. "
+        "Score Cinematic Quality from 1-10. "
         "Criteria: How visually appealing and cinematic are the frames? "
         "Consider lighting, composition, color grading, and overall visual polish. "
-        "10 = extremely high quality visuals. 1 = poor visual quality. "
-        "First 5 images are Video A (Kling 2.6), next 5 are Video B (Sora 2). "
-        "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
-    ),
-    (
-        "dynamic_degree",
-        "Dynamic Degree",
-        "You are evaluating frames from an AI-generated video in chronological order. "
-        "Score Dynamic Degree from 1-10. "
-        "Criteria: Is there meaningful motion happening in the video, "
-        "or does it look like a static image with minimal movement? "
-        "10 = rich dynamic motion throughout. 1 = nearly static, no meaningful motion. "
-        "First 5 images are Video A (Kling 2.6), next 5 are Video B (Sora 2), each in chronological order. "
+        "10 = extremely high quality. 1 = poor visual quality. "
+        "First 5 images are Video A, next 5 are Video B. "
         "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
     ),
 ]
 
 
-def _call_judge_metric(content: list, metric_name: str) -> dict:
-    """One OpenRouter call with content (text + 10 images). Returns parsed {video_a: {score, reason}, video_b: {score, reason}}."""
+def _call_one_judge(content: list, model_id: str, metric_name: str) -> dict:
+    """One OpenRouter call with given model. Returns {video_a: {score, reason}, video_b: {score, reason}}."""
     import httpx
     r = None
     last_exc = None
@@ -269,7 +274,7 @@ def _call_judge_metric(content: list, metric_name: str) -> dict:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": JUDGE_MODEL,
+                    "model": model_id,
                     "messages": [{"role": "user", "content": content}],
                     "max_tokens": 512,
                 },
@@ -307,11 +312,11 @@ def _call_judge_metric(content: list, metric_name: str) -> dict:
 @app.post("/judge")
 def judge(request: JudgeRequest):
     """
-    STEP 1: Extract 5 frames (0%, 25%, 50%, 75%, 100%) from each video.
-    STEP 2: One API call per metric (6 calls), each with 10 images (5 from A, 5 from B) + rubric.
-    STEP 3: Composite = average of 6 metric scores per video.
-    STEP 4/5: Performance and cost are from /generate response (frontend combines).
-    Clean up temp frame files after.
+    Weighted panel: 3 judges (Gemini 1.5 Pro, GPT-4o, Claude 3.5 Sonnet).
+    STEP 1: Extract 5 frames per video.
+    STEP 2: For each of 5 metrics, send same frames + rubric to all 3 judges in parallel.
+    STEP 3: Weighted score per metric; high-variance flag if judge spread > 2.
+    STEP 4: overall_quality = average of 5 weighted scores; consensus reason from majority judge.
     """
     if not OPENROUTER_API_KEY:
         raise HTTPException(status_code=503, detail="OPENROUTER_API_KEY is not set")
@@ -324,7 +329,6 @@ def judge(request: JudgeRequest):
     if not sora_full.is_file():
         raise HTTPException(status_code=404, detail=f"Video not found: {request.sora_path}")
 
-    # STEP 1 — Frame extraction
     temp_dir_a = temp_dir_b = None
     try:
         temp_dir_a, frames_a = _extract_frames(kling_full)
@@ -332,57 +336,125 @@ def judge(request: JudgeRequest):
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+    semantic_alignment_text = (
+        "You are evaluating frames from an AI-generated video. "
+        f"The original prompt was: {prompt_text!r}. "
+        "Score Semantic Alignment from 1-10. "
+        "Criteria: How accurately does the video reflect the objects, actions, "
+        "environment, and style described in the prompt? "
+        "10 = perfectly matches prompt. 1 = completely ignores prompt. "
+        "First 5 images are Video A, next 5 are Video B. "
+        "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
+    )
+
     try:
         urls_a = _frame_paths_to_data_urls(frames_a)
         urls_b = _frame_paths_to_data_urls(frames_b)
-        # Build content for each metric: [text, img1a..img5a, img1b..img5b]
         image_parts_a = [{"type": "image_url", "image_url": {"url": u}} for u in urls_a]
         image_parts_b = [{"type": "image_url", "image_url": {"url": u}} for u in urls_b]
-
-        # Prompt Fidelity rubric (insert prompt)
-        prompt_fidelity_text = (
-            "You are evaluating frames from an AI-generated video. "
-            f"The original prompt was: {prompt_text!r}. "
-            "Score Prompt Fidelity from 1-10. "
-            "Criteria: How accurately does the video reflect the objects, actions, "
-            "environment, and style described in the prompt? "
-            "10 = perfectly matches prompt. 1 = completely ignores prompt. "
-            "First 5 images are Video A (Kling 2.6), next 5 are Video B (Sora 2). "
-            "Return only a JSON: {\"video_a\": {\"score\": X, \"reason\": \"one sentence\"}, \"video_b\": {\"score\": X, \"reason\": \"one sentence\"}}",
-        )
 
         results_a: dict = {}
         results_b: dict = {}
 
-        for key, _label, rubric_template in METRIC_RUBRICS:
-            if rubric_template is None:
-                rubric_text = prompt_fidelity_text
-            else:
-                rubric_text = rubric_template
+        for key, _label, rubric_template in PANEL_METRIC_RUBRICS:
+            rubric_text = semantic_alignment_text if rubric_template is None else rubric_template
             content = [{"type": "text", "text": rubric_text}] + image_parts_a + image_parts_b
-            parsed = _call_judge_metric(content, key)
-            va = parsed.get("video_a") or {}
-            vb = parsed.get("video_b") or {}
-            results_a[key] = {"score": float(va.get("score", 0)), "reason": va.get("reason") or ""}
-            results_b[key] = {"score": float(vb.get("score", 0)), "reason": vb.get("reason") or ""}
 
-        # STEP 3 — Composite score
+            # Call all 3 judges in parallel for this metric
+            panel_results = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+                futures = {
+                    ex.submit(_call_one_judge, content, model_id, key): (jkey, display_name)
+                    for jkey, model_id, display_name in JUDGE_PANEL
+                }
+                for fut in concurrent.futures.as_completed(futures):
+                    jkey, _ = futures[fut]
+                    try:
+                        parsed = fut.result()
+                        panel_results.append((jkey, parsed))
+                    except Exception:
+                        panel_results.append((jkey, {"video_a": {"score": 0, "reason": "Error"}, "video_b": {"score": 0, "reason": "Error"}}))
+
+            weights = PANEL_WEIGHTS[key]
+            scores_a = {}
+            scores_b = {}
+            reasons_a = {}
+            reasons_b = {}
+            for jkey, parsed in panel_results:
+                va = parsed.get("video_a") or {}
+                vb = parsed.get("video_b") or {}
+                sa = float(va.get("score", 0))
+                sb = float(vb.get("score", 0))
+                scores_a[jkey] = sa
+                scores_b[jkey] = sb
+                reasons_a[jkey] = va.get("reason") or ""
+                reasons_b[jkey] = vb.get("reason") or ""
+
+            weighted_a = sum(scores_a.get(j, 0) * weights.get(j, 0) for j in weights)
+            weighted_b = sum(scores_b.get(j, 0) * weights.get(j, 0) for j in weights)
+            spread_a = max(scores_a.values()) - min(scores_a.values()) if scores_a else 0
+            spread_b = max(scores_b.values()) - min(scores_b.values()) if scores_b else 0
+            high_variance_a = spread_a > VARIANCE_THRESHOLD
+            high_variance_b = spread_b > VARIANCE_THRESHOLD
+
+            results_a[key] = {
+                "gemini_score": scores_a.get("gemini"),
+                "gpt4o_score": scores_a.get("gpt4o"),
+                "claude_score": scores_a.get("claude"),
+                "weighted_score": round(weighted_a, 1),
+                "reason_gemini": reasons_a.get("gemini", ""),
+                "reason_gpt4o": reasons_a.get("gpt4o", ""),
+                "reason_claude": reasons_a.get("claude", ""),
+                "high_variance": high_variance_a,
+                "variance_note": "Judges disagree on this metric — consider human review" if high_variance_a else None,
+            }
+            results_b[key] = {
+                "gemini_score": scores_b.get("gemini"),
+                "gpt4o_score": scores_b.get("gpt4o"),
+                "claude_score": scores_b.get("claude"),
+                "weighted_score": round(weighted_b, 1),
+                "reason_gemini": reasons_b.get("gemini", ""),
+                "reason_gpt4o": reasons_b.get("gpt4o", ""),
+                "reason_claude": reasons_b.get("claude", ""),
+                "high_variance": high_variance_b,
+                "variance_note": "Judges disagree on this metric — consider human review" if high_variance_b else None,
+            }
+
+        # Overall = average of 5 weighted scores
         def overall(metrics: dict) -> float:
-            vals = [m["score"] for m in metrics.values()]
-            return round(sum(vals) / 6, 1) if vals else 0.0
+            vals = [m["weighted_score"] for m in metrics.values()]
+            return round(sum(vals) / 5, 1) if vals else 0.0
 
         overall_a = overall(results_a)
         overall_b = overall(results_b)
 
+        # Consensus reason: majority judge (Gemini) reason from a high-weight metric. video_a = Kling, video_b = Sora.
+        def _consensus(results: dict) -> str:
+            r = results.get("identity_preservation") or results.get("temporal_fluency") or {}
+            if isinstance(r, dict):
+                out = r.get("reason_gemini") or r.get("reason_gpt4o") or r.get("reason_claude") or ""
+                if out:
+                    return out
+            for v in results.values():
+                if isinstance(v, dict):
+                    out = v.get("reason_gemini") or v.get("reason_gpt4o") or v.get("reason_claude") or ""
+                    if out:
+                        return out
+            return ""
+
+        overall_reason_a = _consensus(results_b)  # Model A = Sora = video_b
+        overall_reason_b = _consensus(results_a)  # Model B = Kling = video_a
+
         return {
-            "model": JUDGE_MODEL,
+            "panel_models": [display_name for _j, _mid, display_name in JUDGE_PANEL],
             "video_a": results_a,
             "video_b": results_b,
             "overall_quality_a": overall_a,
             "overall_quality_b": overall_b,
+            "overall_reason_a": overall_reason_a,
+            "overall_reason_b": overall_reason_b,
         }
     finally:
-        # Clean up temp frame files
         if temp_dir_a:
             shutil.rmtree(temp_dir_a, ignore_errors=True)
         if temp_dir_b:
