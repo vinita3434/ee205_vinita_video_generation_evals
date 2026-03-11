@@ -51,6 +51,7 @@ class GenerateRequest(BaseModel):
     prompt: str
     quality: str = "720p"   # 480p | 720p | 1080p  (Sora only; Kling is always Pro)
     ratio: str = "16:9"     # 16:9 | 9:16 | 1:1
+    model: str | None = None  # "sora" | "kling" = run this model twice for Version A & B; None = run both models once
 
 
 # Actual output durations (seconds) — Kling 5s, Sora 8s (from generators)
@@ -87,40 +88,74 @@ def _generate_one(model: str, prompt: str, run_id: str, quality: str, ratio: str
 
 @app.post("/generate", response_model=GenerateResponse)
 def generate(request: GenerateRequest):
-    """Generate 2 videos from the same prompt (Kling 2.6, Sora 2)."""
+    """Generate 2 videos from the same prompt. If model is set, run that model twice (Version A & B); else run Kling + Sora once each."""
     run_id = str(uuid.uuid4())[:8]
     prompt = request.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt is required")
 
+    single_model = request.model if request.model in ("sora", "kling") else None
     results = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        futures = {
-            executor.submit(_generate_one, "kling", prompt, run_id, request.quality, request.ratio): "kling",
-            executor.submit(_generate_one, "sora", prompt, run_id, request.quality, request.ratio): "sora",
-        }
-        for fut in concurrent.futures.as_completed(futures):
-            model = futures[fut]
-            try:
-                _, path, latency = fut.result()
-                results[model] = (path, latency)
-            except Exception as e:
-                err_msg = str(e)
-                import traceback
-                traceback.print_exc()
-                raise HTTPException(status_code=502, detail=f"{model}: {err_msg}")
 
-    return GenerateResponse(
-        run_id=run_id,
-        kling_path=results["kling"][0].name,
-        sora_path=results["sora"][0].name,
-        kling_latency_s=round(results["kling"][1], 2),
-        sora_latency_s=round(results["sora"][1], 2),
-        kling_duration_s=KLING_DURATION_S,
-        sora_duration_s=SORA_DURATION_S,
-        kling_cost_usd=round(KLING_DURATION_S * KLING_COST_PER_S, 4),
-        sora_cost_usd=round(SORA_DURATION_S * SORA_COST_PER_S, 4),
-    )
+    if single_model:
+        # Run the same model twice for Version A and Version B
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            futures = {
+                executor.submit(_generate_one, single_model, prompt, run_id + "_a", request.quality, request.ratio): "a",
+                executor.submit(_generate_one, single_model, prompt, run_id + "_b", request.quality, request.ratio): "b",
+            }
+            for fut in concurrent.futures.as_completed(futures):
+                key = futures[fut]
+                try:
+                    _, path, latency = fut.result()
+                    results[key] = (path, latency)
+                except Exception as e:
+                    err_msg = str(e)
+                    import traceback
+                    traceback.print_exc()
+                    raise HTTPException(status_code=502, detail=f"{single_model} ({key}): {err_msg}")
+        # Map to response: Version A = first run, Version B = second run; response reuses sora/kling fields
+        dur = SORA_DURATION_S if single_model == "sora" else KLING_DURATION_S
+        cost_per_s = SORA_COST_PER_S if single_model == "sora" else KLING_COST_PER_S
+        return GenerateResponse(
+            run_id=run_id,
+            sora_path=results["a"][0].name,
+            kling_path=results["b"][0].name,
+            sora_latency_s=round(results["a"][1], 2),
+            kling_latency_s=round(results["b"][1], 2),
+            sora_duration_s=dur,
+            kling_duration_s=dur,
+            sora_cost_usd=round(dur * cost_per_s, 4),
+            kling_cost_usd=round(dur * cost_per_s, 4),
+        )
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            futures = {
+                executor.submit(_generate_one, "kling", prompt, run_id, request.quality, request.ratio): "kling",
+                executor.submit(_generate_one, "sora", prompt, run_id, request.quality, request.ratio): "sora",
+            }
+            for fut in concurrent.futures.as_completed(futures):
+                model = futures[fut]
+                try:
+                    _, path, latency = fut.result()
+                    results[model] = (path, latency)
+                except Exception as e:
+                    err_msg = str(e)
+                    import traceback
+                    traceback.print_exc()
+                    raise HTTPException(status_code=502, detail=f"{model}: {err_msg}")
+
+        return GenerateResponse(
+            run_id=run_id,
+            kling_path=results["kling"][0].name,
+            sora_path=results["sora"][0].name,
+            kling_latency_s=round(results["kling"][1], 2),
+            sora_latency_s=round(results["sora"][1], 2),
+            kling_duration_s=KLING_DURATION_S,
+            sora_duration_s=SORA_DURATION_S,
+            kling_cost_usd=round(KLING_DURATION_S * KLING_COST_PER_S, 4),
+            sora_cost_usd=round(SORA_DURATION_S * SORA_COST_PER_S, 4),
+        )
 
 
 # --- Frame extraction for judge (STEP 1) ---

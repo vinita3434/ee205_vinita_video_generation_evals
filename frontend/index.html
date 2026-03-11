@@ -581,11 +581,35 @@
 
     .version-config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
     @media (max-width: 900px) { .version-config-grid { grid-template-columns: 1fr; } }
-    .version-column { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
-    .version-column h3 { font-size: 1.25rem; margin-bottom: 1rem; color: var(--text); }
+    .model-selector { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .model-selector .model-card {
+      flex: 1; min-width: 200px; padding: 1.25rem 1.5rem; border-radius: 12px; border: 2px solid var(--border);
+      background: var(--surface); cursor: pointer; font-size: 1.1rem; font-weight: 600; text-align: center; transition: all 0.2s;
+    }
+    .model-selector .model-card:hover { background: var(--surface-elevated); border-color: var(--accent-soft); }
+    .model-selector .model-card.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+    .version-column { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .version-column h3 { font-size: 1.25rem; margin-bottom: 0; padding: 1rem 1.5rem; background: var(--surface); color: var(--text); border-bottom: 1px solid var(--border); }
+    .segment-quality-config {
+      padding: 1.5rem; background: rgba(0, 64, 242, 0.06); border-bottom: 1px solid var(--border);
+    }
+    .segment-speed-config {
+      padding: 1.5rem; background: rgba(6, 147, 227, 0.08); border-bottom: none;
+    }
     .quality-slider-wrap { margin-bottom: 1.25rem; }
     .quality-slider-wrap label { display: block; font-size: 1rem; font-weight: 500; color: var(--text); margin-bottom: 0.35rem; }
     .quality-slider-wrap .slider-label { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .segment-quality-config .segment-head, .segment-speed-config .segment-head {
+      font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .segment-quality-config .segment-head { color: #0030a0; }
+    .segment-speed-config .segment-head { color: #0369a1; }
+    input[type="range"].priority-slider {
+      background: linear-gradient(to right, #dc2626 0%, #eab308 50%, #16a34a 100%);
+    }
+    input[type="range"].priority-slider::-webkit-slider-thumb { background: #0f172a; }
+    input[type="range"].priority-slider::-moz-range-thumb { background: #0f172a; }
     .vbench-table { width: 100%; border-collapse: collapse; font-size: 1rem; }
     .vbench-table th, .vbench-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
     .vbench-table th { background: var(--surface); color: var(--text-dim); font-weight: 600; }
@@ -627,33 +651,51 @@
     <!-- SCREEN 2 — VERSION CONFIGURATION -->
     <div class="app-screen" id="screen2">
       <h2 class="onboarding-header" style="margin-bottom:1.5rem">Version configuration</h2>
-      <p class="onboarding-subheader" style="margin-bottom:2rem">Tune quality and performance per version. Version A = Sora 2, Version B = Kling 2.6.</p>
+      <p class="onboarding-subheader" style="margin-bottom:1rem">Choose one model. We'll create two versions (A and B) with different quality and speed settings.</p>
+      <p class="section-label" style="margin-bottom:0.5rem">Choose model</p>
+      <div class="model-selector" id="modelSelector">
+        <button type="button" class="model-card selected" data-model="sora">Sora 2</button>
+        <button type="button" class="model-card" data-model="kling">Kling 2.6</button>
+      </div>
+      <p class="section-label" style="margin-bottom:0.75rem">Tune quality and speed per version</p>
       <div class="version-config-grid">
         <div class="version-column">
-          <h3>Version A (Sora 2)</h3>
-          <div id="slidersVersionA"></div>
-          <div class="quality-slider-wrap">
-            <label>Latency priority</label>
-            <input type="range" id="latencyA" min="0" max="100" value="50" />
-            <div class="slider-label" id="latencyALabel">Balanced</div>
+          <h3 id="versionATitle">Version A (Sora 2)</h3>
+          <div class="segment-quality-config">
+            <div class="segment-head">Quality optimization</div>
+            <div id="slidersVersionA"></div>
           </div>
-          <div class="quality-slider-wrap">
-            <label>Concurrent requests</label>
-            <input type="number" id="concurrentA" value="5" min="1" max="200" style="width:100px;padding:0.5rem;border:1px solid var(--border);border-radius:6px;" />
-            <span style="margin-left:0.5rem;font-size:0.9rem;color:var(--text-muted)">Presets: 1, 5, 10, 50, 100</span>
+          <div class="segment-speed-config">
+            <div class="segment-head">Speed / Latency</div>
+            <div class="quality-slider-wrap">
+              <label>Latency priority</label>
+              <input type="range" id="latencyA" class="priority-slider" min="0" max="100" value="50" />
+              <div class="slider-label" id="latencyALabel">Balanced</div>
+            </div>
+            <div class="quality-slider-wrap">
+              <label>Concurrent requests</label>
+              <input type="number" id="concurrentA" value="5" min="1" max="200" style="width:100px;padding:0.5rem;border:1px solid var(--border);border-radius:6px;" />
+              <span style="margin-left:0.5rem;font-size:0.9rem;color:var(--text-muted)">Presets: 1, 5, 10, 50, 100</span>
+            </div>
           </div>
         </div>
         <div class="version-column">
-          <h3>Version B (Kling 2.6)</h3>
-          <div id="slidersVersionB"></div>
-          <div class="quality-slider-wrap">
-            <label>Latency priority</label>
-            <input type="range" id="latencyB" min="0" max="100" value="50" />
-            <div class="slider-label" id="latencyBLabel">Balanced</div>
+          <h3 id="versionBTitle">Version B (Sora 2)</h3>
+          <div class="segment-quality-config">
+            <div class="segment-head">Quality optimization</div>
+            <div id="slidersVersionB"></div>
           </div>
-          <div class="quality-slider-wrap">
-            <label>Concurrent requests</label>
-            <input type="number" id="concurrentB" value="5" min="1" max="200" style="width:100px;padding:0.5rem;border:1px solid var(--border);border-radius:6px;" />
+          <div class="segment-speed-config">
+            <div class="segment-head">Speed / Latency</div>
+            <div class="quality-slider-wrap">
+              <label>Latency priority</label>
+              <input type="range" id="latencyB" class="priority-slider" min="0" max="100" value="50" />
+              <div class="slider-label" id="latencyBLabel">Balanced</div>
+            </div>
+            <div class="quality-slider-wrap">
+              <label>Concurrent requests</label>
+              <input type="number" id="concurrentB" value="5" min="1" max="200" style="width:100px;padding:0.5rem;border:1px solid var(--border);border-radius:6px;" />
+            </div>
           </div>
         </div>
       </div>
@@ -668,12 +710,12 @@
       <h2 class="onboarding-header" style="margin-bottom:1rem">Results</h2>
       <div class="videos-grid" style="margin-top:1.5rem">
         <div class="video-card">
-          <div class="card-header"><label>Version A — Sora 2</label></div>
+          <div class="card-header"><label id="resultLabelA">Version A — Sora 2</label></div>
           <div class="video-wrap" id="wrapSora"><span class="placeholder">—</span></div>
           <div class="video-meta" id="metaSora"></div>
         </div>
         <div class="video-card">
-          <div class="card-header"><label>Version B — Kling 2.6</label></div>
+          <div class="card-header"><label id="resultLabelB">Version B — Kling 2.6</label></div>
           <div class="video-wrap" id="wrapKling"><span class="placeholder">—</span></div>
           <div class="video-meta" id="metaKling"></div>
         </div>
@@ -759,9 +801,11 @@
       videoLength: '5',
       consumer: '',
       useCase: '',
+      selectedModel: 'sora',
       versionA: {},
       versionB: {},
     };
+    const MODEL_LABELS = { sora: 'Sora 2', kling: 'Kling 2.6' };
 
     const CONSUMER_OPTIONS = ['Creative Agency', 'Enterprise SaaS', 'Marketing Team', 'Media & Entertainment', 'E-commerce & Retail', 'L&D / HR / Training', 'Advertising & Performance Marketing', 'Broadcasting & News'];
     const USECASE_MAP = {
@@ -857,7 +901,24 @@
       }
     }
 
-    document.getElementById('btnConfigureEval').addEventListener('click', () => { goToScreen(2); buildVersionSliders(); });
+    document.getElementById('btnConfigureEval').addEventListener('click', () => { goToScreen(2); buildVersionSliders(); updateVersionColumnTitles(); });
+    function updateVersionColumnTitles() {
+      const name = MODEL_LABELS[state.selectedModel] || 'Sora 2';
+      const a = document.getElementById('versionATitle');
+      const b = document.getElementById('versionBTitle');
+      if (a) a.textContent = 'Version A (' + name + ')';
+      if (b) b.textContent = 'Version B (' + name + ')';
+    }
+    document.getElementById('modelSelector').addEventListener('click', (e) => {
+      const card = e.target.closest('.model-card');
+      if (!card) return;
+      const model = card.getAttribute('data-model');
+      if (model !== 'sora' && model !== 'kling') return;
+      state.selectedModel = model;
+      document.querySelectorAll('.model-selector .model-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      updateVersionColumnTitles();
+    });
 
     function buildVersionSliders() {
       const defaults = { subject_consistency: 50, background_stability: 50, temporal_flickering: 50, motion_smoothness: 50, dynamic_degree: 50, aesthetic_quality: 50, imaging_quality: 50, semantic_alignment: 50 };
@@ -870,7 +931,7 @@
         container.innerHTML = VBENCH_DIMENSIONS.map((d) => {
           const id = `q_${prefix}_${d.key}`;
           const val = version[d.key] ?? 50;
-          return `<div class="quality-slider-wrap"><label>${d.label}</label><input type="range" id="${id}" min="0" max="100" value="${val}" /><div class="slider-label" id="${id}_label">${sliderLabel(val)}</div></div>`;
+          return `<div class="quality-slider-wrap"><label>${d.label}</label><input type="range" id="${id}" class="priority-slider" min="0" max="100" value="${val}" /><div class="slider-label" id="${id}_label">${sliderLabel(val)}</div></div>`;
         }).join('');
         VBENCH_DIMENSIONS.forEach(d => {
           const id = `q_${prefix}_${d.key}`;
@@ -922,7 +983,7 @@
         const r = await fetch(`${API_BASE}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: lastPrompt, quality: state.resolution === '4K' ? '1080p' : state.resolution, ratio: '16:9' }),
+          body: JSON.stringify({ prompt: lastPrompt, quality: state.resolution === '4K' ? '1080p' : state.resolution, ratio: '16:9', model: state.selectedModel }),
         });
         if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.detail || r.statusText); }
         const data = await r.json();
@@ -934,6 +995,11 @@
         document.getElementById('metaKling').innerHTML = `Latency: ${data.kling_latency_s}s · Cost: $${data.kling_cost_usd.toFixed(4)}`;
         if (statusEl) statusEl.textContent = 'Done. Click Run Judge to score quality.';
         document.getElementById('btnJudge').disabled = false;
+        const name = MODEL_LABELS[state.selectedModel] || 'Sora 2';
+        const la = document.getElementById('resultLabelA');
+        const lb = document.getElementById('resultLabelB');
+        if (la) la.textContent = 'Version A — ' + name;
+        if (lb) lb.textContent = 'Version B — ' + name;
         goToScreen(3);
         fillVbenchTable();
         updateCostPerfSummary();
