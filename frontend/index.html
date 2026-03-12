@@ -825,7 +825,7 @@
   .vi-tradeoff-table{width:100%;border-collapse:collapse;font-size:.84rem}
   .vi-tradeoff-table th{background:var(--surface-elevated);padding:.55rem .75rem;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--text-muted);border-bottom:2px solid var(--border)}
   .vi-tradeoff-table td{padding:.55rem .75rem;border-bottom:1px solid var(--border)}
-  .vi-tradeoff-table tr.sweet-spot td{background:rgba(126,232,162,.1);font-weight:600}
+  .vi-tradeoff-table tr.sweet-spot td{background:transparent;font-weight:600}
   .vi-sweet-badge{background:#7EE8A2;color:#0a0e1a;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:.4rem}
   .vi-sweet-card{border-left:4px solid #7EE8A2;padding:1.1rem 1.5rem;background:var(--surface);border-radius:0 10px 10px 0;margin-top:1rem;font-size:.88rem;line-height:1.65}
   .vi-sweet-card .lead{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
@@ -2634,9 +2634,12 @@
           </div>
         </div>`;
 
-      // replace the run button
-      if(btnWrap){
-        btnWrap.innerHTML=`<button class="vi-cta-btn" id="vi-run-btn" onclick="VI.runExplore()">▶ FIND MY OPTIMAL CONFIG →</button>`;
+      // update the run button in-place (wrapper has no id so we target the button directly)
+      const runBtn=document.getElementById('vi-run-btn');
+      if(runBtn){
+        runBtn.onclick=()=>VI.runExplore();
+        runBtn.textContent='▶ FIND MY OPTIMAL CONFIG →';
+        runBtn.disabled=!st.exploreClip;
       }
       setTimeout(()=>{updateExploreDerived();updateExploreCostPreview();},0);
     }
@@ -2813,9 +2816,14 @@
       if(!tbl)return;
       const fmt$=v=>v>=10000?'$'+Math.round(v/1000)+'K/yr':'$'+Math.round(v)+'/yr';
       const ssId=ss?.config_id;
+      const T={
+        detectionLatency:"How quickly after an anomaly occurs it would be detected. Equals 60 ÷ checks per hour. Lower = faster detection.",
+        qualityScore:"Overall quality of the model's anomaly detection response, averaged across Detection Accuracy, Actionability, and Completeness (0–100).",
+      };
       tbl.innerHTML=`<thead><tr>
         <th>Config</th><th>Clip</th><th>Checks/hr</th>
-        <th>Detection Latency</th><th>Quality Score</th>
+        <th>Detection Latency <span class="tip-icon" data-tip="${T.detectionLatency}">ⓘ</span></th>
+        <th>Quality Score <span class="tip-icon" data-tip="${T.qualityScore}">ⓘ</span></th>
         <th>Annual Cost (${cameras} cameras)</th><th>Anomaly Detected?</th>
       </tr></thead><tbody>${rows.map(r=>{
         const isSS=r.config_id===ssId&&r.model===ss?.model;
@@ -2844,9 +2852,13 @@
         card.innerHTML=`<div class="vi-sweet-card">
           <div class="lead">★ Recommended: Config ${r.config_id} — ${r.clip_sec}s clips · ${r.checks_per_hr} checks/hr</div>
           Achieves ${Math.round(q.overall||0)}/100 quality at $${Math.round(r.annual_cost||0).toLocaleString()}/year — ${qPct}% of max quality at ${cPct}% of max cost.${rows.length>1?' Going from Config '+r.config_id+' to Config '+rows[rows.length-1]?.config_id+' costs '+(((rows[rows.length-1]?.annual_cost||1)/(r.annual_cost||1)).toFixed(1))+'× more for '+(Math.round((rows[rows.length-1]?.quality?.overall||0)-(r.quality?.overall||0)))+'% quality improvement.':''}
-          <br><br>Detection latency: anomalies caught within <strong>${r.detection_latency_min} minutes</strong> of occurrence.
+          <br><br>Detection latency <span class="tip-icon" data-tip="How quickly after an anomaly occurs it would be detected. Equals 60 ÷ checks per hour.">ⓘ</span>: anomalies caught within <strong>${r.detection_latency_min} minutes</strong> of occurrence.
           <div style="margin-top:.85rem">
-            ${['detection_accuracy','actionability','completeness'].map(k=>{const v=q[k]||0;return `<div class="vi-quality-bar-row"><span class="lbl">${k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</span><div class="bar-wrap"><div class="bar" style="width:${v}%;background:${v>=70?'#7EE8A2':v>=50?'#F59E0B':'#EF4444'}"></div></div><span class="val" style="color:${v>=70?'#16a34a':v>=50?'#d97706':'#dc2626'}">${Math.round(v)}/100</span></div>`;}).join('')}
+            ${[
+              {k:'detection_accuracy',tip:'Did the model correctly identify whether an anomaly exists and describe what is happening accurately?'},
+              {k:'actionability',tip:'How specific and useful is the response for a security operator who needs to act immediately?'},
+              {k:'completeness',tip:'Did the response capture all relevant details — timing, location in frame, severity, and recommended action?'},
+            ].map(({k,tip})=>{const v=q[k]||0;return `<div class="vi-quality-bar-row"><span class="lbl">${k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} <span class="tip-icon" data-tip="${tip}">ⓘ</span></span><div class="bar-wrap"><div class="bar" style="width:${v}%;background:${v>=70?'#7EE8A2':v>=50?'#F59E0B':'#EF4444'}"></div></div><span class="val" style="color:${v>=70?'#16a34a':v>=50?'#d97706':'#dc2626'}">${Math.round(v)}/100</span></div>`;}).join('')}
           </div>
         </div>`;
       }
@@ -3001,7 +3013,10 @@
         if(issues.length){msg.innerHTML='⚠ '+issues.join(' ');msg.classList.add('show');allOk=false;}
         else{msg.innerHTML='';msg.classList.remove('show');}
       });
-      const btn=document.getElementById('vi-run-btn');if(btn)btn.disabled=!allOk;
+      // Don't touch run button in explore mode — it's controlled by selExploreClip
+      if(ucKey()!=='safety_ops__anomaly_detection'){
+        const btn=document.getElementById('vi-run-btn');if(btn)btn.disabled=!allOk;
+      }
     }
 
     // ── Run benchmark ─────────────────────────────────────────────
