@@ -496,6 +496,299 @@ def judge(request: JudgeRequest):
             shutil.rmtree(temp_dir_b, ignore_errors=True)
 
 
+# ── Scenario-based generation + judge (new Video Gen flow) ───────
+
+GEN_PRICING = {
+    "sora2":   {"per_second": 0.15},
+    "kling26": {"per_second": 0.08},
+}
+RES_MULTIPLIER = {"480p": 0.5, "720p": 1.0, "1080p": 2.0, "4k": 4.0}
+FPS_MULTIPLIER = {16: 0.8, 20: 1.0, 24: 1.3}
+
+USE_CASE_SEED_PROMPTS = {
+    "brand_storytelling":    "A cinematic brand story video showing a product journey",
+    "client_pitch":          "A professional concept video for a client presentation",
+    "social_content":        "An engaging short-form social media video",
+    "employee_onboarding":   "A clear and professional employee training video",
+    "product_demo":          "A clean product demonstration and explainer video",
+    "executive_comms":       "A polished executive communication video",
+    "performance_ad":        "A high-converting performance advertisement video",
+    "product_showcase":      "A dynamic product showcase video",
+    "ab_creative":           "A creative test variant video for A/B testing",
+    "lookbook":              "A fashion lookbook video with editorial styling",
+    "product_detail":        "A detailed product styling video",
+    "runway_editorial":      "A runway and editorial fashion video",
+    "short_form":            "An engaging short-form entertainment video",
+    "news_broadcast":        "A professional news broadcast package video",
+    "trailer_promo":         "A cinematic trailer and promotional video",
+}
+
+
+def build_gen_prompt(use_case: str, quality_buckets: dict) -> str:
+    base = USE_CASE_SEED_PROMPTS.get(use_case, "A professional video")
+    quality_instructions = []
+    if quality_buckets.get("visual_fidelity", 5) >= 7:
+        quality_instructions.append("cinematic quality, sharp details, professional color grading")
+    if quality_buckets.get("motion_quality", 5) >= 7:
+        quality_instructions.append("smooth motion, no flickering, fluid transitions")
+    if quality_buckets.get("subject_quality", 5) >= 7:
+        quality_instructions.append("consistent subjects, accurate semantic alignment")
+    if quality_buckets.get("scene_stability", 5) >= 7:
+        quality_instructions.append("stable background, controlled dynamic elements")
+    if quality_instructions:
+        return f"{base}. Quality requirements: {', '.join(quality_instructions)}."
+    return f"{base}. Fast generation, standard quality."
+
+
+EVAL_JUDGE_RUBRICS = [
+    ("subject_quality", "Subject Quality",
+     "Evaluate the generated video frames for Subject Quality (0.0–1.0). "
+     "Criteria: Accuracy and consistency of subjects across frames — are they realistic, correctly rendered, semantically correct? "
+     "Do NOT reference resolution, fps, or any input parameters — evaluate OUTPUT only. "
+     "Return ONLY JSON: {\"score_a\": 0.0, \"score_b\": 0.0, \"reasoning\": \"one sentence\"}"),
+    ("motion_quality", "Motion Quality",
+     "Evaluate the generated video frames for Motion Quality (0.0–1.0). "
+     "Criteria: Smoothness and naturalness of movement — no flickering, no unnatural jumps, fluid transitions. "
+     "Do NOT reference resolution, fps, or any input parameters — evaluate OUTPUT only. "
+     "Return ONLY JSON: {\"score_a\": 0.0, \"score_b\": 0.0, \"reasoning\": \"one sentence\"}"),
+    ("visual_fidelity", "Visual Fidelity",
+     "Evaluate the generated video frames for Visual Fidelity (0.0–1.0). "
+     "Criteria: Overall image quality — lighting, composition, color grading, sharpness, aesthetic polish. "
+     "Do NOT reference resolution, fps, or any input parameters — evaluate OUTPUT only. "
+     "Return ONLY JSON: {\"score_a\": 0.0, \"score_b\": 0.0, \"reasoning\": \"one sentence\"}"),
+    ("scene_stability", "Scene Stability",
+     "Evaluate the generated video frames for Scene Stability (0.0–1.0). "
+     "Criteria: Consistency of background and environment — does the scene remain stable without unwanted changes? "
+     "Do NOT reference resolution, fps, or any input parameters — evaluate OUTPUT only. "
+     "Return ONLY JSON: {\"score_a\": 0.0, \"score_b\": 0.0, \"reasoning\": \"one sentence\"}"),
+    ("overall_quality", "Overall Quality",
+     "Evaluate these generated video frames for Overall Quality (0.0–1.0). "
+     "Give your holistic assessment of the visual output quality across all dimensions. "
+     "Do NOT reference resolution, fps, or any input parameters — evaluate OUTPUT only. "
+     "Return ONLY JSON: {\"score_a\": 0.0, \"score_b\": 0.0, \"reasoning\": \"one sentence\"}"),
+]
+
+EVAL_JUDGE_MODELS = [
+    ("claude", "anthropic/claude-3-5-sonnet"),
+    ("gemini", "google/gemini-2.0-flash-001"),
+    ("gpt4o",  "openai/gpt-4o"),
+]
+
+
+def _call_eval_judge(frames_a_urls: list, frames_b_urls: list,
+                     rubric: str, model_id: str) -> dict:
+    import httpx
+    content = (
+        [{"type": "text", "text": "Scenario A frames (chronological):"}]
+        + [{"type": "image_url", "image_url": {"url": u}} for u in frames_a_urls]
+        + [{"type": "text", "text": "Scenario B frames (chronological):"}]
+        + [{"type": "image_url", "image_url": {"url": u}} for u in frames_b_urls]
+        + [{"type": "text", "text": rubric}]
+    )
+    try:
+        r = httpx.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"},
+            json={"model": model_id, "messages": [{"role": "user", "content": content}], "max_tokens": 300},
+            timeout=90.0,
+        )
+        r.raise_for_status()
+        raw = r.json()["choices"][0]["message"]["content"] or ""
+        m = re.search(r"\{[\s\S]*?\}", raw)
+        if m:
+            return json.loads(m.group(0))
+    except Exception:
+        pass
+    return {"score_a": 0.0, "score_b": 0.0, "reasoning": "Unavailable"}
+
+
+def run_eval_judge_panel(path_a: Path, path_b: Path) -> dict:
+    """Extract frames from both videos, run 3 judges × 5 dimensions in parallel."""
+    temp_dir_a = temp_dir_b = None
+    try:
+        temp_dir_a, frames_a = _extract_frames(path_a)
+        temp_dir_b, frames_b = _extract_frames(path_b)
+        urls_a = _frame_paths_to_data_urls(frames_a)
+        urls_b = _frame_paths_to_data_urls(frames_b)
+    except Exception as e:
+        return {"error": str(e)}
+
+    dimensions = [r[0] for r in EVAL_JUDGE_RUBRICS]
+    # All 15 calls (5 dims × 3 judges) in parallel
+    futures_map = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as ex:
+        for dim_key, _dim_label, rubric in EVAL_JUDGE_RUBRICS:
+            for judge_key, model_id in EVAL_JUDGE_MODELS:
+                fut = ex.submit(_call_eval_judge, urls_a, urls_b, rubric, model_id)
+                futures_map[fut] = (dim_key, judge_key)
+
+        raw_results: dict[str, dict[str, dict]] = {d: {} for d in dimensions}
+        for fut in concurrent.futures.as_completed(futures_map):
+            dim_key, judge_key = futures_map[fut]
+            try:
+                raw_results[dim_key][judge_key] = fut.result()
+            except Exception:
+                raw_results[dim_key][judge_key] = {"score_a": 0.0, "score_b": 0.0, "reasoning": "Error"}
+
+    # Build per-dimension consensus
+    result_a, result_b = {}, {}
+    disagreements = []
+    for dim_key in dimensions:
+        scores_a = {j: raw_results[dim_key].get(j, {}).get("score_a", 0.0) for j, _ in EVAL_JUDGE_MODELS}
+        scores_b = {j: raw_results[dim_key].get(j, {}).get("score_b", 0.0) for j, _ in EVAL_JUDGE_MODELS}
+        vals_a = list(scores_a.values())
+        vals_b = list(scores_b.values())
+        consensus_a = round(sum(vals_a) / len(vals_a), 3) if vals_a else 0.0
+        consensus_b = round(sum(vals_b) / len(vals_b), 3) if vals_b else 0.0
+        # Disagreement: std dev > 0.2
+        mean_a = consensus_a
+        std_a = (sum((s - mean_a) ** 2 for s in vals_a) / len(vals_a)) ** 0.5 if vals_a else 0
+        if std_a > 0.2:
+            disagreements.append(dim_key)
+        result_a[dim_key] = {"consensus": consensus_a, "individual": scores_a}
+        result_b[dim_key] = {"consensus": consensus_b, "individual": scores_b}
+
+    overall_a = round(sum(v["consensus"] for v in result_a.values()) / len(result_a), 3)
+    overall_b = round(sum(v["consensus"] for v in result_b.values()) / len(result_b), 3)
+
+    if temp_dir_a:
+        shutil.rmtree(temp_dir_a, ignore_errors=True)
+    if temp_dir_b:
+        shutil.rmtree(temp_dir_b, ignore_errors=True)
+
+    return {
+        "scenario_a": result_a,
+        "scenario_b": result_b,
+        "overall_a": overall_a,
+        "overall_b": overall_b,
+        "disagreements": disagreements,
+        "judge_count": len(EVAL_JUDGE_MODELS),
+    }
+
+
+class EvalScenario(BaseModel):
+    id: str                        # "A" | "B"
+    name: str
+    model: str                     # "sora2" | "kling26"
+    resolution: str = "720p"       # 480p | 720p | 1080p | 4k
+    fps: int = 20                  # 16 | 20 | 24
+    clip_length_sec: int = 8
+    ttft_threshold_sec: int = 30
+    quality_buckets: dict = {}
+
+
+class GenerateEvalRequest(BaseModel):
+    use_case: str
+    scenarios: list[EvalScenario]  # exactly 2
+
+
+@app.post("/generate-eval")
+def generate_eval(request: GenerateEvalRequest):
+    """
+    Generate 2 scenario videos, measure generation time, run 3-model judge panel.
+    Returns combined results with cost breakdown and quality scores.
+    """
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=503, detail="OPENROUTER_API_KEY is not set")
+    if len(request.scenarios) != 2:
+        raise HTTPException(status_code=400, detail="Exactly 2 scenarios required")
+
+    run_id = str(uuid.uuid4())[:8]
+    scenario_results = []
+
+    # Map model IDs to generation functions
+    def model_to_gen(s: EvalScenario) -> tuple[str, str]:
+        """Returns (gen_model_key, quality_str) for existing generators."""
+        if s.model == "sora2":
+            q = "1080p" if s.resolution in ("1080p", "4k") else "720p"
+            return "sora", q
+        return "kling", s.resolution
+
+    # Generate both scenarios concurrently
+    prompts = {}
+    for s in request.scenarios:
+        prompts[s.id] = build_gen_prompt(request.use_case, s.quality_buckets)
+
+    gen_results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+        futures = {}
+        for s in request.scenarios:
+            gen_key, quality = model_to_gen(s)
+            fut = ex.submit(_generate_one, gen_key, prompts[s.id], f"{run_id}_{s.id}", quality, "16:9")
+            futures[fut] = s
+        for fut in concurrent.futures.as_completed(futures):
+            s = futures[fut]
+            try:
+                _, path, gen_time = fut.result()
+                gen_results[s.id] = {"path": path, "time": gen_time, "error": None}
+            except Exception as e:
+                gen_results[s.id] = {"path": None, "time": None, "error": str(e)}
+
+    # Build scenario result objects
+    completed_paths = {}
+    for s in request.scenarios:
+        gr = gen_results.get(s.id, {})
+        cost_per_gen = (
+            s.clip_length_sec
+            * RES_MULTIPLIER.get(s.resolution, 1.0)
+            * FPS_MULTIPLIER.get(s.fps, 1.0)
+            * GEN_PRICING.get(s.model, {"per_second": 0.10})["per_second"]
+        )
+        gen_time = gr.get("time")
+        result = {
+            "id": s.id,
+            "name": s.name,
+            "model": s.model,
+            "resolution": s.resolution,
+            "fps": s.fps,
+            "clip_length_sec": s.clip_length_sec,
+            "ttft_threshold_sec": s.ttft_threshold_sec,
+            "generation_time_sec": round(gen_time, 2) if gen_time else None,
+            "ttft_exceeded": (gen_time or 0) > s.ttft_threshold_sec,
+            "video_path": gr["path"].name if gr.get("path") else None,
+            "cost_per_generation": round(cost_per_gen, 4),
+            "cost_at_10": round(cost_per_gen * 10, 2),
+            "cost_at_100": round(cost_per_gen * 100, 2),
+            "cost_at_1000": round(cost_per_gen * 1000, 2),
+            "prompt_used": prompts[s.id],
+            "quality_buckets": s.quality_buckets,
+            "judge_scores": None,
+            "status": "error" if gr.get("error") else "generated",
+            "error": gr.get("error"),
+        }
+        scenario_results.append(result)
+        if gr.get("path"):
+            completed_paths[s.id] = gr["path"]
+
+    # Run judge if both scenarios generated successfully
+    judge_panel = None
+    if len(completed_paths) == 2:
+        ids = [s.id for s in request.scenarios]
+        try:
+            path_a = completed_paths[ids[0]]
+            path_b = completed_paths[ids[1]]
+            judge_panel = run_eval_judge_panel(path_a, path_b)
+            # Attach scores per scenario
+            for res in scenario_results:
+                if res["id"] == ids[0] and "scenario_a" in judge_panel:
+                    res["judge_scores"] = judge_panel["scenario_a"]
+                    res["judge_overall"] = judge_panel.get("overall_a")
+                    res["status"] = "complete"
+                elif res["id"] == ids[1] and "scenario_b" in judge_panel:
+                    res["judge_scores"] = judge_panel["scenario_b"]
+                    res["judge_overall"] = judge_panel.get("overall_b")
+                    res["status"] = "complete"
+        except Exception as e:
+            judge_panel = {"error": str(e)}
+
+    return {
+        "run_id": run_id,
+        "use_case": request.use_case,
+        "scenarios": scenario_results,
+        "judge_panel": judge_panel,
+    }
+
+
 @app.get("/video/{filename}")
 def serve_video(filename: str):
     """Serve a generated video file from OUTPUT_DIR (filename only, e.g. runid_wan.mp4)."""

@@ -700,6 +700,25 @@
   .vi-cta-row{display:flex;gap:.85rem;margin-top:1.25rem;flex-wrap:wrap}
   .vi-sec-btn{padding:.6rem 1.1rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text);font-family:inherit}
   .vi-sec-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .sc-model-pill{padding:.4rem .9rem;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;background:var(--bg);color:var(--text-dim);font-family:inherit;transition:all .15s}
+  .sc-model-pill.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+  .sc-fps-pill{padding:.3rem .7rem;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;background:var(--bg);color:var(--text-dim);font-family:inherit}
+  .sc-fps-pill.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+  .qual-bucket{margin-bottom:.75rem;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .qual-bucket-head{padding:.5rem .85rem;background:var(--surface-elevated);cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:.8rem;font-weight:600;user-select:none}
+  .qual-bucket-body{padding:.65rem .85rem;border-top:1px solid var(--border);display:none}
+  .qual-bucket-body.open{display:block}
+  .qual-sub-list{font-size:.72rem;color:var(--text-muted);margin-top:.35rem}
+  .gen-cost-card{flex:1;min-width:160px;padding:1rem 1.25rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px}
+  .gen-cost-card.winner{border-color:var(--accent);background:var(--accent-dim)}
+  .judge-dim-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.65rem;font-size:.82rem}
+  .judge-dim-lbl{min-width:130px;color:var(--text-muted)}
+  .judge-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+  .judge-bar{height:100%;border-radius:4px;transition:width .4s}
+  .judge-score-val{min-width:40px;text-align:right;font-weight:700}
+  .judge-indiv{font-size:.68rem;color:var(--text-muted);margin-top:.1rem}
+  .scen-result-card{flex:1;min-width:260px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+  .scen-result-card.winner{border-top:3px solid #7EE8A2}
   /* clip selector */
   .vi-clip-btns{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
   .vi-clip-btn{padding:.4rem .85rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;background:var(--bg);color:var(--text-dim);font-family:inherit;transition:all .15s}
@@ -826,126 +845,139 @@
       </div>
     </div>
 
-    <!-- SCREEN 2 — VERSION CONFIGURATION -->
+    <!-- SCREEN 2 — SCENARIO BUILDER -->
     <div class="app-screen" id="screen2">
-      <h2 class="onboarding-header" style="margin-bottom:1.5rem">Version configuration</h2>
-      <p class="onboarding-subheader" style="margin-bottom:1rem">Choose one model. We'll create two versions (A and B) with different quality and speed settings.</p>
-      <p class="section-label" style="margin-bottom:0.5rem">Choose model</p>
-      <div class="model-selector" id="modelSelector">
-        <button type="button" class="model-card selected" data-model="sora">Sora 2</button>
-        <button type="button" class="model-card" data-model="kling">Kling 2.6</button>
-      </div>
-      <p class="section-label" style="margin-bottom:0.75rem">Tune quality and speed per version</p>
-      <div class="version-config-grid">
-        <div class="version-column">
-          <h3 id="versionATitle">Version A (Sora 2)</h3>
-          <div class="segment-quality-config">
-            <div class="segment-head">Quality optimization</div>
-            <div id="slidersVersionA"></div>
-          </div>
-          <div class="segment-speed-config">
-            <div class="segment-head">Speed / Latency</div>
+      <h2 class="onboarding-header" style="margin-bottom:.5rem">Configure Your Scenarios</h2>
+      <p class="onboarding-subheader" style="margin-bottom:1.5rem">Define 2 ways to generate video. We'll benchmark cost and quality for each.</p>
+      <div style="display:flex;gap:1.25rem;flex-wrap:wrap;align-items:flex-start">
+        <!-- Scenario A -->
+        <div class="version-column" style="flex:1;min-width:280px" id="scenCardA">
+          <h3 style="font-size:1rem;padding:.9rem 1.25rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:monospace;font-size:.75rem;color:var(--text-muted);letter-spacing:.1em">SCENARIO A</span>
+            <input id="scNameA" value="High Quality" style="border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);text-align:right;outline:none;width:130px">
+          </h3>
+          <div style="padding:1rem">
+            <p class="section-label" style="margin-bottom:.5rem">A — Model</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+              <button type="button" class="sc-model-pill selected" data-sc="A" data-model="sora2" onclick="GEN.selScModel('A','sora2',this)">Sora 2</button>
+              <button type="button" class="sc-model-pill" data-sc="A" data-model="kling26" onclick="GEN.selScModel('A','kling26',this)">Kling 2.6</button>
+            </div>
+            <p class="section-label" style="margin-bottom:.5rem">B — Generation Parameters</p>
             <div class="quality-slider-wrap">
-              <label>Latency priority</label>
-              <input type="range" id="latencyA" class="priority-slider" min="0" max="100" value="50" />
-              <div class="slider-label" id="latencyALabel">Balanced</div>
+              <label>Clip length: <strong id="clipValA">15s</strong> <span class="tip-icon" data-tip="Duration of each generated video clip. Longer clips cost proportionally more.">ⓘ</span></label>
+              <input type="range" id="clipA" min="3" max="60" value="15" oninput="GEN.onClipSlide('A',this.value)" class="priority-slider">
             </div>
             <div class="quality-slider-wrap">
-              <label>Concurrent requests</label>
-              <input type="number" id="concurrentA" value="5" min="1" max="200" style="width:100px;padding:0.5rem;border:1px solid var(--border);border-radius:6px;" />
-              <span style="margin-left:0.5rem;font-size:0.9rem;color:var(--text-muted)">Presets: 1, 5, 10, 50, 100</span>
+              <label>Resolution <span class="tip-icon" data-tip="Output resolution. Higher resolution increases cost significantly.">ⓘ</span></label>
+              <select id="resA" onchange="GEN.updateScCost('A')" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:.95rem">
+                <option value="480p">480p</option>
+                <option value="720p">720p</option>
+                <option value="1080p" selected>1080p</option>
+                <option value="4k">4K</option>
+              </select>
+            </div>
+            <div class="quality-slider-wrap">
+              <label>FPS <span class="tip-icon" data-tip="Frames per second. 24fps is cinematic standard. Lower FPS reduces cost.">ⓘ</span></label>
+              <div style="display:flex;gap:.4rem">
+                <button type="button" class="sc-fps-pill" data-sc="A" data-fps="16" onclick="GEN.selFps('A',16,this)">16</button>
+                <button type="button" class="sc-fps-pill" data-sc="A" data-fps="20" onclick="GEN.selFps('A',20,this)">20</button>
+                <button type="button" class="sc-fps-pill selected" data-sc="A" data-fps="24" onclick="GEN.selFps('A',24,this)">24</button>
+              </div>
+            </div>
+            <div class="quality-slider-wrap">
+              <label>Max acceptable latency (sec) <span class="tip-icon" data-tip="Your maximum acceptable generation time. Used to flag scenarios that exceed your SLA.">ⓘ</span></label>
+              <input type="number" id="ttftA" value="30" min="5" max="600" style="width:100px;padding:.45rem;border:1px solid var(--border);border-radius:6px;font-size:.95rem" oninput="GEN.updateScCost('A')">
+            </div>
+            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">C — Quality Settings</p>
+            <div id="qualBucketsA"></div>
+            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">D — Estimated Cost</p>
+            <div class="vi-cost-box" id="costBoxA" style="font-family:monospace;font-size:.78rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem">
+              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>Cost / generation</span><span style="color:var(--accent);font-weight:700" id="cpgA">—</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 10 generations</span><span id="c10A">—</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 100 generations</span><span id="c100A">—</span></div>
+              <div style="display:flex;justify-content:space-between"><span>At 1,000 generations</span><span id="c1kA">—</span></div>
             </div>
           </div>
         </div>
-        <div class="version-column">
-          <h3 id="versionBTitle">Version B (Sora 2)</h3>
-          <div class="segment-quality-config">
-            <div class="segment-head">Quality optimization</div>
-            <div id="slidersVersionB"></div>
-          </div>
-          <div class="segment-speed-config">
-            <div class="segment-head">Speed / Latency</div>
+        <!-- Scenario B -->
+        <div class="version-column" style="flex:1;min-width:280px" id="scenCardB">
+          <h3 style="font-size:1rem;padding:.9rem 1.25rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:monospace;font-size:.75rem;color:var(--text-muted);letter-spacing:.1em">SCENARIO B</span>
+            <input id="scNameB" value="Fast &amp; Cheap" style="border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);text-align:right;outline:none;width:130px">
+          </h3>
+          <div style="padding:1rem">
+            <p class="section-label" style="margin-bottom:.5rem">A — Model</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+              <button type="button" class="sc-model-pill" data-sc="B" data-model="sora2" onclick="GEN.selScModel('B','sora2',this)">Sora 2</button>
+              <button type="button" class="sc-model-pill selected" data-sc="B" data-model="kling26" onclick="GEN.selScModel('B','kling26',this)">Kling 2.6</button>
+            </div>
+            <p class="section-label" style="margin-bottom:.5rem">B — Generation Parameters</p>
             <div class="quality-slider-wrap">
-              <label>Latency priority</label>
-              <input type="range" id="latencyB" class="priority-slider" min="0" max="100" value="50" />
-              <div class="slider-label" id="latencyBLabel">Balanced</div>
+              <label>Clip length: <strong id="clipValB">5s</strong> <span class="tip-icon" data-tip="Duration of each generated video clip. Longer clips cost proportionally more.">ⓘ</span></label>
+              <input type="range" id="clipB" min="3" max="60" value="5" oninput="GEN.onClipSlide('B',this.value)" class="priority-slider">
             </div>
             <div class="quality-slider-wrap">
-              <label>Concurrent requests</label>
-              <input type="number" id="concurrentB" value="5" min="1" max="200" style="width:100px;padding:0.5rem;border:1px solid var(--border);border-radius:6px;" />
+              <label>Resolution <span class="tip-icon" data-tip="Output resolution. Higher resolution increases cost significantly.">ⓘ</span></label>
+              <select id="resB" onchange="GEN.updateScCost('B')" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:.95rem">
+                <option value="480p">480p</option>
+                <option value="720p" selected>720p</option>
+                <option value="1080p">1080p</option>
+                <option value="4k">4K</option>
+              </select>
+            </div>
+            <div class="quality-slider-wrap">
+              <label>FPS <span class="tip-icon" data-tip="Frames per second. 24fps is cinematic standard. Lower FPS reduces cost.">ⓘ</span></label>
+              <div style="display:flex;gap:.4rem">
+                <button type="button" class="sc-fps-pill selected" data-sc="B" data-fps="16" onclick="GEN.selFps('B',16,this)">16</button>
+                <button type="button" class="sc-fps-pill" data-sc="B" data-fps="20" onclick="GEN.selFps('B',20,this)">20</button>
+                <button type="button" class="sc-fps-pill" data-sc="B" data-fps="24" onclick="GEN.selFps('B',24,this)">24</button>
+              </div>
+            </div>
+            <div class="quality-slider-wrap">
+              <label>Max acceptable latency (sec) <span class="tip-icon" data-tip="Your maximum acceptable generation time. Used to flag scenarios that exceed your SLA.">ⓘ</span></label>
+              <input type="number" id="ttftB" value="10" min="5" max="600" style="width:100px;padding:.45rem;border:1px solid var(--border);border-radius:6px;font-size:.95rem" oninput="GEN.updateScCost('B')">
+            </div>
+            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">C — Quality Settings</p>
+            <div id="qualBucketsB"></div>
+            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">D — Estimated Cost</p>
+            <div class="vi-cost-box" id="costBoxB" style="font-family:monospace;font-size:.78rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem">
+              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>Cost / generation</span><span style="color:var(--accent);font-weight:700" id="cpgB">—</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 10 generations</span><span id="c10B">—</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 100 generations</span><span id="c100B">—</span></div>
+              <div style="display:flex;justify-content:space-between"><span>At 1,000 generations</span><span id="c1kB">—</span></div>
             </div>
           </div>
         </div>
       </div>
       <div style="text-align:center;margin-top:2rem">
-        <button type="button" class="cta-primary" id="btnGenerateVersions">Generate 2 versions →</button>
-        <p id="genError" class="error-msg" style="margin-top:1rem;display:none"></p>
+        <button type="button" class="cta-primary" id="btnGenerateEval">▶ GENERATE &amp; EVALUATE →</button>
+        <p id="genEvalError" class="error-msg" style="margin-top:1rem;display:none"></p>
       </div>
     </div>
 
+
     <!-- SCREEN 3 — RESULTS -->
     <div class="app-screen" id="screen3">
-      <h2 class="onboarding-header" style="margin-bottom:1rem">Results</h2>
-      <div class="videos-grid" style="margin-top:1.5rem">
-        <div class="video-card">
-          <div class="card-header"><label id="resultLabelA">Version A — Sora 2</label></div>
-          <div class="video-wrap" id="wrapSora"><span class="placeholder">—</span></div>
-          <div class="video-meta" id="metaSora"></div>
-        </div>
-        <div class="video-card">
-          <div class="card-header"><label id="resultLabelB">Version B — Kling 2.6</label></div>
-          <div class="video-wrap" id="wrapKling"><span class="placeholder">—</span></div>
-          <div class="video-meta" id="metaKling"></div>
-        </div>
-      </div>
-      <section class="judge-cta" id="judgeCta" style="margin-top:1rem">
-        <button type="button" id="btnJudge" class="primary" disabled>RUN JUDGE (3-PANEL)</button>
-        <button type="button" id="btnUnderstandJudge" class="secondary">Understand judgement layer</button>
-        <p id="judgeStatus" class="status"></p>
-        <p id="judgeError" class="error-msg"></p>
-      </section>
-      <div id="judgeLayerModal" class="judge-modal" role="dialog" aria-labelledby="judgeModalTitle" aria-hidden="true">
-        <div class="judge-modal-backdrop"></div>
-        <div class="judge-modal-content">
-          <h3 id="judgeModalTitle">How the judgement layer works</h3>
-          <p>After you generate two videos, the <strong>judge</strong> runs them through three independent AI evaluators (Gemini 1.5 Pro, GPT-4o, Claude 3.5 Sonnet) to score quality on a 1–10 scale across: Identity Preservation, Scene Coherence, Temporal Fluency, Semantic Alignment, and Cinematic Quality.</p>
-          <p>Scores are combined into an overall quality score per model. This gives you comparable, repeatable metrics instead of guessing which output looks better.</p>
-          <button type="button" class="judge-modal-close" id="btnCloseJudgeModal">Close</button>
-        </div>
-      </div>
+      <!-- Breadcrumb -->
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:1.25rem" id="resultBreadcrumb"></div>
 
-      <h3 class="segment-title" style="margin-top:2rem">Quality metrics</h3>
-      <table class="vbench-table metrics" id="vbenchTable">
-        <thead><tr><th>Metric</th><th>Benchmark Method</th><th>Version A</th><th>Version B</th><th>Winner</th></tr></thead>
-        <tbody id="vbenchTableBody"></tbody>
-      </table>
-      <p class="section-winner" id="vbenchInsight" style="margin-top:0.75rem"></p>
+      <!-- Section 1: Cost projection -->
+      <h3 class="segment-title">Cost Projection</h3>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem" id="costHeroCards"></div>
+      <div style="height:280px;margin-bottom:1rem"><canvas id="genCostChart"></canvas></div>
 
-      <h3 class="segment-title" style="margin-top:2rem">Marginal quality jump</h3>
-      <table class="vbench-table marginal-table" id="marginalTable">
-        <thead><tr><th>Quality Step</th><th>Version A Cost/video</th><th>Version B Cost/video</th><th>Quality Delta</th><th>Cost Delta</th><th>Cost per Quality Point</th></tr></thead>
-        <tbody id="marginalTableBody"></tbody>
-      </table>
-      <div class="callout-banner" id="marginalCallout" style="display:none"></div>
+      <!-- Section 2: Scenario result cards -->
+      <h3 class="segment-title" style="margin-top:1.5rem">Scenario Results</h3>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap" id="scenResultCards"></div>
 
-      <h3 class="segment-title" style="margin-top:2rem">Cost projection</h3>
-      <div class="graph-view-toggle">
-        <button type="button" data-view="generations" class="active">By generations</button>
-        <button type="button" data-view="daily">By day</button>
-        <button type="button" data-view="monthly">By month</button>
-        <button type="button" data-view="annual">By year</button>
-        <div class="videos-per-day-wrap" id="videosPerDayWrap" style="display:none">
-          <label>Videos per day:</label>
-          <input type="number" id="videosPerDay" value="100" min="1" max="10000" />
-        </div>
-      </div>
-      <div class="chart-wrap-summary" style="height:340px">
-        <canvas id="chartSummary"></canvas>
-      </div>
+      <!-- Section 3: Judge panel -->
+      <h3 class="segment-title" style="margin-top:1.5rem">Quality Evaluation — 3-Model Judge Panel</h3>
+      <p style="font-size:.9rem;color:var(--text-dim);margin-bottom:1rem">Claude, Gemini, and GPT-4o evaluated the generated output independently.</p>
+      <div id="judgePanel"></div>
 
-      <div class="persona-card" id="recommendationCard" style="margin-top:2rem">
-        <div id="recommendationText">Run judge and view results to see recommendation.</div>
-      </div>
+      <!-- Section 4: Recommendation -->
+      <h3 class="segment-title" style="margin-top:1.5rem">Recommendation</h3>
+      <div id="genRecommendation"></div>
     </div>
   </div>
 </div><!-- /tab-gen -->
@@ -1082,31 +1114,47 @@
       resolution: '720p',
       videoLength: '5',
       consumer: '',
+      consumerLabel: '',
       useCase: '',
       selectedModel: 'sora',
       versionA: {},
       versionB: {},
+      // Scenario eval state
+      scenarioA: { model: 'sora2', resolution: '1080p', fps: 24, clipSec: 15, ttft: 30, buckets: { subject_quality: 8, motion_quality: 8, visual_fidelity: 9, scene_stability: 7, overall_quality: 8 } },
+      scenarioB: { model: 'kling26', resolution: '720p', fps: 16, clipSec: 5, ttft: 10, buckets: { subject_quality: 4, motion_quality: 4, visual_fidelity: 3, scene_stability: 4, overall_quality: 4 } },
     };
     const MODEL_LABELS = { sora: 'Sora 2', kling: 'Kling 2.6' };
 
-    const CONSUMER_OPTIONS = ['Creative Agency', 'Enterprise SaaS', 'Marketing Team', 'Media & Entertainment', 'E-commerce & Retail', 'L&D / HR / Training', 'Advertising & Performance Marketing', 'Broadcasting & News'];
+    const CONSUMER_OPTIONS = [
+      { id: 'creative_agency',     label: 'Creative Agency',              emoji: '🎨' },
+      { id: 'corporate_training',  label: 'Corporate Training & Learning', emoji: '🎓' },
+      { id: 'advertising_marketing', label: 'Advertising & Marketing',    emoji: '📣' },
+      { id: 'fashion_brands',      label: 'Fashion Photography & Brands', emoji: '👗' },
+      { id: 'media_entertainment', label: 'Media & Entertainment',         emoji: '🎬' },
+    ];
     const USECASE_MAP = {
-      'Creative Agency': ['Brand storytelling & campaigns', 'Client pitch & concept videos', 'Social content production'],
-      'Enterprise SaaS': ['Product demos & feature walkthroughs', 'Customer onboarding videos', 'Internal knowledge base'],
-      'Marketing Team': ['Performance ads (Meta, TikTok, YouTube)', 'Product launch content', 'Seasonal campaigns'],
-      'Media & Entertainment': ['Cinematic & narrative content', 'Trailers & teasers', 'Background & scene generation'],
-      'E-commerce & Retail': ['Product showcase videos', 'Try-on & lifestyle content', 'Seasonal promotional clips'],
-      'L&D / HR / Training': ['Compliance & policy training', 'Onboarding & culture videos', 'Skills & process tutorials'],
-      'Advertising & Performance Marketing': ['A/B creative testing at scale', 'Dynamic ad personalization', 'Retargeting video assets'],
-      'Broadcasting & News': ['Automated highlight reels', 'B-roll & scene generation', 'Localization & dubbing'],
+      'creative_agency': ['Brand storytelling & campaigns', 'Client pitch & concept videos', 'Social content production'],
+      'corporate_training': ['Employee onboarding & training', 'Product demo & explainer videos', 'Executive communications'],
+      'advertising_marketing': ['Performance ad creative', 'Product showcase videos', 'A/B creative testing'],
+      'fashion_brands': ['Lookbook & campaign videos', 'Product detail & styling shots', 'Runway & editorial content'],
+      'media_entertainment': ['Short-form content production', 'News & broadcast packages', 'Trailer & promo generation'],
     };
     const PERSONA_MAP = {
-      'Enterprise SaaS|Product demos & feature walkthroughs': 'Enterprise buyers prioritize visual consistency and brand accuracy over creative experimentation. Typical volumes run 500–5,000 clips/month with near-zero tolerance for generation failures or temporal drift. Cost per successful output matters more than raw cost per second — a 10% failure rate can double effective spend. Prompt adherence and identity stability are the metrics that move procurement decisions.',
-      'Marketing Team|Performance ads (Meta, TikTok, YouTube)': 'Performance marketing teams run high volumes of short-form content (3–10 sec) across Meta, TikTok, and YouTube. Visual punch and fast turnaround matter more than photorealism. At scale, the cost delta between models compounds fast — a $0.10/sec difference can exceed $60k/year at production volume. Speed and throughput are as important as quality.',
-      'Creative Agency|Brand storytelling & campaigns': 'Creative agencies need cinematic quality and strong aesthetic scores to satisfy client deliverables. Volumes are moderate (100–500 clips/month) but quality bar is high — temporal consistency and semantic alignment are non-negotiable. Cost sensitivity is lower than other segments but cost predictability matters for client billing.',
-      'E-commerce & Retail|Product showcase videos': 'E-commerce teams need high imaging quality and subject consistency to accurately represent products. Volumes are high (1,000–10,000 clips/month) and cost per clip is a primary procurement metric. Background stability and semantic alignment are critical — a product video that misrepresents color or shape is a liability.',
-      'L&D / HR / Training|Compliance & policy training': 'Training teams prioritize clarity, identity preservation, and lip sync accuracy above all else. Volumes are moderate but content has long shelf life — quality failures are costly to fix post-production. Cost per minute of finished video is the primary metric, not cost per generation.',
-      'Advertising & Performance Marketing|A/B creative testing at scale': 'Performance advertisers run hundreds of creative variants at scale, making cost per generation the dominant metric. Quality threshold is moderate — good enough to test, not necessarily to win awards. Throughput and concurrent request handling matter more than peak fidelity.',
+      'creative_agency|Brand storytelling & campaigns': 'Creative agencies need cinematic quality and strong aesthetic scores to satisfy client deliverables. Volumes are moderate (100–500 clips/month) but quality bar is high — temporal consistency and semantic alignment are non-negotiable. Cost sensitivity is lower than other segments but cost predictability matters for client billing. A 10% quality improvement can justify a 2× cost premium at this segment.',
+      'creative_agency|Client pitch & concept videos': 'Pitch videos need to impress in the first 3 seconds. Creative teams want maximum quality with no tolerance for flickering or subject inconsistency — a failed generation is a failed pitch. At low volumes (10–50 clips/month), cost per clip matters less than reliability and output quality.',
+      'creative_agency|Social content production': 'Social content teams run high volumes of short-form content across Meta, TikTok, and YouTube. Speed and cost matter more than peak fidelity. At scale, a $0.10/sec difference can exceed $40k/year at production volume. Concurrency and throughput are as important as quality.',
+      'corporate_training|Employee onboarding & training': 'Training teams prioritize clarity, identity preservation, and semantic accuracy above all else. Volumes are moderate (50–200 clips/month) but content has a long shelf life — quality failures are costly to fix post-production. Cost per minute of finished video is the primary metric, not cost per generation.',
+      'corporate_training|Product demo & explainer videos': 'Explainer videos need strong semantic alignment — the video must match what the narrator describes. A misrepresented product feature is a support ticket. Volumes are low (20–80/month) but revision cycles are expensive. First-generation quality is the primary optimization target.',
+      'corporate_training|Executive communications': 'Executive video needs to look polished and authoritative. Subject consistency and cinematic quality are critical — any visual artifacts undermine credibility. Low volume (10–30/month), high quality bar, and zero tolerance for generation failures.',
+      'advertising_marketing|Performance ad creative': 'Performance marketers run hundreds of creative variants at scale, making cost per generation the dominant metric. Quality threshold is moderate — good enough to test, not necessarily to win awards. Throughput and concurrent request handling matter more than peak fidelity. A/B testing requires fast iteration cycles.',
+      'advertising_marketing|Product showcase videos': 'Product showcase videos need high imaging quality and subject consistency to accurately represent products. Background stability and semantic alignment are critical — a product video that misrepresents color or shape is a liability. Volumes are high (500–2,000/month) and cost per clip is a primary procurement metric.',
+      'advertising_marketing|A/B creative testing': 'A/B creative testing requires fast generation and low cost per variant — you need dozens of variants before knowing which creative wins. Quality bar is set by platform minimums, not creative ideals. Throughput, concurrency, and cost-per-variant are the primary metrics.',
+      'fashion_brands|Lookbook & campaign videos': 'Fashion lookbook videos demand the highest aesthetic quality — lighting, composition, and color grading must look editorial-grade. Subject consistency is critical for model appearance across frames. Low volume (20–100/month), maximum quality bar, and high cost tolerance for hero campaign assets.',
+      'fashion_brands|Product detail & styling shots': 'Product detail videos need sharp imaging quality and precise semantic alignment — accessories must look exactly as photographed, colors must be accurate. Background stability is critical for consistent brand look. Volumes are medium (100–500/month) and quality consistency across the catalog matters.',
+      'fashion_brands|Runway & editorial content': 'Runway content is cinematic — motion quality and temporal fluency are non-negotiable. Models must move naturally with no flickering or unnatural artifacts. Low volume (10–50/month) but high production value requirements. Any motion artifacts are immediately obvious to fashion industry audiences.',
+      'media_entertainment|Short-form content production': 'Short-form content teams run high volume of 3–15s clips across social platforms. Cost per generation is the primary metric — a $0.05 difference compounds to $50k/year at 1M clips. Quality bar is set by platform requirements, not cinematic standards. Speed and throughput matter.',
+      'media_entertainment|News & broadcast packages': 'News teams need fast generation with reliable semantic alignment — the video must match the story being reported. TTFT is critical: a 30-minute deadline waits for no model. Quality bar is broadcast standard — no flickering, stable backgrounds. Volumes are medium (50–200/day) with strict SLA requirements.',
+      'media_entertainment|Trailer & promo generation': 'Trailer content requires cinematic quality — dynamic motion, high visual fidelity, and strong aesthetic scores are table stakes. Subject consistency and scene stability are critical for franchise content. Low volume (20–50/month) but high quality bar and high cost tolerance for premium content.',
     };
     const VBENCH_DIMENSIONS = [
       { key: 'subject_consistency', label: 'Subject Consistency', method: 'DINO feature similarity' },
@@ -1119,7 +1167,13 @@
       { key: 'semantic_alignment', label: 'Semantic Alignment', method: 'CLIP Score' },
     ];
 
-    function getPersonaKey() { return state.consumer && state.useCase ? state.consumer + '|' + state.useCase : ''; }
+    function getPersonaKey() {
+      if (!state.consumer || !state.useCase) return '';
+      // Support both old-style "Creative Agency|use case" and new-style "creative_agency|use case"
+      const newKey = state.consumer + '|' + state.useCase;
+      const labelKey = (state.consumerLabel || state.consumer) + '|' + state.useCase;
+      return PERSONA_MAP[newKey] ? newKey : (PERSONA_MAP[labelKey] ? labelKey : newKey);
+    }
     function getPersonaText() { return PERSONA_MAP[getPersonaKey()] || 'Select a consumer and use case to see what this profile cares about.'; }
 
     function goToScreen(n) {
@@ -1146,13 +1200,15 @@
     function renderConsumerCards() {
       const el = document.getElementById('consumerCards');
       if (!el) return;
-      el.innerHTML = CONSUMER_OPTIONS.map(c => `<button type="button" class="consumer-card" data-consumer="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
+      el.innerHTML = CONSUMER_OPTIONS.map(c => `<button type="button" class="consumer-card" data-consumer="${escapeHtml(c.id)}" data-label="${escapeHtml(c.label)}">${c.emoji} ${escapeHtml(c.label)}</button>`).join('');
       el.addEventListener('click', (e) => {
         const btn = e.target.closest('.consumer-card');
         if (!btn) return;
         const consumer = btn.getAttribute('data-consumer');
+        const consumerLabel = btn.getAttribute('data-label') || consumer;
         if (!consumer) return;
         state.consumer = consumer;
+        state.consumerLabel = consumerLabel;
         state.useCase = '';
         el.querySelectorAll('.consumer-card').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
@@ -1183,7 +1239,8 @@
       }
     }
 
-    document.getElementById('btnConfigureEval').addEventListener('click', () => { goToScreen(2); buildVersionSliders(); updateVersionColumnTitles(); });
+    document.getElementById('btnConfigureEval').addEventListener('click', () => { goToScreen(2); GEN.init(); });
+    document.addEventListener('click', (e) => { if (e.target.id === 'btnGenerateEval') GEN.generate(); });
     function updateVersionColumnTitles() {
       const name = MODEL_LABELS[state.selectedModel] || 'Sora 2';
       const a = document.getElementById('versionATitle');
@@ -1191,7 +1248,8 @@
       if (a) a.textContent = 'Version A (' + name + ')';
       if (b) b.textContent = 'Version B (' + name + ')';
     }
-    document.getElementById('modelSelector').addEventListener('click', (e) => {
+    const modelSelectorEl = document.getElementById('modelSelector');
+    if (modelSelectorEl) modelSelectorEl.addEventListener('click', (e) => {
       const card = e.target.closest('.model-card');
       if (!card) return;
       const model = card.getAttribute('data-model');
@@ -1254,7 +1312,8 @@
       return lastPrompt;
     }
 
-    document.getElementById('btnGenerateVersions').addEventListener('click', async () => {
+    const btnGenerateVersionsEl = document.getElementById('btnGenerateVersions');
+    if (btnGenerateVersionsEl) btnGenerateVersionsEl.addEventListener('click', async () => {
       buildAssembledPrompt();
       const genErr = document.getElementById('genError');
       if (genErr) { genErr.textContent = ''; genErr.style.display = 'none'; }
@@ -1566,10 +1625,12 @@
     }
 
     const judgeModal = document.getElementById('judgeLayerModal');
-    document.getElementById('btnUnderstandJudge').addEventListener('click', () => {
+    const btnUnderstandJudge = document.getElementById('btnUnderstandJudge');
+    if (btnUnderstandJudge) btnUnderstandJudge.addEventListener('click', () => {
       if (judgeModal) { judgeModal.classList.add('is-open'); judgeModal.setAttribute('aria-hidden', 'false'); }
     });
-    document.getElementById('btnCloseJudgeModal').addEventListener('click', () => {
+    const btnCloseJudgeModal = document.getElementById('btnCloseJudgeModal');
+    if (btnCloseJudgeModal) btnCloseJudgeModal.addEventListener('click', () => {
       if (judgeModal) { judgeModal.classList.remove('is-open'); judgeModal.setAttribute('aria-hidden', 'true'); }
     });
     if (judgeModal) {
@@ -1579,7 +1640,8 @@
       });
     }
 
-    document.getElementById('btnJudge').addEventListener('click', async () => {
+    const btnJudgeEl = document.getElementById('btnJudge');
+    if (btnJudgeEl) btnJudgeEl.addEventListener('click', async () => {
       if (!lastResult) return;
       const prompt = lastPrompt;
       document.getElementById('judgeError').textContent = '';
@@ -1664,6 +1726,307 @@
       });
     }
     fillMetricsPlaceholder();
+
+    // ── GEN namespace (Scenario Builder) ────────────────────────
+    const GEN = (() => {
+      const GEN_PRICING = { sora2: { per_second: 0.15 }, kling26: { per_second: 0.08 } };
+      const RES_MUL = { '480p': 0.5, '720p': 1.0, '1080p': 2.0, '4k': 4.0 };
+      const FPS_MUL = { 16: 0.8, 20: 1.0, 24: 1.3 };
+      const QUALITY_BUCKETS = {
+        subject_quality:  { label: 'Subject Quality',  tooltip: 'How accurately and consistently subjects appear across frames.', metrics: ['Subject Consistency', 'Semantic Alignment'] },
+        motion_quality:   { label: 'Motion Quality',   tooltip: 'Smoothness and naturalness of movement.', metrics: ['Motion Smoothness', 'Temporal Flickering'] },
+        visual_fidelity:  { label: 'Visual Fidelity',  tooltip: 'Overall image quality and aesthetic appeal.', metrics: ['Aesthetic Quality', 'Imaging Quality'] },
+        scene_stability:  { label: 'Scene Stability',  tooltip: 'Consistency of background and scene elements.', metrics: ['Background Stability', 'Dynamic Degree'] },
+        overall_quality:  { label: 'Overall Quality',  tooltip: 'Composite quality score mapped to VBench standard.', metrics: ['VBench Composite'] },
+      };
+
+      let genCostChartInst = null;
+      let lastEvalResult = null;
+
+      function getScParam(sc, key) {
+        if (sc === 'A') {
+          if (key === 'model') return state.scenarioA.model;
+          if (key === 'resolution') return document.getElementById('resA')?.value || state.scenarioA.resolution;
+          if (key === 'fps') return state.scenarioA.fps;
+          if (key === 'clipSec') return state.scenarioA.clipSec;
+          if (key === 'ttft') return parseInt(document.getElementById('ttftA')?.value) || state.scenarioA.ttft;
+          if (key === 'buckets') return state.scenarioA.buckets;
+          if (key === 'name') return document.getElementById('scNameA')?.value || 'Scenario A';
+        } else {
+          if (key === 'model') return state.scenarioB.model;
+          if (key === 'resolution') return document.getElementById('resB')?.value || state.scenarioB.resolution;
+          if (key === 'fps') return state.scenarioB.fps;
+          if (key === 'clipSec') return state.scenarioB.clipSec;
+          if (key === 'ttft') return parseInt(document.getElementById('ttftB')?.value) || state.scenarioB.ttft;
+          if (key === 'buckets') return state.scenarioB.buckets;
+          if (key === 'name') return document.getElementById('scNameB')?.value || 'Scenario B';
+        }
+      }
+      function calcCost(model, clipSec, res, fps) {
+        const base = GEN_PRICING[model]?.per_second || 0.10;
+        const cpg = clipSec * (RES_MUL[res] || 1.0) * (FPS_MUL[fps] || 1.0) * base;
+        return { cpg, c10: cpg * 10, c100: cpg * 100, c1k: cpg * 1000 };
+      }
+      function updateScCost(sc) {
+        const model = getScParam(sc, 'model');
+        const res   = getScParam(sc, 'resolution');
+        const fps   = getScParam(sc, 'fps');
+        const clip  = getScParam(sc, 'clipSec');
+        const c     = calcCost(model, clip, res, fps);
+        const fmt   = v => '$' + v.toFixed(v < 0.01 ? 4 : 2);
+        const set   = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        if (sc === 'A') {
+          set('cpgA', fmt(c.cpg)); set('c10A', fmt(c.c10)); set('c100A', fmt(c.c100)); set('c1kA', fmt(c.c1k));
+        } else {
+          set('cpgB', fmt(c.cpg)); set('c10B', fmt(c.c10)); set('c100B', fmt(c.c100)); set('c1kB', fmt(c.c1k));
+        }
+      }
+      function selScModel(sc, model, btn) {
+        if (sc === 'A') state.scenarioA.model = model; else state.scenarioB.model = model;
+        document.querySelectorAll(`.sc-model-pill[data-sc="${sc}"]`).forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        updateScCost(sc);
+      }
+      function onClipSlide(sc, val) {
+        const n = parseInt(val);
+        if (sc === 'A') { state.scenarioA.clipSec = n; const el = document.getElementById('clipValA'); if (el) el.textContent = n + 's'; }
+        else             { state.scenarioB.clipSec = n; const el = document.getElementById('clipValB'); if (el) el.textContent = n + 's'; }
+        updateScCost(sc);
+      }
+      function selFps(sc, fps, btn) {
+        if (sc === 'A') state.scenarioA.fps = fps; else state.scenarioB.fps = fps;
+        document.querySelectorAll(`.sc-fps-pill[data-sc="${sc}"]`).forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        updateScCost(sc);
+      }
+      function buildQualBuckets(sc) {
+        const containerId = sc === 'A' ? 'qualBucketsA' : 'qualBucketsB';
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const scState = sc === 'A' ? state.scenarioA : state.scenarioB;
+        container.innerHTML = Object.entries(QUALITY_BUCKETS).map(([key, cfg]) => {
+          const val = scState.buckets[key] || 5;
+          const bodyId = `qb-body-${sc}-${key}`;
+          return `<div class="qual-bucket">
+            <div class="qual-bucket-head" onclick="this.nextElementSibling.classList.toggle('open')">
+              <span>${cfg.label} <span class="tip-icon" data-tip="${cfg.tooltip}">ⓘ</span></span>
+              <span style="color:var(--accent);font-weight:700">${val}</span>
+            </div>
+            <div class="qual-bucket-body" id="${bodyId}">
+              <input type="range" min="1" max="10" value="${val}" style="width:100%;accent-color:var(--accent)"
+                oninput="GEN.onBucketSlide('${sc}','${key}',this.value,this.closest('.qual-bucket').querySelector('.qual-bucket-head span:last-child'))">
+              <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-muted);margin-top:.2rem"><span>1</span><span>5</span><span>10</span></div>
+              <div class="qual-sub-list">↳ ${cfg.metrics.join(', ')}</div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      function onBucketSlide(sc, key, val, labelEl) {
+        const n = parseInt(val);
+        if (sc === 'A') state.scenarioA.buckets[key] = n; else state.scenarioB.buckets[key] = n;
+        if (labelEl) labelEl.textContent = n;
+      }
+      function initScenarios() {
+        buildQualBuckets('A');
+        buildQualBuckets('B');
+        updateScCost('A');
+        updateScCost('B');
+      }
+
+      async function generate() {
+        const btn = document.getElementById('btnGenerateEval');
+        const errEl = document.getElementById('genEvalError');
+        if (btn) { btn.disabled = true; btn.textContent = 'GENERATING…'; }
+        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+        const ucKey = (state.useCase || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        const payload = {
+          use_case: ucKey,
+          scenarios: [
+            { id: 'A', name: getScParam('A','name'), model: getScParam('A','model'), resolution: getScParam('A','resolution'), fps: getScParam('A','fps'), clip_length_sec: getScParam('A','clipSec'), ttft_threshold_sec: getScParam('A','ttft'), quality_buckets: getScParam('A','buckets') },
+            { id: 'B', name: getScParam('B','name'), model: getScParam('B','model'), resolution: getScParam('B','resolution'), fps: getScParam('B','fps'), clip_length_sec: getScParam('B','clipSec'), ttft_threshold_sec: getScParam('B','ttft'), quality_buckets: getScParam('B','buckets') },
+          ],
+        };
+        try {
+          const r = await fetch(`${API_BASE}/generate-eval`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.detail || r.statusText); }
+          const data = await r.json();
+          lastEvalResult = data;
+          goToScreen(3);
+          renderEvalResults(data);
+        } catch (e) {
+          if (errEl) { errEl.textContent = e.message || 'Generation failed'; errEl.style.display = 'block'; }
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = '▶ GENERATE & EVALUATE →'; }
+        }
+      }
+
+      function renderEvalResults(data) {
+        // Breadcrumb
+        const bc = document.getElementById('resultBreadcrumb');
+        if (bc) bc.textContent = `${state.consumerLabel || state.consumer} · ${state.useCase || ''} · Run ${data.run_id}`;
+
+        const scA = data.scenarios?.find(s => s.id === 'A');
+        const scB = data.scenarios?.find(s => s.id === 'B');
+
+        renderCostHero(scA, scB);
+        renderCostChart(scA, scB);
+        renderScenResultCards(scA, scB, data.judge_panel);
+        renderJudgePanel(data.judge_panel, scA, scB);
+        renderGenRecommendation(scA, scB, data.judge_panel);
+      }
+
+      function renderCostHero(scA, scB) {
+        const wrap = document.getElementById('costHeroCards');
+        if (!wrap) return;
+        [scA, scB].forEach((sc, i) => {
+          if (!sc) return;
+          const isWin = (sc === scA ? scA : scB)?.cost_per_generation <= (i === 0 ? scB : scA)?.cost_per_generation && scA?.cost_per_generation !== scB?.cost_per_generation;
+        });
+        const minCpg = Math.min(scA?.cost_per_generation || Infinity, scB?.cost_per_generation || Infinity);
+        wrap.innerHTML = [scA, scB].filter(Boolean).map(sc => {
+          const isWin = sc.cost_per_generation === minCpg && scA?.cost_per_generation !== scB?.cost_per_generation;
+          const ttftOk = !sc.ttft_exceeded;
+          return `<div class="gen-cost-card${isWin ? ' winner' : ''}">
+            <div style="font-size:.72rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem">Scenario ${sc.id} — ${sc.name}</div>
+            <div style="font-size:1.5rem;font-weight:700;color:${isWin ? 'var(--accent)' : 'var(--text)'}">$${(sc.cost_per_generation || 0).toFixed(4)}</div>
+            <div style="font-size:.72rem;color:var(--text-muted);margin-top:.2rem">per generation</div>
+            <div style="font-size:.82rem;margin-top:.5rem">At 1,000 gen: <strong>$${(sc.cost_at_1000 || 0).toFixed(2)}</strong></div>
+            <div style="font-size:.78rem;margin-top:.3rem;color:${ttftOk ? '#16a34a' : '#dc2626'}">
+              Gen time: ${sc.generation_time_sec != null ? sc.generation_time_sec + 's' : '—'} ${ttftOk ? '✓' : '⚠ Exceeds SLA'}
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      function renderCostChart(scA, scB) {
+        const ctx = document.getElementById('genCostChart');
+        if (!ctx) return;
+        if (genCostChartInst) genCostChartInst.destroy();
+        const xs = [1, 10, 100, 1000, 10000];
+        const dsA = scA ? { label: `Scenario A — ${scA.name}`, data: xs.map(x => +(scA.cost_per_generation * x).toFixed(4)), borderColor: '#3B82F6', backgroundColor: 'transparent', tension: .2, fill: false } : null;
+        const dsB = scB ? { label: `Scenario B — ${scB.name}`, data: xs.map(x => +(scB.cost_per_generation * x).toFixed(4)), borderColor: '#7EE8A2', backgroundColor: 'transparent', tension: .2, fill: false } : null;
+        const datasets = [dsA, dsB].filter(Boolean);
+        genCostChartInst = new Chart(ctx, {
+          type: 'line',
+          data: { labels: xs.map(String), datasets },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#475569' } } },
+            scales: {
+              x: { type: 'category', ticks: { color: '#64748b' } },
+              y: { type: 'logarithmic', ticks: { color: '#64748b', callback: v => '$' + parseFloat(v).toFixed(v < 0.01 ? 4 : v < 1 ? 2 : 0) }, grid: { color: '#e2e8f0' } },
+            },
+          },
+        });
+      }
+
+      function renderScenResultCards(scA, scB, judgePanel) {
+        const wrap = document.getElementById('scenResultCards');
+        if (!wrap) return;
+        const overallA = judgePanel?.overall_a;
+        const overallB = judgePanel?.overall_b;
+        const winnerByQuality = (overallA != null && overallB != null) ? (overallA >= overallB ? 'A' : 'B') : null;
+        wrap.innerHTML = [scA, scB].filter(Boolean).map(sc => {
+          const isWin = sc.id === winnerByQuality;
+          const ttftOk = !sc.ttft_exceeded;
+          const videoPath = sc.video_path;
+          return `<div class="scen-result-card${isWin ? ' winner' : ''}">
+            <div style="padding:.7rem 1rem;background:var(--surface-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-weight:700;font-size:.88rem">Scenario ${sc.id} — ${sc.name}</span>
+              ${isWin ? '<span style="background:#7EE8A2;color:#0a0e1a;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:20px">✓ WINNER</span>' : ''}
+            </div>
+            <div style="padding:.85rem 1rem;font-size:.82rem">
+              <div style="color:var(--text-muted);margin-bottom:.65rem;font-size:.72rem">${sc.model === 'sora2' ? 'Sora 2' : 'Kling 2.6'} · ${sc.resolution} · ${sc.fps}fps · ${sc.clip_length_sec}s</div>
+              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">Generation time</span><span style="font-weight:600;color:${ttftOk ? '#16a34a' : '#dc2626'}">${sc.generation_time_sec != null ? sc.generation_time_sec + 's' : '—'} ${ttftOk ? '✓' : '⚠'}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">TTFT threshold</span><span>${sc.ttft_threshold_sec}s</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">Cost / generation</span><span style="font-weight:600">$${(sc.cost_per_generation||0).toFixed(4)}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">At 100 gen</span><span>$${(sc.cost_at_100||0).toFixed(2)}</span></div>
+              ${sc.judge_overall != null ? `<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">Quality score</span><span style="font-weight:600;color:var(--accent)">${(sc.judge_overall*100).toFixed(0)}%</span></div>` : ''}
+              ${videoPath ? `<details style="margin-top:.75rem"><summary style="cursor:pointer;font-size:.78rem;color:var(--accent);font-weight:600">▼ View generated video</summary><video src="${API_BASE}/video/${videoPath}" controls playsinline style="width:100%;border-radius:6px;margin-top:.5rem"></video></details>` : '<div style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem;font-style:italic">' + (sc.error || 'Video not available') + '</div>'}
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      function renderJudgePanel(judgePanel, scA, scB) {
+        const wrap = document.getElementById('judgePanel');
+        if (!wrap) return;
+        if (!judgePanel || judgePanel.error) {
+          wrap.innerHTML = `<p style="color:var(--text-muted);font-size:.88rem">Judge panel unavailable: ${judgePanel?.error || 'Videos not generated'}</p>`;
+          return;
+        }
+        const dims = ['subject_quality', 'motion_quality', 'visual_fidelity', 'scene_stability', 'overall_quality'];
+        const dimLabels = { subject_quality: 'Subject Quality', motion_quality: 'Motion Quality', visual_fidelity: 'Visual Fidelity', scene_stability: 'Scene Stability', overall_quality: 'Overall Quality' };
+        const disagreements = judgePanel.disagreements || [];
+        const cols = [
+          { id: 'A', label: scA?.name || 'Scenario A', data: judgePanel.scenario_a },
+          { id: 'B', label: scB?.name || 'Scenario B', data: judgePanel.scenario_b },
+        ].filter(c => c.data);
+
+        wrap.innerHTML = `<div style="display:flex;gap:1.25rem;flex-wrap:wrap">` +
+          cols.map(col => `<div style="flex:1;min-width:240px">
+            <div style="font-weight:700;font-size:.88rem;margin-bottom:.85rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">Scenario ${col.id} — ${col.label}</div>
+            ${dims.map(dim => {
+              const d = col.data[dim];
+              if (!d) return '';
+              const pct = Math.round((d.consensus || 0) * 100);
+              const disagree = disagreements.includes(dim);
+              const judgeKeys = d.individual ? Object.keys(d.individual) : [];
+              return `<div class="judge-dim-row">
+                <span class="judge-dim-lbl">${dimLabels[dim]} ${disagree ? '<span style="color:#d97706">⚠</span>' : ''}</span>
+                <div class="judge-bar-wrap"><div class="judge-bar" style="width:${pct}%;background:${pct >= 70 ? '#7EE8A2' : pct >= 50 ? '#F59E0B' : '#EF4444'}"></div></div>
+                <span class="judge-score-val" style="color:${pct >= 70 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626'}">${pct}%</span>
+              </div>
+              <div class="judge-indiv">${judgeKeys.map(j => `${j}: ${Math.round((d.individual[j]||0)*100)}%`).join(' · ')}</div>`;
+            }).join('')}
+            <div style="font-size:.88rem;font-weight:700;margin-top:.75rem;padding-top:.6rem;border-top:1px solid var(--border)">Overall: ${Math.round((judgePanel[col.id === 'A' ? 'overall_a' : 'overall_b'] || 0) * 100)}%</div>
+          </div>`).join('') + `</div>`;
+      }
+
+      function renderGenRecommendation(scA, scB, judgePanel) {
+        const wrap = document.getElementById('genRecommendation');
+        if (!wrap) return;
+        if (!scA || !scB) { wrap.innerHTML = '<p style="color:var(--text-muted)">Generation incomplete.</p>'; return; }
+        const cpgA = scA.cost_per_generation || 0;
+        const cpgB = scB.cost_per_generation || 0;
+        const overallA = (judgePanel?.overall_a || 0) * 100;
+        const overallB = (judgePanel?.overall_b || 0) * 100;
+        const cheaper = cpgA <= cpgB ? scA : scB;
+        const higherQ = overallA >= overallB ? scA : scB;
+        const costDelta = Math.max(cpgA, cpgB) / Math.max(Math.min(cpgA, cpgB), 0.0001);
+        const qualDelta = Math.abs(overallA - overallB);
+        let lead, body;
+        if (costDelta > 5 && qualDelta < 10) {
+          lead = `Use ${cheaper.name} for ${state.useCase || 'this workload'}.`;
+          body = `${cheaper.name} is ${costDelta.toFixed(1)}× cheaper ($${cpgA.toFixed(4)} vs $${cpgB.toFixed(4)}/generation) with comparable quality scores (${overallA.toFixed(0)}% vs ${overallB.toFixed(0)}%). At 1,000 generations, ${cheaper.name} saves $${Math.abs((scA.cost_at_1000||0) - (scB.cost_at_1000||0)).toFixed(2)}.`;
+        } else if (costDelta > 3 && qualDelta >= 10) {
+          lead = `Trade-off: ${cheaper.name} is cheaper, ${higherQ.name} delivers higher quality.`;
+          body = `${cheaper.name} is ${costDelta.toFixed(1)}× cheaper but ${higherQ.name} scores ${qualDelta.toFixed(0)}% higher quality. For hero campaign assets, use ${higherQ.name}. For high-volume testing and iteration, use ${cheaper.name}.`;
+        } else {
+          lead = `Results are workload-dependent.`;
+          body = `Both scenarios offer similar value. ${cheaper.name} is marginally cheaper; ${higherQ.name} scores marginally higher quality. Choose based on your primary constraint — cost or quality.`;
+        }
+        // Key lever: resolution contributes most to cost
+        const leverHTML = costDelta > 2 ? `<div class="vi-lever-box">💡 <strong>Biggest cost lever: Resolution</strong><br>
+          Dropping from ${Math.max(Object.keys(RES_MUL).indexOf(scA.resolution), Object.keys(RES_MUL).indexOf(scB.resolution)) > -1 ? [scA.resolution,scB.resolution].sort((a,b)=>RES_MUL[b]-RES_MUL[a])[0] : 'high res'} to ${[scA.resolution,scB.resolution].sort((a,b)=>RES_MUL[a]-RES_MUL[b])[0]} accounts for a large portion of the cost difference.
+          At 1,000 generations: ${scA.name} $${(scA.cost_at_1000||0).toFixed(2)} vs ${scB.name} $${(scB.cost_at_1000||0).toFixed(2)}</div>` : '';
+        wrap.innerHTML = `<div class="vi-rec-full">
+          <div class="vi-rec-lead">${lead}</div>
+          <div class="vi-rec-body">${body}</div>
+          ${leverHTML}
+        </div>`;
+      }
+
+      // Init on screen 2 show
+      function init() { initScenarios(); }
+
+      return { selScModel, onClipSlide, selFps, updateScCost, onBucketSlide, generate, init };
+    })();
+    window.GEN = GEN;
 
     document.querySelectorAll('.graph-view-toggle button[data-view]').forEach(btn => {
       btn.addEventListener('click', () => {
