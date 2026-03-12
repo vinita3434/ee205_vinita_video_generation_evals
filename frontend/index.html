@@ -2805,7 +2805,7 @@
       renderSensitivity(data.sensitivity, data.cameras);
       renderExploreOutputs(configs, primaryModel);
       renderExploreProjection(rows, ss);
-      renderExploreGruve(ss, primaryModel, data.cameras);
+      renderExploreGruve(ss, primaryModel, data.cameras, data);
 
       s5.scrollIntoView({behavior:'smooth',block:'start'});
     }
@@ -2968,22 +2968,56 @@
       }));
       exploreChartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569'}}},scales:{x:{ticks:{color:'#64748b'}},y:{beginAtZero:true,ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#e2e8f0'}}}}});
     }
-    function renderExploreGruve(ss, model, cameras){
+    function renderExploreGruve(ss, model, cameras, data){
       const wrap=document.getElementById('ex-gruve-panel');if(!wrap)return;
       const modelLabel={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'}[model]||model;
       const ssRef=st.exploreResults?.configs?.find(c=>c.config_id===ss?.config_id);
       const ssRes=ssRef?.models?.[model]||{};
-      const concurrentThreads=Math.ceil(cameras*(ss?.checks_per_hr||2)/3600);
+
+      // Find most expensive config (Config 5) for concurrency comparison
+      const allRows=(data?.configs||[]).map(cfg=>{const mr=cfg.models?.[model]||{};return{...cfg,...mr};});
+      const sortedByAnnual=[...allRows].sort((a,b)=>(a.annual_cost||0)-(b.annual_cost||0));
+      const maxCfg=sortedByAnnual[sortedByAnnual.length-1]||{checks_per_hr:4};
+
+      // Concurrency: sustained = cameras × checks_per_hr / 360 (assuming ~10s avg response)
+      const ssConc=Math.max(1,Math.round(cameras*(ss?.checks_per_hr||2)/360));
+      const maxConc=Math.max(1,Math.round(cameras*(maxCfg.checks_per_hr||4)/360));
+      const ssPeak=Math.round(ssConc*4);const maxPeak=Math.round(maxConc*4);
+
+      // Camera breakpoint: at what camera count does direct API throttle?
+      const GEMINI_LIMIT=10;const AVG_RESP_SEC=10;
+      const breakCameras=Math.round(GEMINI_LIMIT*3600/((maxCfg.checks_per_hr||4)*AVG_RESP_SEC));
+
       const rows=[
         ['Recommended config',`Config ${ss?.config_id||1} — ${ss?.clip_sec||15}s clips · ${ss?.checks_per_hr||2} checks/hr`],
         ['Recommended model',modelLabel],
-        ['Direct API cost',`$${Math.round(ssRes.annual_cost||0).toLocaleString()}/year (live-measured at ${cameras.toLocaleString()} cameras)`],
+        ['Direct API cost',`$${Math.round(ssRes.annual_cost||0).toLocaleString()}/year (live-measured, ${cameras.toLocaleString()} cameras)`],
         ['On Gruve','Lower — confirm exact pricing with team'],
-        ['Infrastructure','Managed concurrency · No rate limit throttling'],
-        ['Concurrent threads needed',`~${concurrentThreads} sustained · ${Math.ceil(concurrentThreads*4)} at 4× peak`],
       ].map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+
       wrap.innerHTML=`<table class="vi-gruve-clean"><tbody>${rows}</tbody></table>
-        <p style="font-size:.7rem;color:var(--text-muted);margin-top:.6rem;font-style:italic">Direct API costs are live-measured. At ${cameras.toLocaleString()} cameras × ${ss?.checks_per_hr||2} checks/hr, you need ${concurrentThreads} sustained concurrent threads — direct API rate limits will throttle this at scale.</p>
+
+        <div style="margin:1.25rem 0;padding:1rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;font-size:.82rem">
+          <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.75rem">WHY DIRECT API BREAKS AT YOUR SCALE</div>
+          <table class="vi-gruve-clean" style="margin-bottom:.75rem">
+            <thead><tr><th style="font-size:.7rem;color:var(--text-muted);padding:.3rem 0;border-bottom:1px solid var(--border)"></th><th style="font-size:.7rem;color:var(--text-muted);padding:.3rem 0;border-bottom:1px solid var(--border)">Sweet spot (Config ${ss?.config_id||1})</th><th style="font-size:.7rem;color:var(--text-muted);padding:.3rem 0;border-bottom:1px solid var(--border)">Full scale (Config ${maxCfg.config_id||5})</th></tr></thead>
+            <tbody>
+              <tr><td>Concurrent threads</td><td>~${ssConc} sustained</td><td>~${maxConc} sustained</td></tr>
+              <tr><td>At 4× peak</td><td>~${ssPeak}</td><td>~${maxPeak}</td></tr>
+            </tbody>
+          </table>
+          <div style="color:var(--text-dim);line-height:1.6">
+            Gemini direct API limit: <strong>~${GEMINI_LIMIT} concurrent requests</strong> (standard tier)<br>
+            → <strong style="color:#dc2626">You hit rate limits at ~${breakCameras.toLocaleString()} cameras on direct API.</strong> Gruve removes this ceiling entirely.<br>
+            ${cameras>breakCameras?`<span style="color:#d97706">⚠ At ${cameras.toLocaleString()} cameras on Config ${maxCfg.config_id||5}, direct API will throttle ~${Math.round((1-breakCameras/cameras)*100)}% of your requests.</span>`:'At your current scale this is within direct API limits, but growth past <strong>~'+breakCameras.toLocaleString()+' cameras</strong> will require managed concurrency.'}
+          </div>
+        </div>
+
+        <table class="vi-gruve-clean"><tbody>
+          <tr><td>Infrastructure</td><td>Managed concurrency · No rate limit throttling</td></tr>
+          <tr><td>Support</td><td>Dedicated onboarding for video workloads</td></tr>
+        </tbody></table>
+        <p style="font-size:.7rem;color:var(--text-muted);margin-top:.6rem;font-style:italic">Direct API costs above are live-measured. Gruve infrastructure pricing confirmed on request.</p>
         <div class="vi-cta-row" style="margin-top:1rem">
           <a href="mailto:hello@gruve.ai" class="vi-cta-btn" style="text-decoration:none">TALK TO GRUVE →</a>
           <button class="vi-sec-btn" onclick="window.print()">Export PDF</button>
