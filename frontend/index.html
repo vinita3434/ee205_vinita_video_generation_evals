@@ -621,12 +621,100 @@
     .graph-view-toggle button.active { background: var(--accent-dim); border-color: var(--accent); }
     .videos-per-day-wrap { margin-left: 0.5rem; display: inline-flex; align-items: center; gap: 0.5rem; }
     .videos-per-day-wrap input { width: 80px; padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+
+  /* ── Video Intelligence Tab ─────────────────────────────────── */
+  .tab-switcher{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px}
+  .tab-pill{padding:.4rem 1.1rem;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;background:transparent;color:var(--text-muted);font-family:inherit;transition:all .15s}
+  .tab-pill.active{background:var(--accent);color:#fff}
+  .vi-wrap{max-width:860px;margin:0 auto;padding:0 2rem 5rem}
+  .vi-step{padding:2.5rem 0;border-bottom:1px solid var(--border)}
+  .vi-step:last-child{border-bottom:none}
+  .vi-step-lbl{font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.4rem}
+  .vi-h1{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;color:var(--text);margin-bottom:.4rem}
+  .vi-sub{font-size:.95rem;color:var(--text-dim);margin-bottom:1.75rem}
+  .vi-breadcrumb{font-size:.78rem;font-weight:600;color:var(--accent);letter-spacing:.04em;margin-bottom:.6rem}
+  .vi-consumer-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;max-width:640px;margin-bottom:1.5rem}
+  .vi-consumer-wide{grid-column:1/-1;justify-self:center;width:calc(50% - .4rem)}
+  .vi-card{position:relative;padding:1.1rem 1.25rem;border:2px solid var(--border);border-radius:12px;cursor:pointer;background:var(--surface);transition:all .15s}
+  .vi-card:hover{border-color:var(--accent-soft);background:var(--surface-elevated)}
+  .vi-card.selected{border-color:var(--accent);background:var(--accent-dim)}
+  .vi-card-emoji{font-size:1.4rem;margin-bottom:.35rem}
+  .vi-card-lbl{font-weight:600;font-size:.9rem;color:var(--text)}
+  .vi-badge-tag{position:absolute;top:8px;right:8px;background:var(--accent);color:#fff;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.04em}
+  .vi-pills{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem}
+  .vi-pill{padding:.45rem 1rem;border:1.5px solid var(--border);border-radius:20px;cursor:pointer;font-size:.88rem;color:var(--text-dim);background:var(--surface);transition:all .15s;font-family:inherit}
+  .vi-pill:hover{border-color:var(--accent-soft);color:var(--accent)}
+  .vi-pill.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:600}
+  .vi-blurb{border-left:3px solid var(--accent);padding:1.1rem 1.4rem;background:var(--surface);border-radius:0 10px 10px 0;font-size:.9rem;color:var(--text-dim);line-height:1.75;margin-bottom:1.25rem}
+  .vi-cta-btn{display:inline-block;padding:.85rem 2rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:opacity .15s}
+  .vi-cta-btn:disabled{opacity:.4;cursor:not-allowed}
+  .vi-cta-btn:hover:not(:disabled){opacity:.88}
+  .vi-scenarios-wrap{display:flex;gap:.85rem;align-items:flex-start;overflow-x:auto;padding-bottom:.5rem}
+  .vi-sc-card{flex:0 0 300px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+  .vi-sc-head{background:var(--surface-elevated);padding:.65rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+  .vi-sc-num{font-family:monospace;font-size:.68rem;color:var(--text-muted);font-weight:700;letter-spacing:.1em;white-space:nowrap}
+  .vi-sc-name{border:none;background:transparent;font-size:.88rem;font-weight:600;color:var(--text);outline:none;min-width:0;flex:1}
+  .vi-sc-body{padding:.9rem}
+  .vi-sec-lbl{font-family:monospace;font-size:.65rem;color:var(--accent);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:1rem 0 .4rem}
+  .vi-model-pills{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.5rem}
+  .vi-mpill{padding:.3rem .65rem;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:600;background:var(--bg);color:var(--text-dim);font-family:inherit;transition:all .15s}
+  .vi-mpill.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+  .vi-sl{margin-bottom:.6rem}
+  .vi-sl label{font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:.2rem}
+  .vi-derive{font-size:.72rem;color:var(--text-muted);margin-top:.2rem;font-style:italic}
+  .vi-prompt{width:100%;min-height:70px;font-family:monospace;font-size:.67rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.5rem;color:var(--text-dim);resize:vertical;line-height:1.5}
+  .vi-cost-box{font-family:monospace;font-size:.72rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.65rem .9rem}
+  .vi-cost-row{display:flex;justify-content:space-between;margin-bottom:.15rem}
+  .vi-cost-row .v{color:var(--accent);font-weight:700}
+  .vi-cost-src{font-size:.6rem;color:var(--text-muted);margin-top:.35rem}
+  .vi-add-sc{flex:0 0 140px;border:2px dashed var(--border);border-radius:12px;background:transparent;cursor:pointer;color:var(--text-muted);font-size:.82rem;font-weight:600;padding:2rem .75rem;text-align:center;font-family:inherit;transition:all .15s;min-height:180px}
+  .vi-add-sc:hover{border-color:var(--accent-soft);color:var(--accent)}
+  .vi-rm-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.75rem;padding:0;font-family:inherit}
+  .vi-rm-btn:hover{color:var(--error)}
+  .vi-num-in{width:100%;padding:.4rem .55rem;border:1px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit}
+  .vi-run-wrap{text-align:center;margin-top:2rem}
+  .vi-rec{border-left:4px solid var(--accent);padding:1.25rem 1.5rem;background:var(--surface);border-radius:0 12px 12px 0;margin-bottom:1.5rem;font-size:1rem;line-height:1.65;color:var(--text)}
+  .vi-badges-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.85rem}
+  .vi-bpill{padding:.3rem .85rem;border-radius:20px;font-size:.78rem;font-weight:600;border:1.5px solid var(--accent);color:var(--accent);background:var(--accent-dim)}
+  .vi-col-hd{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.1rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:monospace;font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:.4rem;letter-spacing:.05em;user-select:none}
+  .vi-col-hd:hover{background:var(--surface)}
+  .vi-col-body{display:none;margin-bottom:1.4rem}
+  .vi-col-body.open{display:block}
+  .vi-tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+  .vi-tbl th{background:var(--surface-elevated);padding:.55rem .75rem;text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--text-muted);border-bottom:2px solid var(--border)}
+  .vi-tbl td{padding:.55rem .75rem;border-bottom:1px solid var(--border);color:var(--text)}
+  .vi-tbl td.vi-win{background:var(--accent-dim);color:var(--accent);font-weight:700}
+  .vi-tbl td.vi-pend{color:var(--text-muted)}
+  .vi-qg{color:#16a34a;font-weight:700}.vi-qm{color:#d97706;font-weight:700}.vi-qb{color:#dc2626;font-weight:700}
+  .vi-chart-wrap{height:260px;margin-bottom:.85rem}
+  .vi-gpills{display:flex;gap:.4rem;margin-bottom:.85rem}
+  .vi-gpill{padding:.3rem .75rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.78rem;background:var(--surface);color:var(--text-dim);font-family:inherit}
+  .vi-gpill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:600}
+  .vi-opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-top:.85rem;margin-bottom:.85rem}
+  .vi-opt-grid label{font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:.25rem}
+  .vi-opt-grid input{width:100%;padding:.45rem;border:1px solid var(--border);border-radius:6px;font-size:.88rem}
+  .vi-gruve-tbl{width:100%;font-size:.88rem}
+  .vi-gruve-tbl td{padding:.55rem 0;border-bottom:1px solid var(--border)}
+  .vi-gruve-tbl td:first-child{color:var(--text-muted);width:200px}
+  .vi-gruve-tbl td:last-child{font-weight:600}
+  .vi-cta-row{display:flex;gap:.85rem;margin-top:1.25rem;flex-wrap:wrap}
+  .vi-sec-btn{padding:.6rem 1.1rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text);font-family:inherit}
+  .vi-sec-btn:hover{border-color:var(--accent);color:var(--accent)}
+  @media print{.nav-bar,#tab-gen{display:none!important}#tab-vi{display:block!important}.vi-step:not(#vi-s5){display:none!important}#vi-s5{display:block!important}.vi-col-body{display:block!important}}
   </style>
 </head>
 <body>
   <nav class="nav-bar">
     <div class="logo">Gruve Atlas</div>
+    <div class="tab-switcher">
+      <button class="tab-pill active" id="pill-gen" onclick="switchTab('gen')">Video Generation</button>
+      <button class="tab-pill" id="pill-vi" onclick="switchTab('vi')">Video Intelligence</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a href="http://localhost:8001" style="font-size:.75rem;font-weight:600;padding:5px 12px;border-radius:6px;text-decoration:none;border:1px solid var(--border);color:var(--text-muted)">Video Analysis ↗</a>
+    </div>
   </nav>
+<div id="tab-gen">
 <header class="hero" id="heroBlock">
     <h1 id="heroTitle">Video Gen Evals</h1>
     <p class="tagline" id="heroTagline">Benchmark your models. Project your inference costs. Build with certainty.</p>
@@ -770,6 +858,96 @@
       </div>
     </div>
   </div>
+</div><!-- /tab-gen -->
+
+<!-- ═══════════════════════════════════════ VIDEO INTELLIGENCE TAB ══ -->
+<div id="tab-vi" style="display:none">
+  <header class="hero">
+    <h1>Video Intelligence</h1>
+    <p class="tagline">Size your workload. Compare models. Know your cost before you build.</p>
+  </header>
+  <div class="vi-wrap">
+
+    <!-- STEP 1: Consumer Type -->
+    <div class="vi-step" id="vi-s1">
+      <div class="vi-step-lbl">STEP 1 OF 5</div>
+      <h2 class="vi-h1">WHO ARE YOU?</h2>
+      <p class="vi-sub">What kind of company processes your video?</p>
+      <div class="vi-consumer-grid" id="vi-cg"></div>
+    </div>
+
+    <!-- STEP 2: Use Case -->
+    <div class="vi-step" id="vi-s2" style="display:none">
+      <div class="vi-step-lbl">STEP 2 OF 5</div>
+      <div class="vi-breadcrumb" id="vi-bc1"></div>
+      <h2 class="vi-h1">WHAT ARE YOU DOING WITH VIDEO?</h2>
+      <div class="vi-pills" id="vi-ucpills"></div>
+    </div>
+
+    <!-- STEP 3: Context Blurb -->
+    <div class="vi-step" id="vi-s3" style="display:none">
+      <div class="vi-step-lbl">STEP 3 OF 5</div>
+      <div class="vi-breadcrumb" id="vi-bc2"></div>
+      <div class="vi-blurb" id="vi-blurb"></div>
+      <button class="vi-cta-btn" onclick="VI.showS4()">Configure My Workload →</button>
+    </div>
+
+    <!-- STEP 4: Scenario Builder -->
+    <div class="vi-step" id="vi-s4" style="display:none">
+      <div class="vi-step-lbl">STEP 4 OF 5</div>
+      <h2 class="vi-h1">CONFIGURE YOUR SCENARIOS</h2>
+      <p class="vi-sub" id="vi-s4sub">Define up to 3 ways to run your use case.</p>
+      <div class="vi-scenarios-wrap" id="vi-sw"></div>
+      <div class="vi-run-wrap">
+        <button class="vi-cta-btn" id="vi-run-btn" disabled onclick="VI.runBenchmark()">▶ RUN VIDEO INTELLIGENCE →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Results -->
+    <div class="vi-step" id="vi-s5" style="display:none">
+      <div class="vi-step-lbl">STEP 5 OF 5</div>
+      <h2 class="vi-h1" style="margin-bottom:1.25rem">RESULTS</h2>
+
+      <!-- Rec card (open by default) -->
+      <div class="vi-rec" id="vi-rec">
+        <div id="vi-rec-txt" style="color:var(--text-muted)">ANALYZING…</div>
+        <div class="vi-badges-row" id="vi-badges"></div>
+      </div>
+
+      <!-- Scenario comparison -->
+      <div class="vi-col-hd" onclick="VI.tog('vi-ct',this)">▶ SCENARIO COMPARISON</div>
+      <div class="vi-col-body" id="vi-ct"><div id="vi-tbl-wrap"></div></div>
+
+      <!-- 12-month projection -->
+      <div class="vi-col-hd" onclick="VI.tog('vi-cc',this)">▶ 12-MONTH COST PROJECTION</div>
+      <div class="vi-col-body" id="vi-cc">
+        <div class="vi-gpills">
+          <button class="vi-gpill" onclick="VI.setGrowth(0,this)">Flat 0%</button>
+          <button class="vi-gpill active" onclick="VI.setGrowth(0.20,this)">20% ← default</button>
+          <button class="vi-gpill" onclick="VI.setGrowth(0.50,this)">50%</button>
+        </div>
+        <div class="vi-opt-grid">
+          <div><label>Your current cost/query (optional)</label><input type="number" id="vi-cur-cost" placeholder="e.g. 0.05" step="0.001" oninput="VI.drawChart()"></div>
+          <div><label>Migration cost (optional, $)</label><input type="number" id="vi-mig-cost" placeholder="e.g. 50000" oninput="VI.drawChart()"></div>
+        </div>
+        <div class="vi-chart-wrap"><canvas id="vi-chart"></canvas></div>
+      </div>
+
+      <!-- Gruve Advantage -->
+      <div class="vi-col-hd" onclick="VI.tog('vi-cg2',this)">▶ YOUR WORKLOAD ON GRUVE</div>
+      <div class="vi-col-body" id="vi-cg2">
+        <table class="vi-gruve-tbl" id="vi-gt"></table>
+        <p style="font-size:.75rem;color:var(--text-muted);margin-top:.65rem;font-style:italic">All Gruve figures are estimates. Exact pricing confirmed on request.</p>
+        <div class="vi-cta-row">
+          <button class="vi-cta-btn" onclick="alert('Talk to Gruve — coming soon!')">Talk to Gruve →</button>
+          <button class="vi-sec-btn" onclick="window.print()">Export as PDF</button>
+          <button class="vi-sec-btn" onclick="VI.exportCSV()">Export as CSV</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-vi -->
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
@@ -1358,6 +1536,15 @@
       return tr;
     }
 
+    // ── Tab switcher ──────────────────────────────────────────────
+    function switchTab(tab) {
+      document.getElementById('tab-gen').style.display = tab === 'gen' ? '' : 'none';
+      document.getElementById('tab-vi').style.display  = tab === 'vi'  ? '' : 'none';
+      document.getElementById('pill-gen').classList.toggle('active', tab === 'gen');
+      document.getElementById('pill-vi').classList.toggle('active',  tab === 'vi');
+    }
+    window.switchTab = switchTab;
+
     renderConsumerCards();
     const usecaseCardsEl = document.getElementById('usecaseCards');
     if (usecaseCardsEl) {
@@ -1382,6 +1569,392 @@
         if (wrap) wrap.style.display = (btn.dataset.view !== 'generations') ? 'inline-flex' : 'none';
       });
     });
+
+  // ════════════════════════════════════════ VIDEO INTELLIGENCE ════
+  const VI = (() => {
+    const st = {
+      consumer: null, consumerLbl: null,
+      useCase: null, useCaseLbl: null,
+      scenarios: [
+        { id:'s1', name:'GPT-4o',          model:'gpt4o',  clipSec:30, conc:10 },
+        { id:'s2', name:'Gemini 2.0 Flash', model:'gemini', clipSec:30, conc:10 },
+      ],
+      results: null, growthRate: 0.20, chartInst: null,
+    };
+
+    const CONSUMERS = [
+      { id:'sports_media', lbl:'Sports & Media',          emoji:'🏆' },
+      { id:'safety_ops',   lbl:'Safety & Operations',     emoji:'🔒' },
+      { id:'retail',       lbl:'Retail Analytics',        emoji:'🛒' },
+      { id:'media',        lbl:'Media & Content Platforms',emoji:'🎬' },
+      { id:'robotics',     lbl:'Robotics & Embodied AI',  emoji:'🤝', badge:'Design Partner' },
+    ];
+
+    const USE_CASES = {
+      sports_media:['Archive search & retrieval','Live event analysis','Highlights generation'],
+      safety_ops:  ['Anomaly detection','Incident investigation','Compliance monitoring'],
+      retail:      ['Shelf analytics','Customer behavior','Queue & traffic analysis'],
+      media:       ['Content moderation','Asset search & tagging','Compliance & rights'],
+      robotics:    ['Demonstration processing','Instruction grounding','Quality validation'],
+    };
+
+    const UC_KEY_MAP = {
+      'Archive search & retrieval':'archive_search','Live event analysis':'live_event',
+      'Highlights generation':'highlights','Anomaly detection':'anomaly_detection',
+      'Incident investigation':'incident_investigation','Compliance monitoring':'compliance_monitoring',
+      'Shelf analytics':'shelf_analytics','Customer behavior':'customer_behavior',
+      'Queue & traffic analysis':'queue_traffic','Content moderation':'content_moderation',
+      'Asset search & tagging':'asset_tagging','Compliance & rights':'compliance_rights',
+      'Demonstration processing':'demonstration','Instruction grounding':'instruction_grounding',
+      'Quality validation':'quality_validation',
+    };
+
+    function ucKey(){ return st.consumer+'__'+st.useCase; }
+
+    const BLURBS = {
+      sports_media__archive_search:`Sports archives process thousands of clips daily — game footage, press conferences, training sessions. The primary cost driver is sequence length: a 90-minute game costs ~170–190× more to process than a 30-second highlight. Typical archive queries run $0.01–$0.04 each — most teams don't know their per-clip cost until reconciliation. We'll show you exactly what your archive workload costs at scale.`,
+      sports_media__live_event:`Live analysis demands low TTFT — under 1 second in production environments. Concurrency spikes are brutal: 50,000 simultaneous queries during a championship vs 200 on a Tuesday. A 10× spike in concurrency can increase cost 3× during peak hours. We'll show you what your infrastructure needs to handle peak load without overpaying for idle capacity.`,
+      sports_media__highlights:`A standard 90-minute game yields 200–500 highlight candidates, each needing to be processed, ranked, and packaged within minutes of the final whistle. At ~$0.03 per query, that's $6–15 per game — compounding fast across a full season. We'll show you your monthly cost at your clip volume and what concurrency you actually need.`,
+      safety_ops__anomaly_detection:`Anomaly detection runs continuously — every camera, every shift, every day. A 500-camera facility running 30-second clip checks every minute generates 720,000 queries per day. At $0.005 per query, that's ~$3,600/day before optimization. Most operators have no idea what that costs to run on cloud AI. We'll show you.`,
+      safety_ops__incident_investigation:`Incident investigations process longer clips — 5 to 30 minutes — and need detailed, accurate outputs. A detailed 20-minute clip may cost $1.50 to analyze versus $0.04 for a short anomaly check. Sequence length drives cost here more than anywhere else. We'll show you your cost per investigation at your actual clip lengths.`,
+      safety_ops__compliance_monitoring:`Compliance workloads are predictable and high-volume. If each site runs 200 cameras at 1 clip per minute, monthly volume exceeds 8 million queries. That predictability is an advantage — you can model costs exactly. We'll show you your monthly spend across your full camera network and where the biggest optimization opportunities are.`,
+      retail__shelf_analytics:`Shelf analytics run on a schedule across every aisle, every store. At 50 stores with 20 aisles each, that's 96,000 queries per day — even before expansion. At $0.01 per query, that's ~$1K/day. Cost per query is everything at this volume. We'll show you what your network costs today and what it costs when you scale to 500 stores.`,
+      retail__customer_behavior:`Customer behavior analysis processes variable-length clips — a browsing session might be 45 seconds or 8 minutes. That variability affects token counts by more than 15× and makes cost unpredictable. Sub-2s response time is needed to adapt offers in real time. We'll show you cost and latency across your actual session length distribution.`,
+      retail__queue_traffic:`Queue analysis is time-critical — in a 200-store chain, a 3-minute detection delay can equal 600 lost sales per day. TTFT is your primary performance metric. Cost compounds across hundreds of entry points. We'll show you the tradeoff between latency and cost at your store footprint.`,
+      media__content_moderation:`Large platforms process 1–3 million videos daily. Maintaining sub-30-second moderation at that volume means sustaining 3,000+ concurrent AI threads. A backlog isn't a UX problem — it's a liability. We'll show you what it costs to maintain your moderation SLA at your upload volume without over-provisioning.`,
+      media__asset_tagging:`A 10-million asset library with average 2-minute clips represents ~40+ years of content. One-time processing at $0.02 per minute approaches $400K in initial cost — then ongoing for new ingestion. We'll show you your total processing cost and what monthly ingestion spend looks like as your library grows.`,
+      media__compliance_rights:`Rights compliance requires processing full-length content — feature films, full episodes, long-form interviews. One 2-hour film costs as much as 240 30-second clips to process. Studios re-checking 500 titles quarterly means 1,000+ hours of runtime compliance per cycle. We'll show you your cost per title and total quarterly compliance spend.`,
+      robotics__demonstration:`Robot training starts with human demonstrations — someone shows the robot how to do a task, on video. Each 10-minute demonstration clip may cost $2–3 to process into structured action sequences. At 5,000 demonstrations, that's ~$10K just to build your dataset — before training begins. We'll show you what your demonstration pipeline costs at your dataset scale.`,
+      robotics__instruction_grounding:`Grounding video demonstrations to text manuals requires reasoning across both modalities simultaneously — matching on-screen actions to written instructions. These workloads often exceed 2× tokens per input minute compared to standard vision tasks. We'll show you cost and latency benchmarks for your specific manual and video combination.`,
+      robotics__quality_validation:`Before a demonstration enters your training pipeline, it needs validation — was the action performed correctly? Was the manual followed? Validating 100K demonstrations monthly at $0.20 each is $20K in overhead alone. We'll show you what a validation pipeline costs at your dataset scale and where the latency bottlenecks are.`,
+    };
+
+    const PROMPTS = {
+      sports_media__archive_search:`You are analyzing sports archive footage. Identify the key events, players, and actions visible in this clip. Extract any scoreboard information, timestamps, or game context. Summarize what occurred in a structured format suitable for archive search indexing.`,
+      sports_media__live_event:`You are analyzing live sports footage in real time. Within 1 second, identify: (1) current game situation, (2) key players in frame, (3) any notable action or event occurring. Output must be concise and structured for downstream processing.`,
+      sports_media__highlights:`You are evaluating this clip for highlight reel inclusion. Score it 1–10 on: excitement level, key action quality, broadcast value. Identify the primary event and suggest a 5-word highlight caption.`,
+      safety_ops__anomaly_detection:`You are monitoring this security camera feed for anomalies. Report: (1) whether any anomalous behavior is detected, (2) if yes — describe the anomaly, location in frame, and severity (low/medium/high). If no anomaly: output "CLEAR".`,
+      safety_ops__incident_investigation:`You are investigating a security incident. Analyze this footage and provide: (1) timeline of events visible, (2) individuals involved and their actions, (3) any objects or vehicles relevant, (4) your assessment of what occurred.`,
+      safety_ops__compliance_monitoring:`You are performing compliance monitoring. Check for: (1) PPE compliance, (2) restricted zone violations, (3) equipment usage compliance. Output a structured compliance report with pass/fail per category.`,
+      retail__shelf_analytics:`You are analyzing retail shelf footage. Identify: (1) out-of-stock locations, (2) misplaced products, (3) overall shelf fill percentage. Output in structured JSON: {out_of_stock: [], misplaced: [], fill_pct: number}`,
+      retail__customer_behavior:`You are analyzing customer behavior in retail footage. Track: (1) dwell time at product displays, (2) products examined, (3) customer flow direction. Summarize behavioral patterns relevant to merchandising optimization.`,
+      retail__queue_traffic:`You are monitoring queue and traffic flow at a retail entry point. Count: (1) number of people in queue, (2) estimated wait time, (3) traffic flow rate. Flag if queue length exceeds 5 people. Output must arrive within 2 seconds.`,
+      media__content_moderation:`You are moderating this video for platform policy compliance. Check for: (1) violence or graphic content, (2) hate speech, (3) adult content, (4) dangerous activities. Output: APPROVED or FLAGGED with specific policy violation if flagged.`,
+      media__asset_tagging:`You are tagging this media asset. Generate: (1) 10 descriptive tags, (2) primary category, (3) mood, (4) key subjects visible. Output structured JSON.`,
+      media__compliance_rights:`You are performing rights compliance analysis. Identify: (1) any visible brand logos or trademarks, (2) recognizable music, (3) identifiable individuals who may require clearance, (4) any third-party content requiring rights review.`,
+      robotics__demonstration:`You are processing a robot training demonstration. Extract: (1) step-by-step action sequence, (2) objects manipulated and their state changes, (3) spatial relationships and movements. Output as structured action sequence in JSON.`,
+      robotics__instruction_grounding:`You are grounding this video demonstration to a text manual. For each observed action: (1) identify the matching manual step number, (2) confirm if executed correctly, (3) flag any deviations. Output a grounding map.`,
+      robotics__quality_validation:`You are validating this robot training demonstration. Check: (1) was the task completed successfully? (2) were all required steps performed in the correct sequence? (3) were there any errors? Output: ACCEPTED or REJECTED with reason if rejected.`,
+    };
+
+    const UC_PARAMS = {
+      sports_media__archive_search:{clip_default:90,fields:[{id:'clips_per_day',label:'Clips per day',type:'number',default:1000}],derive:p=>`→ ${p.clips_per_day} queries/day`,daily_volume:p=>p.clips_per_day},
+      sports_media__live_event:{clip_default:30,fields:[{id:'events_per_week',label:'Events per week',type:'number',default:5},{id:'queries_per_event',label:'Queries per event',type:'number',default:500},{id:'peak_multiplier',label:'Peak concurrency multiplier',type:'slider',min:1,max:20,default:10}],derive:p=>`→ ${Math.round(p.queries_per_event*p.events_per_week/7)} queries/day avg`,daily_volume:p=>Math.round(p.queries_per_event*p.events_per_week/7)},
+      sports_media__highlights:{clip_default:30,fields:[{id:'games_per_week',label:'Games per week',type:'number',default:7},{id:'candidates_per_game',label:'Highlight candidates per game',type:'number',default:300}],derive:p=>`→ ${Math.round(p.candidates_per_game*p.games_per_week/7)} queries/day`,daily_volume:p=>Math.round(p.candidates_per_game*p.games_per_week/7)},
+      safety_ops__anomaly_detection:{clip_default:30,fields:[{id:'cameras',label:'Number of cameras',type:'number',default:500},{id:'checks_per_hour',label:'Checks per camera/hour',type:'slider',min:1,max:60,default:2}],derive:p=>`→ ${p.cameras}×${p.checks_per_hour}×24 = ${p.cameras*p.checks_per_hour*24} queries/day`,daily_volume:p=>p.cameras*p.checks_per_hour*24},
+      safety_ops__incident_investigation:{clip_default:1200,fields:[{id:'incidents_per_day',label:'Incidents per day',type:'number',default:20}],derive:p=>`→ ${p.incidents_per_day} queries/day`,daily_volume:p=>p.incidents_per_day},
+      safety_ops__compliance_monitoring:{clip_default:30,fields:[{id:'sites',label:'Number of sites',type:'number',default:10},{id:'cameras_per_site',label:'Cameras per site',type:'number',default:200},{id:'checks_per_hour',label:'Checks per camera/hour',type:'slider',min:1,max:60,default:1}],derive:p=>`→ ${p.sites}×${p.cameras_per_site}×${p.checks_per_hour}×24 = ${p.sites*p.cameras_per_site*p.checks_per_hour*24} queries/day`,daily_volume:p=>p.sites*p.cameras_per_site*p.checks_per_hour*24},
+      retail__shelf_analytics:{clip_default:30,fields:[{id:'stores',label:'Number of stores',type:'number',default:50},{id:'aisles_per_store',label:'Aisles per store',type:'number',default:20},{id:'scans_per_hour',label:'Scans per aisle/hour',type:'slider',min:1,max:12,default:4}],derive:p=>`→ ${p.stores}×${p.aisles_per_store}×${p.scans_per_hour}×24 = ${p.stores*p.aisles_per_store*p.scans_per_hour*24} queries/day`,daily_volume:p=>p.stores*p.aisles_per_store*p.scans_per_hour*24},
+      retail__customer_behavior:{clip_default:120,fields:[{id:'daily_sessions',label:'Daily sessions',type:'number',default:10000}],derive:p=>`→ ${p.daily_sessions} queries/day`,daily_volume:p=>p.daily_sessions},
+      retail__queue_traffic:{clip_default:15,fields:[{id:'stores',label:'Number of stores',type:'number',default:200},{id:'entry_points',label:'Entry points per store',type:'number',default:3},{id:'checks_per_hour',label:'Checks per hour',type:'slider',min:1,max:60,default:12}],derive:p=>`→ ${p.stores}×${p.entry_points}×${p.checks_per_hour}×24 = ${p.stores*p.entry_points*p.checks_per_hour*24} queries/day`,daily_volume:p=>p.stores*p.entry_points*p.checks_per_hour*24},
+      media__content_moderation:{clip_default:180,fields:[{id:'daily_uploads',label:'Daily uploads',type:'number',default:100000},{id:'sla_minutes',label:'Target SLA (minutes)',type:'slider',min:5,max:120,default:30}],derive:p=>`→ ${p.daily_uploads} queries/day`,daily_volume:p=>p.daily_uploads},
+      media__asset_tagging:{clip_default:120,fields:[{id:'library_size',label:'Library size (total assets)',type:'number',default:10000000},{id:'monthly_new',label:'New assets per month',type:'number',default:50000}],derive:p=>`→ Ongoing: ${p.monthly_new.toLocaleString()} queries/month`,daily_volume:p=>Math.round(p.monthly_new/30)},
+      media__compliance_rights:{clip_default:7200,fields:[{id:'titles_per_run',label:'Titles per compliance run',type:'number',default:500},{id:'runs_per_year',label:'Runs per year',type:'slider',min:1,max:12,default:4}],derive:p=>`→ ${p.titles_per_run} queries/run · ${p.titles_per_run*p.runs_per_year} queries/year`,daily_volume:p=>Math.round(p.titles_per_run*p.runs_per_year/365)},
+      robotics__demonstration:{clip_default:600,fields:[{id:'dataset_size',label:'Dataset size (demonstrations)',type:'number',default:5000},{id:'timeline_months',label:'Processing timeline (months)',type:'slider',min:1,max:24,default:3}],derive:p=>`→ ${Math.round(p.dataset_size/(p.timeline_months*30))} demos/day`,daily_volume:p=>Math.round(p.dataset_size/(p.timeline_months*30))},
+      robotics__instruction_grounding:{clip_default:600,fields:[{id:'pairs_per_day',label:'Video-manual pairs per day',type:'number',default:200},{id:'manual_pages',label:'Manual length (pages)',type:'number',default:50}],derive:p=>`→ ${p.pairs_per_day} queries/day · ~2× tokens vs standard video`,daily_volume:p=>p.pairs_per_day},
+      robotics__quality_validation:{clip_default:600,fields:[{id:'validations_per_month',label:'Validations per month',type:'number',default:100000},{id:'rejection_rate',label:'Rejection rate (%)',type:'slider',min:0,max:80,default:30}],derive:p=>`→ ${Math.round(p.validations_per_month/30)} queries/day · cost applies to full volume`,daily_volume:p=>Math.round(p.validations_per_month/30)},
+    };
+
+    const PRICING = {
+      gpt4o: {input:2.50/1e6,output:10.00/1e6},
+      gemini:{input:0.10/1e6,output: 0.40/1e6},
+      qwen:  {input:0.59/1e6,output: 0.59/1e6},
+    };
+
+    function calcCost(model,clipSec,daily){
+      const p=PRICING[model]||PRICING.gpt4o;
+      const cpq=clipSec*258*p.input+150*p.output;
+      return{cpq,daily:cpq*daily,monthly:cpq*daily*30,annual:cpq*daily*365};
+    }
+
+    function getParams(idx){
+      const uc=UC_PARAMS[ucKey()]; if(!uc)return{};
+      const r={};
+      uc.fields.forEach(f=>{const el=document.getElementById(`vi-p-s${idx+1}-${f.id}`);if(el)r[f.id]=parseFloat(el.value)||f.default;});
+      return r;
+    }
+    function getDailyVol(idx){
+      const uc=UC_PARAMS[ucKey()];if(!uc)return 100;
+      return uc.daily_volume(getParams(idx));
+    }
+
+    // ── Render consumer grid ──
+    function initConsumerGrid(){
+      const el=document.getElementById('vi-cg');if(!el)return;
+      el.innerHTML=CONSUMERS.map((c,i)=>{
+        const wide=i===CONSUMERS.length-1?'vi-consumer-wide':'';
+        return `<div class="vi-card ${wide}" data-id="${c.id}" onclick="VI.selConsumer('${c.id}','${c.lbl}')">
+          ${c.badge?`<span class="vi-badge-tag">${c.badge}</span>`:''}
+          <div class="vi-card-emoji">${c.emoji}</div>
+          <div class="vi-card-lbl">${c.lbl}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function selConsumer(id,lbl){
+      st.consumer=id;st.consumerLbl=lbl;
+      document.querySelectorAll('#vi-cg .vi-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===id));
+      const s2=document.getElementById('vi-s2');s2.style.display='block';
+      document.getElementById('vi-bc1').textContent=lbl;
+      const pills=document.getElementById('vi-ucpills');
+      pills.innerHTML=(USE_CASES[id]||[]).map(u=>`<button class="vi-pill" onclick="VI.selUC('${u.replace(/'/g,"\\'")}',this)">${u}</button>`).join('');
+      s2.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function selUC(lbl,btn){
+      st.useCase=UC_KEY_MAP[lbl]||lbl.toLowerCase().replace(/ /g,'_');
+      st.useCaseLbl=lbl;
+      document.querySelectorAll('#vi-ucpills .vi-pill').forEach(p=>p.classList.remove('selected'));
+      btn.classList.add('selected');
+      const s3=document.getElementById('vi-s3');s3.style.display='block';
+      document.getElementById('vi-bc2').textContent=`${st.consumerLbl} → ${st.useCaseLbl}`;
+      document.getElementById('vi-blurb').textContent=BLURBS[ucKey()]||'Select a use case to see context.';
+      s3.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function showS4(){
+      const uc=UC_PARAMS[ucKey()];
+      st.scenarios.forEach(s=>{s.clipSec=uc?uc.clip_default:30;});
+      const s4=document.getElementById('vi-s4');s4.style.display='block';
+      document.getElementById('vi-s4sub').textContent=`Define up to 3 ways to run ${st.useCaseLbl}. We'll benchmark cost and performance for each.`;
+      renderScenarios();
+      s4.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function renderScenarios(){
+      const wrap=document.getElementById('vi-sw');if(!wrap)return;
+      const uc=UC_PARAMS[ucKey()];
+      wrap.innerHTML=st.scenarios.map((s,i)=>scCard(s,i,uc)).join('')+
+        (st.scenarios.length<3?`<button class="vi-add-sc" onclick="VI.addSc()">+ Add Scenario</button>`:'');
+      setTimeout(()=>st.scenarios.forEach((_,i)=>updateCost(i)),0);
+    }
+
+    function scCard(s,idx,uc){
+      const n=idx+1;
+      const models=[{k:'gpt4o',l:'GPT-4o'},{k:'gemini',l:'Gemini 2.0 Flash'},{k:'qwen',l:'Qwen2.5-VL-72B · OSS'}];
+      const clip=s.clipSec||(uc?uc.clip_default:30);
+      return `<div class="vi-sc-card" id="vi-sc${n}">
+        <div class="vi-sc-head">
+          <span class="vi-sc-num">SCENARIO ${n}</span>
+          <input class="vi-sc-name" id="vi-nm-s${n}" value="${s.name}" placeholder="Name…">
+          ${idx>=2?`<button class="vi-rm-btn" onclick="VI.rmSc(${idx})">× remove</button>`:''}
+        </div>
+        <div class="vi-sc-body">
+          <div class="vi-sec-lbl">A — Model</div>
+          <div class="vi-model-pills">${models.map(m=>`<button class="vi-mpill${s.model===m.k?' selected':''}" onclick="VI.selModel(${idx},'${m.k}',this)">${m.l}</button>`).join('')}</div>
+          <div class="vi-sec-lbl">B — Core Workload</div>
+          <div class="vi-sl"><label>Clip length: <strong id="vi-cv-s${n}">${clip}s</strong></label>
+            <input type="range" min="5" max="3600" value="${clip}" oninput="VI.onClip(${idx},this.value)">
+            <div class="vi-derive" id="vi-ct-s${n}">≈ ${clip*258} input tokens</div>
+          </div>
+          <div class="vi-sl"><label>Concurrency: <strong id="vi-cc-s${n}">${s.conc}</strong></label>
+            <input type="range" min="1" max="500" value="${s.conc}" oninput="VI.onConc(${idx},this.value)">
+          </div>
+          ${uc?ucFields(uc,n):''}
+          <div class="vi-sec-lbl">D — Assembled Prompt</div>
+          <textarea class="vi-prompt" readonly>${PROMPTS[ucKey()]||''}</textarea>
+          <div class="vi-sec-lbl">E — Estimated Cost</div>
+          <div class="vi-cost-box" id="vi-cb-s${n}">
+            <div class="vi-cost-row"><span>Cost / query</span><span class="v" id="vi-cpq-s${n}">—</span></div>
+            <div class="vi-cost-row"><span>Daily cost</span><span class="v" id="vi-dc-s${n}">—</span></div>
+            <div class="vi-cost-row"><span>Monthly cost</span><span class="v" id="vi-mc-s${n}">—</span></div>
+            <div class="vi-cost-row"><span>Annual cost</span><span class="v" id="vi-ac-s${n}">—</span></div>
+            <div class="vi-cost-src">Pricing: OpenAI / Google AI / SiliconFlow (March 2026)</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function ucFields(uc,n){
+      return `<div class="vi-sec-lbl">C — Use-Case Parameters</div>`+
+        uc.fields.map(f=>{
+          if(f.type==='slider')return `<div class="vi-sl"><label>${f.label}: <strong id="vi-pl-s${n}-${f.id}">${f.default}</strong></label>
+            <input type="range" id="vi-p-s${n}-${f.id}" min="${f.min}" max="${f.max}" value="${f.default}" oninput="document.getElementById('vi-pl-s${n}-${f.id}').textContent=this.value;VI.updateCost(${n-1})"></div>`;
+          return `<div class="vi-sl"><label>${f.label}</label>
+            <input type="number" class="vi-num-in" id="vi-p-s${n}-${f.id}" value="${f.default}" oninput="VI.updateCost(${n-1})"></div>`;
+        }).join('')+`<div class="vi-derive" id="vi-dv-s${n}"></div>`;
+    }
+
+    function onClip(idx,val){
+      const n=idx+1;
+      const cv=document.getElementById(`vi-cv-s${n}`);const ct=document.getElementById(`vi-ct-s${n}`);
+      if(cv)cv.textContent=val+'s';if(ct)ct.textContent=`≈ ${Math.round(val*258)} input tokens`;
+      st.scenarios[idx].clipSec=parseFloat(val);updateCost(idx);
+    }
+    function onConc(idx,val){
+      const n=idx+1;const el=document.getElementById(`vi-cc-s${n}`);if(el)el.textContent=val;
+      st.scenarios[idx].conc=parseInt(val);
+    }
+    function selModel(idx,key,btn){
+      st.scenarios[idx].model=key;
+      const card=document.getElementById(`vi-sc${idx+1}`);
+      card.querySelectorAll('.vi-mpill').forEach(p=>p.classList.remove('selected'));
+      btn.classList.add('selected');updateCost(idx);
+    }
+
+    function updateCost(idx){
+      const n=idx+1;const s=st.scenarios[idx];if(!s)return;
+      const uc=UC_PARAMS[ucKey()];let daily=100;
+      if(uc){const p=getParams(idx);daily=uc.daily_volume(p);const dv=document.getElementById(`vi-dv-s${n}`);if(dv)dv.textContent=uc.derive(p);}
+      const c=calcCost(s.model||'gpt4o',s.clipSec||30,daily);
+      const fmt=v=>'$'+v.toFixed(v<0.01?6:v<1?4:2);
+      const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+      set(`vi-cpq-s${n}`,fmt(c.cpq));set(`vi-dc-s${n}`,fmt(c.daily));
+      set(`vi-mc-s${n}`,fmt(c.monthly));set(`vi-ac-s${n}`,fmt(c.annual));
+    }
+
+    function addSc(){
+      if(st.scenarios.length>=3)return;
+      const defaults=[{name:'GPT-4o',model:'gpt4o'},{name:'Gemini 2.0 Flash',model:'gemini'},{name:'Qwen VL',model:'qwen'}];
+      const i=st.scenarios.length;const d=defaults[i]||{name:`Scenario ${i+1}`,model:'qwen'};
+      const uc=UC_PARAMS[ucKey()];
+      st.scenarios.push({id:`s${i+1}`,name:d.name,model:d.model,clipSec:uc?uc.clip_default:30,conc:10});
+      renderScenarios();
+    }
+    function rmSc(idx){st.scenarios.splice(idx,1);renderScenarios();}
+
+    async function runBenchmark(){
+      const btn=document.getElementById('vi-run-btn');
+      if(btn){btn.disabled=true;btn.textContent='RUNNING…';}
+      const uc=UC_PARAMS[ucKey()];
+      const payload=st.scenarios.map((s,i)=>{
+        const p=getParams(i);const daily=uc?uc.daily_volume(p):100;
+        return{id:s.id,name:document.getElementById(`vi-nm-s${i+1}`)?.value||s.name,
+          model:s.model,clip_length_sec:s.clipSec||(uc?uc.clip_default:30),
+          daily_volume:daily,concurrency:s.conc||10,
+          assembled_prompt:PROMPTS[ucKey()]||s.name,use_case_params:p};
+      });
+      try{
+        const r=await fetch('http://localhost:8002/benchmark',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({consumer_type:st.consumer,use_case:st.useCase,scenarios:payload}),
+        });
+        const data=await r.json();st.results=data;showS5(data);
+      }catch(e){
+        alert('Cannot reach Video Intelligence backend (port 8002). Run: uvicorn video_intelligence_mvp.backend.main:app --port 8002');
+      }finally{
+        if(btn){btn.disabled=false;btn.textContent='▶ RUN VIDEO INTELLIGENCE →';}
+      }
+    }
+
+    function showS5(data){
+      const s5=document.getElementById('vi-s5');s5.style.display='block';
+      s5.scrollIntoView({behavior:'smooth',block:'start'});
+      renderRec(data.scenarios);renderTable(data.scenarios);drawChart();renderGruve(data.scenarios);
+    }
+
+    function renderRec(scenarios){
+      const ok=scenarios.filter(s=>s.status==='complete');
+      const txt=document.getElementById('vi-rec-txt');const badges=document.getElementById('vi-badges');
+      if(!ok.length){if(txt)txt.textContent='All scenarios returned errors. Check API key and backend.';return;}
+      const costs=ok.map(s=>s.monthly_cost),qacs=ok.map(s=>s.qacs);
+      const minC=Math.min(...costs),maxC=Math.max(...costs);
+      const costDelta=maxC/Math.max(minC,0.001);
+      const minQ=Math.min(...qacs),maxQ=Math.max(...qacs);
+      const qacsDelta=(maxQ-minQ)/Math.max(minQ,0.001);
+      const cheapest=ok[costs.indexOf(minC)],fastest=ok[qacs.indexOf(maxQ)];
+      let rec;
+      if(costDelta>5&&qacsDelta<0.20)rec=`Strong recommendation: ${cheapest.name}. ${costDelta.toFixed(1)}× cheaper with comparable performance.`;
+      else if(costDelta>5&&qacsDelta>=0.20)rec=`Trade-off decision: ${cheapest.name} is ${costDelta.toFixed(1)}× cheaper; ${fastest.name} leads on throughput. For latency-sensitive workloads, prioritize ${fastest.name}.`;
+      else if(costDelta<2&&qacsDelta>0.20)rec=`Recommend ${fastest.name} — similar cost but ${(qacsDelta*100).toFixed(0)}% higher QACS.`;
+      else rec=`Results are workload-dependent. ${cheapest.name} is marginally cheaper; ${fastest.name} is marginally faster. Choose based on your SLA requirements.`;
+      if(txt)txt.textContent=rec;
+      const speed=ok.reduce((a,b)=>a.tps>b.tps?a:b);
+      const value=ok.reduce((a,b)=>a.cost_per_query<b.cost_per_query?a:b);
+      const qacsL=ok.reduce((a,b)=>a.qacs>b.qacs?a:b);
+      if(badges)badges.innerHTML=[`<span class="vi-bpill">⚡ Speed Leader: ${speed.name}</span>`,`<span class="vi-bpill">💰 Value Leader: ${value.name}</span>`,`<span class="vi-bpill">◆ QACS Leader: ${qacsL.name}</span>`].join('');
+    }
+
+    function renderTable(scenarios){
+      const wrap=document.getElementById('vi-tbl-wrap');if(!wrap)return;
+      const fmt$=v=>v!=null?'$'+v.toFixed(v<0.01?6:2):'—';
+      const fmtN=v=>v!=null?v.toFixed(1):'—';
+      const metrics=[
+        {l:'TTFT (ms)',k:'ttft_ms',lo:true,f:fmtN},
+        {l:'TPS (tok/s)',k:'tps',lo:false,f:fmtN},
+        {l:'Cost / query',k:'cost_per_query',lo:true,f:fmt$},
+        {l:'Cost / month',k:'monthly_cost',lo:true,f:fmt$},
+        {l:'QACS',k:'qacs',lo:false,f:v=>{if(v==null)return'—';const cl=v>=60?'vi-qg':v>=40?'vi-qm':'vi-qb';return`<span class="${cl}">${v.toFixed(1)} ${v>=60?'Good':v>=40?'Moderate':'Poor'}</span>`;}},
+      ];
+      const head=`<thead><tr><th>Metric</th>${scenarios.map(s=>`<th>${s.name}</th>`).join('')}</tr></thead>`;
+      const body=metrics.map(m=>{
+        const vals=scenarios.map(s=>s[m.k]);
+        const avail=vals.filter(v=>v!=null);if(!avail.length)return`<tr><td><strong>${m.l}</strong></td>${scenarios.map(()=>`<td class="vi-pend">—</td>`).join('')}</tr>`;
+        const best=m.lo?Math.min(...avail):Math.max(...avail);
+        const cells=scenarios.map(s=>{const v=s[m.k];const isBest=v===best&&avail.filter(x=>x===best).length<avail.length;return`<td class="${v==null?'vi-pend':isBest?'vi-win':''}">${m.f(v)}</td>`;}).join('');
+        return`<tr><td><strong>${m.l}</strong></td>${cells}</tr>`;
+      }).join('');
+      wrap.innerHTML=`<table class="vi-tbl">${head}<tbody>${body}</tbody></table>`;
+    }
+
+    function setGrowth(rate,btn){
+      st.growthRate=rate;
+      document.querySelectorAll('.vi-gpill').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');drawChart();
+    }
+
+    function drawChart(){
+      if(!st.results)return;
+      const ok=st.results.scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
+      const labels=Array.from({length:12},(_,i)=>`M${i+1}`);
+      const COLORS=['#0040F2','#64748b','#d97706'];
+      const r=st.growthRate;
+      const datasets=ok.map((s,i)=>({label:s.name,data:labels.map((_,m)=>parseFloat((s.monthly_cost*Math.pow(1+r,m)).toFixed(2))),borderColor:COLORS[i]||'#999',backgroundColor:'transparent',tension:.2,fill:false}));
+      const curCost=parseFloat(document.getElementById('vi-cur-cost')?.value||'');
+      if(!isNaN(curCost)&&curCost>0){
+        const uc=UC_PARAMS[ucKey()];const daily=uc?uc.daily_volume(getParams(0)):ok[0].monthly_cost/30/ok[0].cost_per_query;
+        const curMonthly=curCost*daily*30;
+        datasets.push({label:'Current provider',data:labels.map(()=>+curMonthly.toFixed(2)),borderColor:'#dc2626',borderDash:[5,5],backgroundColor:'transparent',tension:0,fill:false});
+      }
+      const ctx=document.getElementById('vi-chart');if(!ctx)return;
+      if(st.chartInst)st.chartInst.destroy();
+      st.chartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569'}}},scales:{x:{ticks:{color:'#64748b'}},y:{beginAtZero:true,ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#e2e8f0'}}}}});
+    }
+
+    function renderGruve(scenarios){
+      const ok=scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
+      const best=ok.reduce((a,b)=>a.monthly_cost<b.monthly_cost?a:b);
+      const modelNames={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'};
+      const tbl=document.getElementById('vi-gt');if(!tbl)return;
+      tbl.innerHTML=[['Best scenario on Gruve',best.name],['Model',modelNames[best.model]||best.model],['Est. cost / query','Confirm with Gruve team'],['Direct API cost','$'+best.cost_per_query.toFixed(6)],['Est. monthly savings','Confirm with Gruve team'],['Est. annual savings','Confirm with Gruve team'],['Concurrency headroom','Higher than direct API limits']].map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+    }
+
+    function tog(id,hdr){
+      const body=document.getElementById(id);if(!body)return;
+      const open=body.classList.toggle('open');
+      hdr.firstChild.textContent=(open?'▼':'▶')+hdr.firstChild.textContent.slice(1);
+    }
+
+    function exportCSV(){
+      if(!st.results)return;
+      const sc=st.results.scenarios;
+      const rates=[0,0.20,0.50];const months=Array.from({length:12},(_,i)=>i+1);
+      const header=['Scenario','Model','TTFT_ms','TPS','Cost_per_query','QACS',...rates.flatMap(r=>months.map(m=>`M${m}_growth${Math.round(r*100)}pct`))].join(',');
+      const rows=sc.map(s=>{
+        if(s.status!=='complete')return[s.name,s.model,'error'].join(',');
+        return[s.name,s.model,s.ttft_ms,s.tps,s.cost_per_query,s.qacs,...rates.flatMap(r=>months.map(m=>(s.monthly_cost*Math.pow(1+r,m-1)).toFixed(2)))].join(',');
+      });
+      const blob=new Blob([[header,...rows].join('\n')],{type:'text/csv'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gruve_atlas_benchmark.csv';a.click();
+    }
+
+    // Init
+    initConsumerGrid();
+
+    return{selConsumer,selUC,showS4,addSc,rmSc,onClip,onConc,selModel,updateCost,runBenchmark,setGrowth,drawChart,tog,exportCSV};
+  })();
+  // ════════════════════════════════════════════════════════════════
+
   </script>
 </body>
 </html>
