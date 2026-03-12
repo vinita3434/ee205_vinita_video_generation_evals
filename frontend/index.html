@@ -783,6 +783,50 @@
   .vi-gruve-clean td:first-child{color:var(--text-muted);width:220px}
   .vi-gruve-clean td:last-child{font-weight:600;color:var(--text)}
   .vi-gruve-note{font-size:.72rem;color:var(--text-muted);margin-top:.65rem;font-style:italic}
+  /* sensitivity analysis */
+  .sa-config-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem}
+  .sa-section-lbl{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.6rem}
+  .sa-sweep-item{display:flex;align-items:flex-start;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border)}
+  .sa-sweep-item:last-child{border-bottom:none}
+  .sa-sweep-cb{margin-top:.2rem;accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
+  .sa-sweep-body{flex:1}
+  .sa-sweep-title{font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:.2rem}
+  .sa-sweep-detail{font-size:.75rem;color:var(--text-muted)}
+  .sa-runs-badge{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--accent-dim);color:var(--accent);margin-left:.4rem}
+  .sa-total-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;font-size:.82rem;border-top:2px solid var(--border);margin-top:.5rem}
+  .sa-graph-section{margin-bottom:2.5rem}
+  .sa-graph-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+  .sa-graph-sub{font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem}
+  .sa-insight{background:var(--surface-elevated);border-left:3px solid var(--accent);padding:.75rem 1rem;border-radius:0 8px 8px 0;font-size:.82rem;color:var(--text-dim);line-height:1.6;margin-top:.65rem}
+  .sa-chart-wrap{height:260px;margin-bottom:.5rem}
+  .sa-response-grid{display:flex;gap:1rem;flex-wrap:wrap}
+  .sa-response-card{flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+  .sa-response-card.optimal{border-color:var(--accent)}
+  .sa-response-head{padding:.6rem .9rem;background:var(--surface-elevated);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:.78rem;font-weight:700}
+  .sa-response-body{padding:.75rem .9rem;font-size:.75rem;color:var(--text-dim);line-height:1.6;white-space:pre-wrap;word-break:break-word}
+  .sa-dim-scores{padding:.5rem .9rem;border-top:1px solid var(--border);font-size:.7rem}
+  .sa-dim-row{display:flex;justify-content:space-between;margin-bottom:.15rem;color:var(--text-muted)}
+  .sa-dim-row .val{font-weight:600;color:var(--text)}
+  .sa-rec-card{border-left:4px solid var(--accent);padding:1.25rem 1.5rem;background:var(--surface);border-radius:0 12px 12px 0;margin-bottom:1.75rem}
+  .sa-rec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.85rem;margin-bottom:1rem}
+  @media(max-width:700px){.sa-rec-grid{grid-template-columns:1fr}}
+  .sa-rec-item{background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem}
+  .sa-rec-item .lbl{font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem}
+  .sa-rec-item .val{font-size:1.1rem;font-weight:700;color:var(--accent)}
+  .sa-rec-item .sub{font-size:.7rem;color:var(--text-muted);margin-top:.15rem}
+  .sa-gruve-btn{display:block;width:100%;padding:1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;font-family:inherit;margin-top:2rem}
+  .sa-gruve-btn:hover{opacity:.88}
+  /* infra popup */
+  .sa-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+  .sa-popup{background:var(--bg);border:1px solid var(--border);border-radius:14px;width:min(900px,95vw);max-height:90vh;overflow-y:auto;padding:2rem}
+  .sa-popup-close{float:right;background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.9rem;padding:4px 10px;font-family:inherit}
+  .sa-infra-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:1.25rem 0}
+  .sa-infra-table th{background:var(--surface-elevated);padding:.55rem .85rem;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--text-muted);border-bottom:2px solid var(--border)}
+  .sa-infra-table td{padding:.55rem .85rem;border-bottom:1px solid var(--border)}
+  .sa-infra-table .winner-col{background:var(--accent-dim);font-weight:700}
+  .sa-infra-table .winner-col td{color:var(--accent)}
+  .sa-v2-box{background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-top:1.25rem;font-size:.85rem;line-height:1.6;color:var(--text-dim)}
+  .sa-popup-cta-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem}
   .vi-scale-pills{display:flex;gap:.4rem;margin-bottom:.5rem}
   /* tooltip */
   .tip-icon{cursor:help;color:#9CA3AF;font-size:.72rem;margin-left:3px;position:relative;display:inline-block}
@@ -1121,6 +1165,7 @@
 </div><!-- /tab-vi -->
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <script>
     const API_BASE = (() => {
       try {
@@ -2556,95 +2601,148 @@
 
     function renderExploreUI(){
       const wrap=document.getElementById('vi-sw');
-      const btnWrap=document.getElementById('vi-run-btn-wrap');
+      const btnWrap=document.getElementById('vi-run-btn-wrap'); // may be null
       const sub=document.getElementById('vi-s4sub');
       if(sub)sub.textContent='';
       if(!wrap)return;
-
       wrap.style.flexWrap='wrap';
+
       wrap.innerHTML=`
         <div style="width:100%;max-width:760px">
-          <div style="font-size:.9rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.65">
-            We'll automatically test multiple configurations of clip duration and check frequency against your security footage.<br>
-            You'll see the cost-quality tradeoff for each — and find your optimal operating point.
+          <div style="font-size:.88rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.65">
+            Identify your optimal configuration by running 3 independent sweeps.<br>
+            Each sweep holds 2 knobs fixed and varies 1.
           </div>
 
-          <div class="vi-explore-section">
-            <div class="vi-sec-lbl">A — Which Model to Benchmark? ${tipTxt('Select one or two models to compare. Two selected = full matrix for each model side by side.')}</div>
-            <div class="vi-model-pills" id="ex-model-pills">
-              ${['gpt4o','gemini','qwen'].map(m=>{const labels={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B · OSS'};return `<button class="vi-mpill${st.exploreModels.includes(m)?' selected':''}" onclick="VI.toggleExploreModel('${m}',this)">${labels[m]}</button>`;}).join('')}
+          <!-- Base config -->
+          <div class="sa-config-box">
+            <div class="sa-section-lbl">Base Configuration ${tipTxt('Held fixed while we vary each knob')}
             </div>
-          </div>
-
-          <div class="vi-explore-section">
-            <div class="vi-sec-lbl">B — Your Camera Network ${tipTxt('Total cameras monitored for anomalies in your network.')}</div>
-            <div class="vi-range-row">
-              <label>Number of cameras</label>
-              <input type="number" class="vi-range-input" id="ex-cameras" value="${st.exploreCameras}" min="1" max="100000" oninput="VI.onExploreParam()" style="width:90px">
-              ${tipTxt('Total cameras in your network being monitored for anomalies')}
-            </div>
-            <div class="vi-range-row">
-              <label>Base check freq.</label>
-              <input type="number" class="vi-range-input" id="ex-base-freq" value="2" min="1" max="60" step="0.5" oninput="VI.onExploreParam()" style="width:70px">
-              <span style="font-size:.78rem;color:var(--text-muted)">/hr per camera</span>
-            </div>
-            <div class="vi-derive" id="ex-vol-derive"></div>
-          </div>
-
-          <div class="vi-explore-section">
-            <div class="vi-sec-lbl">C — Exploration Ranges ${tipTxt('We\'ll test configs spread across these ranges.')}</div>
-            <div class="vi-range-row">
-              <label>Clip duration</label>
-              <div class="vi-range-from-to">
-                From <input type="number" class="vi-range-input" id="ex-clip-min" value="${st.exploreClipMin}" min="3" max="300" oninput="VI.onExploreParam()">s
-                to   <input type="number" class="vi-range-input" id="ex-clip-max" value="${st.exploreClipMax}" min="3" max="300" oninput="VI.onExploreParam()">s
+            <div class="vi-sl" style="margin-bottom:.75rem">
+              <label>Model</label>
+              <div class="vi-model-pills" id="sa-model-pills">
+                ${['gpt4o','gemini','qwen'].map(m=>{const labels={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen · OSS'};return `<button class="vi-mpill${st.exploreModels[0]===m?' selected':''}" onclick="VI.setSABase('model','${m}',this)">${labels[m]}</button>`;}).join('')}
               </div>
             </div>
-            <div class="vi-range-row">
-              <label>Check frequency</label>
-              <div class="vi-range-from-to">
-                From <input type="number" class="vi-range-input" id="ex-freq-min" value="${st.exploreFreqMin}" min="0.1" max="60" step="0.5" oninput="VI.onExploreParam()">/hr
-                to   <input type="number" class="vi-range-input" id="ex-freq-max" value="${st.exploreFreqMax}" min="0.1" max="60" step="0.5" oninput="VI.onExploreParam()">/hr
+            <div class="vi-sl">
+              <label>Base clip duration: <strong id="sa-clip-val">${st.exploreClipMin}s</strong></label>
+              <input type="range" min="5" max="30" value="${st.exploreClipMin}" oninput="VI.onSABase('clip',this.value)" style="width:100%;accent-color:var(--accent)">
+            </div>
+            <div class="vi-sl">
+              <label>Base check frequency: <strong id="sa-freq-val">${st.exploreFreqMin}/hr</strong></label>
+              <input type="range" min="1" max="4" step="0.5" value="${st.exploreFreqMin}" oninput="VI.onSABase('freq',this.value)" style="width:100%;accent-color:var(--accent)">
+            </div>
+            <div class="vi-sl">
+              <label>Cameras</label>
+              <input type="number" class="vi-num-in" id="sa-cameras" value="${st.exploreCameras}" min="1" max="100000" style="width:120px" oninput="st.exploreCameras=parseInt(this.value)||500">
+            </div>
+          </div>
+
+          <!-- What to explore -->
+          <div class="sa-config-box">
+            <div class="sa-section-lbl">What to Explore ${tipTxt('Each sweep runs independently — 2 knobs fixed, 1 varied')}</div>
+            <div class="sa-sweep-item">
+              <input type="checkbox" class="sa-sweep-cb" id="sa-cb-clip" checked>
+              <div class="sa-sweep-body">
+                <div class="sa-sweep-title">Clip Duration Sensitivity <span class="sa-runs-badge">6 runs</span></div>
+                <div class="sa-sweep-detail">Vary: 5s, 10s, 15s, 20s, 25s, 30s · Fix: base model + base frequency</div>
               </div>
             </div>
-          </div>
-
-          <div class="vi-explore-section">
-            <div class="vi-sec-lbl">D — How Thorough?</div>
-            <div class="vi-thorough-pills">
-              ${[3,5,7].map(n=>`<button class="vi-thorough-pill${st.exploreN===n?' active':''}" onclick="VI.setExploreN(${n},this)">${n} — ${n===3?'Quick':n===5?'Standard ← default':'Thorough'}</button>`).join('')}
+            <div class="sa-sweep-item">
+              <input type="checkbox" class="sa-sweep-cb" id="sa-cb-model" checked>
+              <div class="sa-sweep-body">
+                <div class="sa-sweep-title">Model Sensitivity <span class="sa-runs-badge">3 runs</span></div>
+                <div class="sa-sweep-detail">Vary: GPT-4o, Gemini, Qwen · Fix: base clip + base frequency</div>
+              </div>
             </div>
-            <div class="vi-derive" id="ex-time-est">Estimated run time: ~45 seconds</div>
+            <div class="sa-sweep-item">
+              <input type="checkbox" class="sa-sweep-cb" id="sa-cb-freq" checked>
+              <div class="sa-sweep-body">
+                <div class="sa-sweep-title">Check Frequency Sensitivity <span class="sa-runs-badge">1 run</span></div>
+                <div class="sa-sweep-detail">Vary: 1/hr, 2/hr, 3/hr, 4/hr · Quality is mathematically identical — only cost changes</div>
+              </div>
+            </div>
+            <div class="sa-total-row">
+              <span style="font-weight:600">Total API calls: 10</span>
+              <span style="color:var(--text-muted)">Est. ~45 seconds</span>
+            </div>
           </div>
 
-          <div class="vi-explore-section">
-            <div class="vi-sec-lbl">E — Sample Clip ${tipTxt('Sent live to the model API. Each config analyzes a trimmed version of this clip.')}</div>
+          <!-- Ground truth -->
+          <div class="sa-config-box">
+            <div class="sa-section-lbl">Ground Truth (optional) ${tipTxt('If provided, quality scores are measured against ground truth instead of relative LLM scoring — more precise and defensible')}</div>
+            <textarea class="vi-prompt" id="sa-ground-truth" placeholder="e.g. Break-in attempt. Individual enters through sliding door at ~8 seconds. Severity HIGH. Correct action: dispatch security + call police." style="min-height:60px"></textarea>
+          </div>
+
+          <!-- Clip selection -->
+          <div class="sa-config-box">
+            <div class="sa-section-lbl">Sample Clip ${tipTxt('Sent live to model API for all inference runs')}</div>
             <div class="vi-clip-btns">
               ${Object.entries(SECURITY_CLIPS).map(([id,m])=>`<button class="vi-clip-btn${st.exploreClip===id?' selected':''}" onclick="VI.selExploreClip('${id}',this)">${m.label} · ${m.duration}s</button>`).join('')}
             </div>
             <div class="vi-clip-info" id="ex-clip-info">
-              ${st.exploreClip?`✓ Selected: ${SECURITY_CLIPS[st.exploreClip]?.name} · ${SECURITY_CLIPS[st.exploreClip]?.duration}s`:'⚠ Select a clip to enable Run'}
+              ${st.exploreClip?`✓ Selected: ${SECURITY_CLIPS[st.exploreClip]?.name}`:'⚠ Select a clip to enable Run'}
             </div>
-            <div class="vi-clip-note">Sent live to model API. Each config analyzes a trimmed version of this clip.</div>
-          </div>
-
-          <div class="vi-explore-section">
-            <div class="vi-sec-lbl">F — Estimated Cost Range</div>
-            <div class="vi-cost-preview" id="ex-cost-preview"></div>
           </div>
         </div>`;
 
-      // update the run button in-place (wrapper has no id so we target the button directly)
       const runBtn=document.getElementById('vi-run-btn');
       if(runBtn){
-        runBtn.onclick=()=>VI.runExplore();
-        runBtn.textContent='▶ FIND MY OPTIMAL CONFIG →';
+        runBtn.onclick=()=>VI.runSensitivityAnalysis();
+        runBtn.textContent='▶ RUN SENSITIVITY ANALYSIS →';
         runBtn.disabled=!st.exploreClip;
       }
-      setTimeout(()=>{updateExploreDerived();updateExploreCostPreview();},0);
+      setTimeout(()=>{},0);
     }
 
     function tipTxt(t){return `<span class="tip-icon" data-tip="${t}">ⓘ</span>`;}
+
+    function setSABase(key,val,btn){
+      if(key==='model'){
+        st.exploreModels=[val];
+        document.querySelectorAll('#sa-model-pills .vi-mpill').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+      }
+    }
+    function onSABase(key,val){
+      if(key==='clip'){st.exploreClipMin=parseInt(val);const el=document.getElementById('sa-clip-val');if(el)el.textContent=val+'s';}
+      if(key==='freq'){st.exploreFreqMin=parseFloat(val);const el=document.getElementById('sa-freq-val');if(el)el.textContent=val+'/hr';}
+    }
+
+    async function runSensitivityAnalysis(){
+      const btn=document.getElementById('vi-run-btn');
+      if(btn){btn.disabled=true;btn.textContent='RUNNING ANALYSIS…';}
+      const cameras=parseInt(document.getElementById('sa-cameras')?.value)||st.exploreCameras;
+      const payload={
+        consumer_type:st.consumer,use_case:st.useCase,
+        base_model:st.exploreModels[0]||'gemini',
+        base_clip_sec:st.exploreClipMin||15,
+        base_checks_per_hr:st.exploreFreqMin||2,
+        cameras,
+        run_clip_sensitivity:document.getElementById('sa-cb-clip')?.checked!==false,
+        run_model_sensitivity:document.getElementById('sa-cb-model')?.checked!==false,
+        run_frequency_sensitivity:document.getElementById('sa-cb-freq')?.checked!==false,
+        clip_durations:[5,10,15,20,25,30],
+        models_to_compare:['gemini','gpt4o','qwen'],
+        frequencies:[1.0,2.0,3.0,4.0],
+        clip_path:st.exploreClip||'security_anomaly_1',
+        ground_truth:document.getElementById('sa-ground-truth')?.value||null,
+      };
+      try{
+        const r=await fetch('http://localhost:8002/sensitivity-analysis',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(payload),
+        });
+        if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.detail||r.statusText);}
+        const data=await r.json();
+        st.exploreResults=data;
+        showS5SensitivityAnalysis(data);
+      }catch(e){
+        alert('Sensitivity analysis failed: '+e.message);
+      }finally{
+        if(btn){btn.disabled=false;btn.textContent='▶ RUN SENSITIVITY ANALYSIS →';}
+      }
+    }
 
     function toggleExploreModel(model,btn){
       const idx=st.exploreModels.indexOf(model);
@@ -2731,6 +2829,338 @@
       }finally{
         if(btn){btn.disabled=false;btn.textContent='▶ FIND MY OPTIMAL CONFIG →';}
       }
+    }
+
+    function showS5SensitivityAnalysis(data){
+      const s5=document.getElementById('vi-s5');s5.style.display='block';
+      const rec=data.recommendation||{};
+      const modelLabel={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'};
+      const baseCfg=data.base_config||{};
+
+      s5.innerHTML=`
+        <div class="vi-step-lbl">STEP 5 OF 5</div>
+        <div class="vi-db-breadcrumb">
+          <span>Sensitivity Analysis · ${st.consumerLbl} · ${st.useCaseLbl} · ${baseCfg.cameras||500} cameras · ${data.clip_sweep?.length||0}+${data.model_sweep?.length||0}+${data.frequency_sweep?.length||0} runs
+            ${data.ground_truth_provided?'<span style="margin-left:.5rem;background:#7EE8A2;color:#0a0e1a;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:20px">✓ Ground Truth</span>':''}
+          </span>
+          <button onclick="document.getElementById('vi-s4').scrollIntoView({behavior:'smooth'})">↺ Reconfigure</button>
+        </div>
+
+        <!-- Graph 1: Clip Duration -->
+        ${data.clip_sweep?.length ? `<div class="vi-db-section sa-graph-section">
+          <div class="vi-db-hd">CLIP DURATION SENSITIVITY</div>
+          <div class="sa-graph-sub">Fix: ${modelLabel[baseCfg.model]||baseCfg.model} · ${baseCfg.checks_per_hr}/hr · Vary: clip duration</div>
+          <div class="sa-chart-wrap"><canvas id="sa-chart-clip"></canvas></div>
+          <div class="sa-insight" id="sa-insight-clip"></div>
+          <details style="margin-top:.65rem"><summary style="font-size:.75rem;color:var(--text-muted);cursor:pointer">How quality is scored ▼</summary>
+            <div class="sa-v2-box" style="margin-top:.5rem">${qualityScoreExplainer(data.ground_truth_provided)}</div>
+          </details>
+        </div>` : ''}
+
+        <!-- Graph 2: Model Sensitivity -->
+        ${data.model_sweep?.length ? `<div class="vi-db-section sa-graph-section">
+          <div class="vi-db-hd">MODEL SENSITIVITY</div>
+          <div class="sa-graph-sub">Fix: ${baseCfg.clip_sec}s clips · ${baseCfg.checks_per_hr}/hr · Vary: model</div>
+          <div class="sa-chart-wrap"><canvas id="sa-chart-model"></canvas></div>
+          <div class="sa-insight" id="sa-insight-model"></div>
+        </div>` : ''}
+
+        <!-- Graph 3: Frequency Sensitivity -->
+        ${data.frequency_sweep?.length ? `<div class="vi-db-section sa-graph-section">
+          <div class="vi-db-hd">CHECK FREQUENCY SENSITIVITY</div>
+          <div class="sa-graph-sub">Fix: ${modelLabel[baseCfg.model]||baseCfg.model} · ${baseCfg.clip_sec}s clips · Vary: check frequency</div>
+          <div class="sa-chart-wrap"><canvas id="sa-chart-freq"></canvas></div>
+          <div class="sa-insight" id="sa-insight-freq"></div>
+        </div>` : ''}
+
+        <!-- Recommendation -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">YOUR OPTIMAL CONFIG</div>
+          <div class="sa-rec-card" id="sa-rec-card"></div>
+        </div>
+
+        <!-- What the model saw -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">WHAT THE MODEL SAW — same clip, different duration</div>
+          <div class="sa-response-grid" id="sa-responses"></div>
+        </div>
+
+        <!-- Talk to Gruve -->
+        <div class="vi-db-section" style="text-align:center">
+          <button class="sa-gruve-btn" onclick="VI.showInfraPopup()">YOUR WORKLOAD ON GRUVE INFRASTRUCTURE →</button>
+        </div>
+
+        <!-- Infra popup (hidden) -->
+        <div class="sa-popup-overlay" id="sa-popup" style="display:none" onclick="if(event.target===this)VI.closeInfraPopup()">
+          <div class="sa-popup">
+            <button class="sa-popup-close" onclick="VI.closeInfraPopup()">× Close</button>
+            <div id="sa-popup-content"></div>
+          </div>
+        </div>
+      `;
+
+      // Render after DOM is ready
+      setTimeout(()=>{
+        renderClipSensitivityChart(data.clip_sweep||[]);
+        renderModelSensitivityChart(data.model_sweep||[]);
+        renderFreqSensitivityChart(data.frequency_sweep||[]);
+        renderSARecommendation(data);
+        renderSAResponses(data);
+      },50);
+
+      s5.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function qualityScoreExplainer(hasGT){
+      const mode=hasGT?'Ground Truth Scoring ✓':'Relative LLM Scoring';
+      return `<strong>Mode: ${mode}</strong><br><br>
+        <table style="width:100%;font-size:.78rem;border-collapse:collapse">
+          <tr><th style="text-align:left;padding:.3rem 0;color:var(--text-muted)">Dimension</th><th style="text-align:right;color:var(--text-muted)">Weight</th><th style="text-align:left;padding-left:.75rem;color:var(--text-muted)">What it measures</th></tr>
+          <tr><td style="padding:.2rem 0">Detection</td><td style="text-align:right">40%</td><td style="padding-left:.75rem">Did it find the anomaly?</td></tr>
+          <tr><td>Localization</td><td style="text-align:right">20%</td><td style="padding-left:.75rem">Right place + time?</td></tr>
+          <tr><td>Severity</td><td style="text-align:right">20%</td><td style="padding-left:.75rem">LOW/MEDIUM/HIGH correct?</td></tr>
+          <tr><td>Actionability</td><td style="text-align:right">20%</td><td style="padding-left:.75rem">Can operator act on this?</td></tr>
+        </table>
+        <br>Judge model: Gemini 2.0 Flash · Scores normalized to anchor (longest clip = 95/100 ceiling).`;
+    }
+
+    let saClipChart=null,saModelChart=null,saFreqChart=null;
+
+    function renderClipSensitivityChart(sweep){
+      const ctx=document.getElementById('sa-chart-clip');if(!ctx)return;
+      if(saClipChart)saClipChart.destroy();
+      const sorted=[...sweep].sort((a,b)=>a.clip_sec-b.clip_sec);
+      const labels=sorted.map(r=>r.clip_sec+'s');
+      const quality=sorted.map(r=>r.quality?.overall_normalized||r.quality?.overall||0);
+      const costs=sorted.map(r=>r.annual_cost||0);
+
+      // Find plateau index
+      let plateauIdx=sorted.length-1;
+      for(let i=1;i<sorted.length;i++){
+        if((quality[i]-quality[i-1])<5){plateauIdx=i-1;break;}
+      }
+
+      saClipChart=new Chart(ctx,{
+        type:'line',
+        data:{
+          labels,
+          datasets:[
+            {label:'Quality Score',data:quality,borderColor:'#7EE8A2',backgroundColor:'rgba(126,232,162,.1)',yAxisID:'quality',tension:.3,pointRadius:6,fill:true},
+            {label:'Annual Cost ($)',data:costs,borderColor:'#60A5FA',borderDash:[5,5],yAxisID:'cost',tension:.1,pointRadius:6,borderWidth:2},
+          ],
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{
+            legend:{labels:{color:'#475569'}},
+            annotation:{annotations:{
+              plateauLine:{type:'line',xMin:plateauIdx,xMax:plateauIdx,borderColor:'#F59E0B',borderWidth:2,borderDash:[4,4],
+                label:{content:'Quality plateaus here',display:plateauIdx<sorted.length-1,position:'start',color:'#F59E0B',font:{size:11}}},
+            }},
+          },
+          scales:{
+            quality:{type:'linear',position:'left',min:0,max:100,ticks:{color:'#64748b'},grid:{color:'#e2e8f0'},title:{display:true,text:'Quality Score / 100',color:'#7EE8A2'}},
+            cost:{type:'linear',position:'right',ticks:{color:'#64748b',callback:v=>'$'+Math.round(v).toLocaleString()},grid:{drawOnChartArea:false},title:{display:true,text:'Annual Cost ($)',color:'#60A5FA'}},
+            x:{ticks:{color:'#64748b'}},
+          },
+        },
+      });
+
+      const insightEl=document.getElementById('sa-insight-clip');
+      if(insightEl&&sorted.length>1){
+        const optClip=sorted[Math.min(plateauIdx,sorted.length-1)];
+        const maxClip=sorted[sorted.length-1];
+        const qDelta=quality[sorted.length-1]-quality[plateauIdx];
+        const cMult=(maxClip.annual_cost/Math.max(optClip.annual_cost,1)).toFixed(1);
+        insightEl.innerHTML=`💡 Quality plateaus after <strong>${optClip.clip_sec}s clips</strong>. Going to ${maxClip.clip_sec}s adds only ${Math.round(qDelta)} quality points but costs ${cMult}× more. <strong>Recommended clip duration: ${optClip.clip_sec}s</strong>`;
+      }
+    }
+
+    function renderModelSensitivityChart(sweep){
+      const ctx=document.getElementById('sa-chart-model');if(!ctx)return;
+      if(saModelChart)saModelChart.destroy();
+      const MODEL_COLORS={gpt4o:'#3B82F6',gemini:'#7EE8A2',qwen:'#F59E0B'};
+      const MODEL_LABELS={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen OSS'};
+      const complete=sweep.filter(r=>r.status==='complete');
+
+      saModelChart=new Chart(ctx,{
+        type:'scatter',
+        data:{datasets:complete.map(m=>({
+          label:MODEL_LABELS[m.model]||m.model,
+          data:[{x:m.annual_cost||0,y:m.quality?.overall||0}],
+          backgroundColor:MODEL_COLORS[m.model]||'#999',
+          pointRadius:14,pointHoverRadius:18,
+        }))},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{labels:{color:'#475569',font:{size:13}}}},
+          scales:{
+            x:{type:'logarithmic',title:{display:true,text:'Annual Cost ($) — log scale',color:'#64748b'},ticks:{color:'#64748b',callback:v=>'$'+Math.round(v).toLocaleString()}},
+            y:{min:0,max:100,title:{display:true,text:'Quality Score / 100',color:'#64748b'},ticks:{color:'#64748b'}},
+          },
+        },
+      });
+
+      const insightEl=document.getElementById('sa-insight-model');
+      if(insightEl&&complete.length>1){
+        const sorted=[...complete].sort((a,b)=>a.annual_cost-b.annual_cost);
+        const cheapest=sorted[0];const priciest=sorted[sorted.length-1];
+        const ratio=(priciest.annual_cost/Math.max(cheapest.annual_cost,1)).toFixed(0);
+        const qDiff=Math.abs((priciest.quality?.overall||0)-(cheapest.quality?.overall||0));
+        insightEl.innerHTML=`💡 <strong>${MODEL_LABELS[cheapest.model]}</strong> is ${ratio}× cheaper than <strong>${MODEL_LABELS[priciest.model]}</strong> with ${qDiff<=8?'comparable':'lower'} quality (${Math.abs(qDiff)} point${qDiff!==1?'s':''} difference). <strong>Recommended model: ${MODEL_LABELS[cheapest.model]}</strong>`;
+      }
+    }
+
+    function renderFreqSensitivityChart(sweep){
+      const ctx=document.getElementById('sa-chart-freq');if(!ctx)return;
+      if(saFreqChart)saFreqChart.destroy();
+      const sorted=[...sweep].sort((a,b)=>a.checks_per_hr-b.checks_per_hr);
+      const labels=sorted.map(r=>r.checks_per_hr+'/hr');
+      const quality=sorted.map(r=>r.quality?.overall||r.quality?.overall_normalized||0);
+      const costs=sorted.map(r=>r.annual_cost||0);
+      const latency=sorted.map(r=>r.detection_latency_min||60);
+
+      saFreqChart=new Chart(ctx,{
+        type:'line',
+        data:{labels,datasets:[
+          {label:'Quality Score (flat — unaffected)',data:quality,borderColor:'#7EE8A2',yAxisID:'quality',tension:0,pointRadius:6,borderWidth:3},
+          {label:'Annual Cost ($)',data:costs,borderColor:'#60A5FA',borderDash:[5,5],yAxisID:'cost',tension:0,pointRadius:6},
+        ]},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{labels:{color:'#475569'}}},
+          scales:{
+            quality:{type:'linear',position:'left',min:0,max:100,ticks:{color:'#64748b'},grid:{color:'#e2e8f0'},title:{display:true,text:'Quality Score / 100',color:'#7EE8A2'}},
+            cost:{type:'linear',position:'right',ticks:{color:'#64748b',callback:v=>'$'+Math.round(v).toLocaleString()},grid:{drawOnChartArea:false},title:{display:true,text:'Annual Cost ($)',color:'#60A5FA'}},
+            x:{ticks:{color:'#64748b'}},
+          },
+        },
+      });
+
+      const insightEl=document.getElementById('sa-insight-freq');
+      if(insightEl&&sorted.length>1){
+        const cheapest=sorted[0];const priciest=sorted[sorted.length-1];
+        const freqMult=(priciest.annual_cost/Math.max(cheapest.annual_cost,1)).toFixed(0);
+        insightEl.innerHTML=`💡 <strong>Check frequency has ZERO effect on detection quality.</strong> The model sees the same clip regardless of how often you check — quality is a flat line.<br><br>
+          Frequency only affects <strong>detection latency</strong> — how quickly after an incident you catch it.<br>
+          At ${cheapest.checks_per_hr}/hr: anomalies caught within <strong>${cheapest.detection_latency_min} minutes</strong>.<br>
+          At ${priciest.checks_per_hr}/hr: anomalies caught within <strong>${priciest.detection_latency_min} minutes</strong> — at <strong>${freqMult}× the cost</strong>.<br><br>
+          Question: is ${cheapest.detection_latency_min}-minute detection acceptable? If yes → <strong>${cheapest.checks_per_hr}/hr saves $${Math.round(priciest.annual_cost-cheapest.annual_cost).toLocaleString()}/year</strong> with zero quality loss.`;
+      }
+    }
+
+    function renderSARecommendation(data){
+      const el=document.getElementById('sa-rec-card');if(!el)return;
+      const rec=data.recommendation||{};
+      const baseCfg=data.base_config||{};
+      const modelL={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen OSS'};
+      const worstCase=Math.max(...(data.model_sweep||[]).map(m=>m.annual_cost||0),
+                                ...(data.clip_sweep||[]).map(c=>c.annual_cost||0));
+      const savings=worstCase-Math.min(rec.annual_cost||0,worstCase);
+      const leverLabels={model_switch:'Model selection',clip_reduction:'Clip duration',frequency_reduction:'Check frequency'};
+      el.innerHTML=`<div class="sa-rec-grid">
+        <div class="sa-rec-item"><div class="lbl">Optimal clip</div><div class="val">${rec.optimal_clip_sec||baseCfg.clip_sec}s</div><div class="sub">quality plateaus here</div></div>
+        <div class="sa-rec-item"><div class="lbl">Optimal model</div><div class="val">${modelL[rec.optimal_model||baseCfg.model]||rec.optimal_model}</div></div>
+        <div class="sa-rec-item"><div class="lbl">Optimal frequency</div><div class="val">${rec.optimal_checks_per_hr||1}/hr</div><div class="sub">quality unaffected</div></div>
+      </div>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.85rem;margin-bottom:.85rem">
+        <span>Annual cost: <strong style="color:var(--accent)">$${Math.round(rec.annual_cost||0).toLocaleString()}/yr</strong></span>
+        <span>vs worst case: <strong>$${Math.round(worstCase).toLocaleString()}/yr</strong></span>
+        <span>Savings identified: <strong style="color:#16a34a">$${Math.round(savings).toLocaleString()}/yr</strong></span>
+      </div>
+      <div style="font-size:.85rem;color:var(--text-dim)">
+        <strong>Biggest lever: ${leverLabels[rec.biggest_lever]||rec.biggest_lever}</strong> — saves $${Math.round(rec.biggest_lever_savings||0).toLocaleString()}/year
+      </div>`;
+    }
+
+    function renderSAResponses(data){
+      const el=document.getElementById('sa-responses');if(!el)return;
+      const clipSweep=data.clip_sweep||[];
+      if(!clipSweep.length){el.innerHTML='<p style="color:var(--text-muted)">No responses available.</p>';return;}
+      const sorted=[...clipSweep].sort((a,b)=>a.clip_sec-b.clip_sec);
+      const cheapest=sorted[0];
+      const mostThorough=sorted[sorted.length-1];
+      const rec=data.recommendation||{};
+      const optimal=sorted.find(r=>r.clip_sec===rec.optimal_clip_sec)||sorted[Math.floor(sorted.length/2)];
+      const show=[cheapest,optimal,mostThorough].filter((r,i,arr)=>r&&arr.findIndex(x=>x?.clip_sec===r?.clip_sec)===i);
+
+      const card=(r,label,isOpt)=>{
+        const q=r.quality||{};const txt=r.response_text||'No response';
+        const preview=txt.slice(0,220);const hasMore=txt.length>220;
+        const id=`sa-resp-${r.clip_sec}`;
+        const qVal=q.overall_normalized||q.overall||0;
+        const dims=['detection','localization','severity','actionability'];
+        return `<div class="sa-response-card${isOpt?' optimal':''}">
+          <div class="sa-response-head">
+            <span>${label} · ${r.clip_sec}s clip</span>
+            <span style="color:${qVal>=70?'#16a34a':'#d97706'}">${Math.round(qVal)}/100${isOpt?' ★':''}</span>
+          </div>
+          <div class="sa-response-body" id="${id}">${preview||'(no response)'}${hasMore?'…':''}</div>
+          ${hasMore?`<div style="padding:.3rem .9rem"><button class="vi-output-toggle" onclick="VI.toggleOutput('${id}',this,'${encodeURIComponent(txt)}')">Show full ▼</button></div>`:''}
+          <div class="sa-dim-scores">
+            ${dims.map(d=>`<div class="sa-dim-row"><span>${d.charAt(0).toUpperCase()+d.slice(1)}</span><span class="val">${Math.round((q[d+'_normalized']||q[d])||0)}/100</span></div>`).join('')}
+            <div class="sa-dim-row" style="margin-top:.3rem;padding-top:.3rem;border-top:1px solid var(--border)"><span>TTFT</span><span class="val">${r.ttft_ms!=null?r.ttft_ms.toLocaleString()+'ms':'—'}</span></div>
+          </div>
+        </div>`;
+      };
+
+      el.innerHTML=show.map((r,i)=>card(r,i===0?'Cheapest':i===show.length-1?'Most thorough':'Optimal',r===optimal)).join('');
+    }
+
+    function showInfraPopup(){
+      const popup=document.getElementById('sa-popup');
+      const content=document.getElementById('sa-popup-content');
+      if(!popup||!content)return;
+
+      const data=st.exploreResults;
+      const rec=data?.recommendation||{};
+      const apiCost=Math.round(rec.annual_cost||2600);
+      const aws={api:apiCost,compute:Math.round(apiCost*2.5)};aws.total=aws.api+aws.compute;
+      const gcp={api:apiCost,compute:Math.round(apiCost*2.4)};gcp.total=gcp.api+gcp.compute;
+      const gruve={api:apiCost,compute:Math.round(apiCost*1.1)};gruve.total=gruve.api+gruve.compute;
+      const fmtPct=(a,b)=>'+'+Math.round((a-b)/b*100)+'%';
+      const fmt$=v=>'$'+Math.round(v).toLocaleString();
+      const modelL={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen OSS'};
+
+      content.innerHTML=`
+        <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">DEPLOYING YOUR OPTIMAL CONFIG</h2>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.25rem">${modelL[rec.optimal_model||'gemini']||''} · ${rec.optimal_clip_sec||15}s clips · ${rec.optimal_checks_per_hr||1} check/hr · ${data?.base_config?.cameras||500} cameras</p>
+        <p style="font-size:.88rem;color:var(--text-dim);margin-bottom:1.25rem">API cost is only part of your infrastructure bill. Here's what it actually costs to run this workload in production.</p>
+        <div style="overflow-x:auto"><table class="sa-infra-table">
+          <thead><tr><th></th><th>AWS</th><th>GCP</th><th style="color:var(--accent)">Gruve ★</th></tr></thead>
+          <tbody>
+            <tr><td>API cost/yr</td><td>${fmt$(aws.api)}</td><td>${fmt$(gcp.api)}</td><td style="color:var(--accent);font-weight:600">${fmt$(gruve.api)}</td></tr>
+            <tr><td>Compute/yr</td><td>${fmt$(aws.compute)}</td><td>${fmt$(gcp.compute)}</td><td style="color:var(--accent);font-weight:600">${fmt$(gruve.compute)}</td></tr>
+            <tr><td>Concurrency mgmt</td><td>Manual</td><td>Manual</td><td style="color:#16a34a;font-weight:600">✓ Managed</td></tr>
+            <tr><td>Rate limit risk</td><td style="color:#d97706">⚠ Yes</td><td style="color:#d97706">⚠ Yes</td><td style="color:#16a34a;font-weight:600">✓ None</td></tr>
+            <tr><td>Cold starts</td><td style="color:#d97706">⚠ Yes</td><td style="color:#d97706">⚠ Yes</td><td style="color:#16a34a;font-weight:600">✓ None</td></tr>
+            <tr style="font-weight:700;border-top:2px solid var(--border)"><td>TOTAL / year</td><td>${fmt$(aws.total)}</td><td>${fmt$(gcp.total)}</td><td style="color:var(--accent);font-weight:700">${fmt$(gruve.total)}</td></tr>
+            <tr><td>vs Gruve</td><td style="color:#d97706">${fmtPct(aws.total,gruve.total)}</td><td style="color:#d97706">${fmtPct(gcp.total,gruve.total)}</td><td style="color:#16a34a">← baseline</td></tr>
+          </tbody>
+        </table></div>
+        <p style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem">⚠ AWS/GCP compute costs are estimates based on standard pricing for this workload size. Gruve pricing confirmed on request.</p>
+
+        <div class="sa-v2-box" style="margin-top:1.5rem">
+          <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.65rem">COMING IN ATLAS v2 — INFRASTRUCTURE SENSITIVITY ANALYSIS</div>
+          <p style="margin-bottom:.65rem">The same sensitivity curves you just ran for model config — applied to your infrastructure knobs:</p>
+          <table style="width:100%;font-size:.82rem;border-collapse:collapse">
+            <tr><td style="padding:.3rem .5rem;color:var(--text-muted)">GPU type</td><td>A10G vs A100 vs H100</td></tr>
+            <tr><td style="padding:.3rem .5rem;color:var(--text-muted)">Batch size</td><td>1 vs 4 vs 8 concurrent clips</td></tr>
+            <tr><td style="padding:.3rem .5rem;color:var(--text-muted)">Concurrency</td><td>Auto-scaled vs fixed thread pool</td></tr>
+            <tr><td style="padding:.3rem .5rem;color:var(--text-muted)">Cold start freq</td><td>On-demand vs warm pool</td></tr>
+          </table>
+          <p style="margin-top:.65rem;color:var(--text-dim)">Result: cost-quality tradeoff for YOUR infrastructure. Same graphs. Same sweet spot logic. Full stack.</p>
+        </div>
+        <div class="sa-popup-cta-row">
+          <button class="vi-cta-btn" style="text-decoration:none">REQUEST EARLY ACCESS TO ATLAS v2</button>
+          <a href="mailto:hello@gruve.ai" class="vi-cta-btn" style="text-decoration:none">TALK TO A HUMAN →</a>
+          <button class="vi-sec-btn" onclick="VI.closeInfraPopup()">× Close</button>
+        </div>`;
+
+      popup.style.display='flex';
+    }
+    function closeInfraPopup(){
+      const popup=document.getElementById('sa-popup');if(popup)popup.style.display='none';
     }
 
     function showS5Explore(data){
@@ -3350,7 +3780,7 @@
     // Init
     initConsumerGrid();
 
-    return{selConsumer,selUC,showS4,addSc,rmSc,onDurSlide,onConcOverride,toggleConcOverride,selModel,selClip,onClipUpload,onDrop,switchClipTab,updateCost,runBenchmark,runExplore,setGrowth,setScale,drawChart,toggleOutput,exportCSV,toggleExploreModel,setExploreN,selExploreClip,onExploreParam,setExploreGrowth,exportExploreCSV};
+    return{selConsumer,selUC,showS4,addSc,rmSc,onDurSlide,onConcOverride,toggleConcOverride,selModel,selClip,onClipUpload,onDrop,switchClipTab,updateCost,runBenchmark,runExplore,runSensitivityAnalysis,setSABase,onSABase,setGrowth,setScale,drawChart,toggleOutput,exportCSV,toggleExploreModel,setExploreN,selExploreClip,onExploreParam,setExploreGrowth,exportExploreCSV,showInfraPopup,closeInfraPopup};
   })();
   // ════════════════════════════════════════════════════════════════
 

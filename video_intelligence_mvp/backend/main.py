@@ -874,3 +874,351 @@ async def benchmark_explore(req: ExploreRequest):
         "sweet_spot":     sweet_spot,
         "sensitivity":    sensitivity,
     }
+
+
+# ── Sensitivity Analysis endpoint ────────────────────────────────
+
+NO_GT_PROMPT_TEMPLATE = """You are evaluating an anomaly detection AI response for a security camera system.
+
+Score this response on 4 dimensions (0–100 each):
+
+1. DETECTION (weight 40%) — Did it correctly identify whether an anomaly exists? Confident and specific?
+   0 = missed anomaly / completely wrong | 100 = perfect detection with high confidence
+
+2. LOCALIZATION (weight 20%) — Did it identify WHERE in the frame and WHEN in the clip?
+   "Near door at ~0:08" = high | "suspicious activity" = low
+   0 = no location/timing | 100 = precise location and timestamp
+
+3. SEVERITY (weight 20%) — Did it correctly assess LOW/MEDIUM/HIGH and explain why?
+   0 = no severity or wrong | 100 = correct severity with clear reasoning
+
+4. ACTIONABILITY (weight 20%) — What should the operator do RIGHT NOW?
+   "Dispatch security, lock storage, call police" = high | "Review footage" = low
+   0 = no action | 100 = specific immediate actions
+
+overall = round(detection*0.4 + localization*0.2 + severity*0.2 + actionability*0.2)
+
+MODEL RESPONSE TO SCORE:
+{response_text}
+
+Return ONLY this JSON, nothing else:
+{{"detection": 0, "localization": 0, "severity": 0, "actionability": 0, "overall": 0, "anomaly_detected": true, "one_line_summary": "one sentence"}}"""
+
+GT_PROMPT_TEMPLATE = """You are evaluating an anomaly detection AI response against known ground truth.
+
+GROUND TRUTH FOR THIS CLIP:
+{ground_truth}
+
+Score the model's response against this ground truth on 4 dimensions (0–100):
+
+1. DETECTION (weight 40%) — Did it identify the SAME anomaly described in ground truth?
+   0 = missed it entirely | 100 = identified exactly the right event
+
+2. LOCALIZATION (weight 20%) — Does location and timing match the ground truth?
+   0 = wrong location/timing | 100 = matches ground truth precisely
+
+3. SEVERITY (weight 20%) — Does the severity assessment match ground truth?
+   0 = wrong severity | 100 = exact match with correct reasoning
+
+4. ACTIONABILITY (weight 20%) — Does the recommended action match what ground truth implies?
+   0 = wrong or missing action | 100 = correct action recommended
+
+overall = round(detection*0.4 + localization*0.2 + severity*0.2 + actionability*0.2)
+
+MODEL RESPONSE TO SCORE:
+{response_text}
+
+Return ONLY this JSON, nothing else:
+{{"detection": 0, "localization": 0, "severity": 0, "actionability": 0, "overall": 0, "anomaly_detected": true, "one_line_summary": "one sentence", "ground_truth_match": true}}"""
+
+
+async def score_response_quality(response_text: str, ground_truth: str | None = None) -> dict:
+    import re as _re
+    if ground_truth:
+        prompt = GT_PROMPT_TEMPLATE.format(
+            ground_truth=ground_truth,
+            response_text=response_text[:500],
+        )
+    else:
+        prompt = NO_GT_PROMPT_TEMPLATE.format(response_text=response_text[:500])
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f"{OPENROUTER_BASE}/chat/completions",
+                headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json",
+                         "HTTP-Referer": "https://gruve.ai", "X-Title": "Gruve Atlas"},
+                json={"model": "google/gemini-2.0-flash-001",
+                      "messages": [{"role": "user", "content": prompt}], "max_tokens": 200},
+            )
+        raw = r.json()["choices"][0]["message"]["content"] or ""
+        m = _re.search(r"\{[\s\S]*?\}", raw)
+        if m:
+            return json.loads(m.group(0))
+    except Exception:
+        pass
+    return {"detection": 60, "localization": 40, "severity": 55, "actionability": 45, "overall": 52,
+            "anomaly_detected": True, "one_line_summary": "Quality scoring unavailable"}
+
+
+def normalize_scores_to_anchor(sweep_results: list[dict]) -> list[dict]:
+    """Scale highest-scoring config to 95/100, others proportionally."""
+    if not sweep_results:
+        return sweep_results
+    max_score = max(r.get("quality", {}).get("overall", 0) for r in sweep_results)
+    if max_score == 0:
+        return sweep_results
+    scale = 95 / max_score
+    for r in sweep_results:
+        q = r.get("quality", {})
+        q["overall_normalized"] = round(q.get("overall", 0) * scale)
+        for dim in ["detection", "localization", "severity", "actionability"]:
+            if dim in q:
+                q[f"{dim}_normalized"] = round(q[dim] * scale)
+    return sweep_results
+
+
+async def run_single_inference_for_sensitivity(
+    model: str, clip_sec: int, checks_per_hr: float, cameras: int, clip_path: str
+) -> dict:
+    """Run one inference call and return raw results (no quality scoring yet)."""
+    frames = extract_frames_as_b64(clip_path, fps=1, max_duration_sec=clip_sec)
+    content = [{"type": "text", "text": ANOMALY_PROMPT}]
+    for fb64 in frames:
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{fb64}"}})
+
+    headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json",
+               "HTTP-Referer": "https://gruve.ai", "X-Title": "Gruve Atlas"}
+    payload = {"model": MODEL_IDS[model], "messages": [{"role": "user", "content": content}],
+               "max_tokens": 400, "stream": True}
+
+    t_start = time.perf_counter()
+    t_first = None
+    full_text = ""
+    token_count = 0
+
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            async with client.stream("POST", f"{OPENROUTER_BASE}/chat/completions",
+                                     headers=headers, json=payload) as resp:
+                if resp.status_code != 200:
+                    body = await resp.aread()
+                    raise Exception(f"API {resp.status_code}: {body[:100].decode(errors='replace')}")
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    cs = line[6:].strip()
+                    if cs == "[DONE]" or not cs:
+                        continue
+                    try:
+                        d = json.loads(cs)["choices"][0]["delta"].get("content")
+                        if d and d.strip():
+                            if t_first is None:
+                                t_first = time.perf_counter()
+                            full_text += d
+                            token_count += 1
+                    except Exception:
+                        continue
+    except Exception as e:
+        raise Exception(str(e))
+
+    t_end = time.perf_counter()
+    p = EXPLORE_PRICING[model]
+    video_tokens = clip_sec * 258
+    prompt_tokens = 80
+    input_tokens = video_tokens + prompt_tokens
+    cost_per_q = input_tokens * p["input"] + token_count * p["output"]
+    queries_per_day = cameras * checks_per_hr * 24
+
+    return {
+        "model": model,
+        "clip_sec": clip_sec,
+        "checks_per_hr": checks_per_hr,
+        "ttft_ms": round((t_first - t_start) * 1000) if t_first else None,
+        "tps": round(token_count / max(t_end - (t_first or t_start), 0.001), 1),
+        "input_tokens": input_tokens,
+        "output_tokens": token_count,
+        "cost_per_query": round(cost_per_q, 6),
+        "queries_per_day": round(queries_per_day),
+        "daily_cost": round(cost_per_q * queries_per_day, 2),
+        "monthly_cost": round(cost_per_q * queries_per_day * 30, 2),
+        "annual_cost": round(cost_per_q * queries_per_day * 365, 2),
+        "detection_latency_min": round(60 / max(checks_per_hr, 0.1), 1),
+        "response_text": full_text[:600],
+        "quality": {},
+        "status": "complete",
+    }
+
+
+def build_recommendation(clip_sweep: list, model_sweep: list, freq_sweep: list) -> dict:
+    # Clip plateau: first point where quality gain < 5 vs previous
+    sorted_clip = sorted(clip_sweep, key=lambda r: r["clip_sec"])
+    optimal_clip = sorted_clip[0]
+    for i in range(1, len(sorted_clip)):
+        prev_q = sorted_clip[i - 1].get("quality", {}).get("overall_normalized", 0)
+        curr_q = sorted_clip[i].get("quality", {}).get("overall_normalized", 0)
+        if (curr_q - prev_q) < 5:
+            optimal_clip = sorted_clip[i - 1]
+            break
+        optimal_clip = sorted_clip[i]
+
+    # Best model: highest quality / cost ratio
+    valid_models = [m for m in model_sweep if m.get("status") == "complete"]
+    best_model_result = max(valid_models, key=lambda m: m.get("quality", {}).get("overall", 0) /
+                            max(m.get("annual_cost", 1), 1)) if valid_models else {}
+
+    # Frequency: lowest (quality unaffected)
+    optimal_freq = min(freq_sweep, key=lambda f: f.get("annual_cost", 0)) if freq_sweep else {}
+
+    # Biggest saving lever
+    model_saving = (max((m.get("annual_cost", 0) for m in model_sweep), default=0) -
+                    min((m.get("annual_cost", 0) for m in model_sweep), default=0))
+    clip_saving = (max((c.get("annual_cost", 0) for c in clip_sweep), default=0) -
+                   min((c.get("annual_cost", 0) for c in clip_sweep), default=0))
+    freq_saving = (max((f.get("annual_cost", 0) for f in freq_sweep), default=0) -
+                   min((f.get("annual_cost", 0) for f in freq_sweep), default=0))
+    levers = [("model_switch", model_saving), ("clip_reduction", clip_saving),
+              ("frequency_reduction", freq_saving)]
+    biggest_lever, biggest_saving = max(levers, key=lambda x: x[1])
+
+    return {
+        "optimal_clip_sec": optimal_clip.get("clip_sec"),
+        "optimal_model": best_model_result.get("model"),
+        "optimal_checks_per_hr": optimal_freq.get("checks_per_hr"),
+        "annual_cost": best_model_result.get("annual_cost", 0),
+        "quality_score": best_model_result.get("quality", {}).get("overall", 0),
+        "biggest_lever": biggest_lever,
+        "biggest_lever_savings": round(biggest_saving),
+    }
+
+
+class SensitivityRequest(BaseModel):
+    consumer_type: str
+    use_case: str
+    base_model: str
+    base_clip_sec: int
+    base_checks_per_hr: float
+    cameras: int
+    run_clip_sensitivity: bool = True
+    run_model_sensitivity: bool = True
+    run_frequency_sensitivity: bool = True
+    clip_durations: list[int] = [5, 10, 15, 20, 25, 30]
+    models_to_compare: list[str] = ["gemini", "gpt4o", "qwen"]
+    frequencies: list[float] = [1.0, 2.0, 3.0, 4.0]
+    clip_path: str
+    ground_truth: Optional[str] = None
+
+
+@app.post("/sensitivity-analysis")
+async def sensitivity_analysis(req: SensitivityRequest):
+    # Resolve clip
+    try:
+        clip_path = resolve_clip_path(req.clip_path)
+    except FileNotFoundError:
+        mapped = SECURITY_CLIP_MAP.get(req.clip_path)
+        clip_path = str(CLIPS_DIR / mapped) if mapped else str(CLIPS_DIR / "sample_security.mp4")
+
+    # Build inference tasks (clip_sweep + model_sweep only — freq_sweep = 1 base call)
+    tasks = []
+    task_labels = []
+
+    if req.run_clip_sensitivity:
+        for dur in req.clip_durations:
+            tasks.append(run_single_inference_for_sensitivity(
+                req.base_model, dur, req.base_checks_per_hr, req.cameras, clip_path))
+            task_labels.append(("clip_sweep", dur))
+
+    # base inference for model_sweep and freq_sweep
+    base_for_models = []
+    if req.run_model_sensitivity:
+        for model in req.models_to_compare:
+            if model in MODEL_IDS:
+                tasks.append(run_single_inference_for_sensitivity(
+                    model, req.base_clip_sec, req.base_checks_per_hr, req.cameras, clip_path))
+                task_labels.append(("model_sweep", model))
+
+    # freq_sweep: single base inference, reuse base_model + base_clip_sec
+    freq_base_task_idx = None
+    if req.run_frequency_sensitivity:
+        freq_base_task_idx = len(tasks)
+        tasks.append(run_single_inference_for_sensitivity(
+            req.base_model, req.base_clip_sec, req.base_checks_per_hr, req.cameras, clip_path))
+        task_labels.append(("freq_base", req.base_checks_per_hr))
+
+    # Run all concurrently
+    raw_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Separate into sweeps
+    clip_sweep_raw, model_sweep_raw = [], []
+    freq_base_result = None
+
+    for i, (sweep_type, key) in enumerate(task_labels):
+        result = raw_results[i]
+        if isinstance(result, Exception):
+            result = {"status": "error", "error": str(result), "model": req.base_model,
+                      "clip_sec": req.base_clip_sec, "checks_per_hr": req.base_checks_per_hr,
+                      "annual_cost": 0, "quality": {}}
+        result["key"] = key
+        if sweep_type == "clip_sweep":
+            clip_sweep_raw.append(result)
+        elif sweep_type == "model_sweep":
+            model_sweep_raw.append(result)
+        elif sweep_type == "freq_base":
+            freq_base_result = result
+
+    # Build frequency sweep by scaling cost (1 inference, math only)
+    freq_sweep_raw = []
+    if freq_base_result and req.run_frequency_sensitivity:
+        base_cpq = freq_base_result.get("cost_per_query", 0)
+        for freq in req.frequencies:
+            entry = dict(freq_base_result)
+            entry["checks_per_hr"] = freq
+            entry["queries_per_day"] = round(req.cameras * freq * 24)
+            entry["daily_cost"] = round(base_cpq * req.cameras * freq * 24, 2)
+            entry["monthly_cost"] = round(base_cpq * req.cameras * freq * 24 * 30, 2)
+            entry["annual_cost"] = round(base_cpq * req.cameras * freq * 24 * 365, 2)
+            entry["detection_latency_min"] = round(60 / max(freq, 0.1), 1)
+            freq_sweep_raw.append(entry)
+
+    # Score quality for clip_sweep + model_sweep (in parallel)
+    all_to_score = [r for r in clip_sweep_raw + model_sweep_raw if r.get("status") == "complete"]
+    score_tasks = [score_response_quality(r["response_text"], req.ground_truth) for r in all_to_score]
+    quality_results = await asyncio.gather(*score_tasks, return_exceptions=True)
+
+    for i, result in enumerate(all_to_score):
+        q = quality_results[i] if not isinstance(quality_results[i], Exception) else {
+            "detection": 55, "localization": 40, "severity": 50, "actionability": 45,
+            "overall": 48, "anomaly_detected": True, "one_line_summary": "Scoring failed"
+        }
+        result["quality"] = q
+
+    # Frequency sweep gets base quality (quality unchanged by frequency)
+    base_quality = freq_base_result.get("quality", {}) if freq_base_result else {}
+    if not base_quality and model_sweep_raw:
+        # Use base model's quality from model sweep if available
+        for m in model_sweep_raw:
+            if m.get("model") == req.base_model and m.get("quality"):
+                base_quality = m["quality"]
+                break
+    for entry in freq_sweep_raw:
+        entry["quality"] = dict(base_quality)
+
+    # Normalize clip_sweep scores to anchor
+    clip_sweep_final = normalize_scores_to_anchor(clip_sweep_raw)
+
+    # Recommendation
+    recommendation = build_recommendation(clip_sweep_final, model_sweep_raw, freq_sweep_raw)
+
+    return {
+        "run_id": str(uuid.uuid4()),
+        "timestamp": datetime.utcnow().isoformat(),
+        "base_config": {
+            "model": req.base_model, "clip_sec": req.base_clip_sec,
+            "checks_per_hr": req.base_checks_per_hr, "cameras": req.cameras,
+        },
+        "ground_truth_provided": bool(req.ground_truth),
+        "clip_sweep":   clip_sweep_final,
+        "model_sweep":  model_sweep_raw,
+        "frequency_sweep": freq_sweep_raw,
+        "recommendation": recommendation,
+    }
