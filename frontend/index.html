@@ -2801,8 +2801,8 @@
       `;
 
       renderTradeoffTable(rows, ss, primaryModel, data.cameras);
-      renderCostAtScale(rows, ss, primaryModel, data.cameras);
-      renderSensitivity(rows, ss, primaryModel, data.cameras);
+      renderCostAtScale(rows, ss, primaryModel, data.cameras, data);
+      renderSensitivity(data.sensitivity, data.cameras);
       renderExploreOutputs(configs, primaryModel);
       renderExploreProjection(rows, ss);
       renderExploreGruve(ss, primaryModel, data.cameras);
@@ -2864,20 +2864,22 @@
       }
     }
 
-    function renderCostAtScale(rows, ss, model, cameras){
+    function renderCostAtScale(rows, ss, model, cameras, data){
       const wrap=document.getElementById('ex-cost-scale');if(!wrap)return;
       const modelLabel={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'}[model]||model;
-      const ssRow=rows.find(r=>r.config_id===ss?.config_id)||rows[0];
-      const midRow=rows[Math.floor(rows.length/2)]||rows[0];
-      const lastRow=rows[rows.length-1]||rows[0];
-      const showCols=[ssRow,midRow,lastRow].filter((r,i,arr)=>arr.indexOf(r)===i);
+      const sorted=[...rows].sort((a,b)=>(a.annual_cost||0)-(b.annual_cost||0));
+      const cheapRow=sorted[0];
+      const ssRow=rows.find(r=>r.config_id===ss?.config_id)||sorted[Math.floor(sorted.length/2)];
+      const expRow=sorted[sorted.length-1];
+      // Deduplicate (cheap might equal ss or ss might equal expensive)
+      const showCols=[cheapRow,ssRow,expRow].filter((r,i,arr)=>r&&arr.findIndex(x=>x?.config_id===r?.config_id)===i);
 
       const fmt$=v=>'$'+Math.round(v).toLocaleString();
       const camScales=[cameras,cameras*2,cameras*4,cameras*10];
 
       wrap.innerHTML=`<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem">${cameras.toLocaleString()} cameras · ${modelLabel}</div>
         <div style="overflow-x:auto"><table class="vi-tradeoff-table" style="margin-bottom:1.25rem">
-          <thead><tr><th>Metric</th>${showCols.map(r=>`<th>Config ${r.config_id}${r.config_id===ss?.config_id?' ★':''}</th>`).join('')}</tr></thead>
+          <thead><tr><th>Metric</th>${showCols.map(r=>`<th>Config ${r.config_id}${r.config_id===ss?.config_id?' ★':r.config_id===cheapRow?.config_id?' (cheapest)':' (max)'}</th>`).join('')}</tr></thead>
           <tbody>
             <tr><td>Cost / query</td>${showCols.map(r=>`<td>$${(r.cost_per_query||0).toFixed(6)}</td>`).join('')}</tr>
             <tr><td>Queries / day</td>${showCols.map(r=>`<td>${(r.queries_per_day||0).toLocaleString()}</td>`).join('')}</tr>
@@ -2887,37 +2889,28 @@
           </tbody>
         </table></div>
         <div style="font-size:.82rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">AT SCALE — if you grow</div>
-        <div class="vi-scale-grid">${camScales.map(cam=>`<div class="vi-scale-cell"><div class="cameras">${cam.toLocaleString()} cameras</div><div class="cost" style="color:var(--accent)">$${Math.round((ssRow?.annual_cost||0)/cameras*cam).toLocaleString()}/yr</div><div style="font-size:.62rem;color:var(--text-muted)">Config ${ssRow?.config_id||1} ★</div></div>`).join('')}</div>`;
+        <div style="overflow-x:auto"><table class="vi-tradeoff-table">
+          <thead><tr><th>Cameras</th>${showCols.map(r=>`<th>Config ${r.config_id}${r.config_id===ss?.config_id?' ★':''}</th>`).join('')}</tr></thead>
+          <tbody>${camScales.map(cam=>{const mult=cam/cameras;return `<tr><td>${cam.toLocaleString()}</td>${showCols.map(r=>`<td${r.config_id===ss?.config_id?' style="color:var(--accent);font-weight:600"':''}>${fmt$(((r.annual_cost||0)*mult))}/yr</td>`).join('')}</tr>`;}).join('')}</tbody>
+        </table></div>`;
     }
 
-    function renderSensitivity(rows, ss, model, cameras){
+    function renderSensitivity(sensitivity, cameras){
       const wrap=document.getElementById('ex-sensitivity');if(!wrap)return;
-      if(!ss||!rows.length){wrap.innerHTML='<p style="color:var(--text-muted);font-size:.85rem">No sweet spot identified.</p>';return;}
-      const ssRow=rows.find(r=>r.config_id===ss.config_id)||rows[0];
-      const baseAnnual=ssRow?.annual_cost||0;
-      const cheapRow=rows.reduce((a,b)=>(a.annual_cost||0)<(b.annual_cost||0)?a:b,rows[0]);
-      const fmt$=v=>'$'+Math.round(v).toLocaleString()+'/yr';
-      const savPct=(base,new_)=>base>0?'-'+Math.round((base-new_)/base*100)+'%':'—';
-
-      const levers=[
-        {label:'Switch to cheapest config',new_annual:cheapRow.annual_cost||0,note:`Config ${cheapRow.config_id}: ${cheapRow.clip_sec}s · ${cheapRow.checks_per_hr}/hr`},
-        {label:'Halve camera count',new_annual:baseAnnual/2,note:`${Math.round(cameras/2).toLocaleString()} cameras`},
-        {label:'Reduce to 1/hr checks',new_annual:baseAnnual*(1/Math.max(ssRow.checks_per_hr||1,0.1)),note:'1 check/hr vs current'},
-      ];
-      // Add model comparison if only one model
-      const altModel=model==='gemini'?null:model==='gpt4o'?'gemini':null;
-      if(altModel){
-        const PRICING={gpt4o:{input:2.50/1e6,output:10.00/1e6},gemini:{input:0.10/1e6,output:0.40/1e6}};
-        const altAnnual=estimateAnnualCost(altModel,ssRow.clip_sec||15,ssRow.checks_per_hr||2,cameras);
-        levers.push({label:`Switch to Gemini (from ${model==='gpt4o'?'GPT-4o':'Qwen'})`,new_annual:altAnnual,note:'Quality may differ'});
-      }
-
-      wrap.innerHTML=`<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem">Based on Config ${ssRow.config_id} (sweet spot) at ${cameras.toLocaleString()} cameras · Current: <strong>$${Math.round(baseAnnual).toLocaleString()}/yr</strong></div>
+      if(!sensitivity){wrap.innerHTML='<p style="color:var(--text-muted);font-size:.85rem">Sensitivity data unavailable.</p>';return;}
+      const {baseline_label,baseline_cost,levers}=sensitivity;
+      wrap.innerHTML=`<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem">
+          Compared to most expensive config (${baseline_label}) at <strong>$${Math.round(baseline_cost).toLocaleString()}/yr</strong> for ${cameras.toLocaleString()} cameras
+        </div>
         <div style="overflow-x:auto"><table class="vi-sensitivity-table">
           <thead><tr><th>If you...</th><th>Annual cost</th><th>Savings</th></tr></thead>
-          <tbody>${levers.map(l=>{const s=savPct(baseAnnual,l.new_annual);return `<tr><td>${l.label}<br><span style="font-size:.7rem;color:var(--text-muted)">${l.note}</span></td><td>$${Math.round(l.new_annual).toLocaleString()}/yr</td><td class="savings">${s}</td></tr>`;}).join('')}</tbody>
+          <tbody>${levers.map(l=>{
+            const savStr=l.savings_pct>0?'-'+l.savings_pct+'%':'—';
+            const qWarn=l.quality_warning?` <span style="color:#d97706;font-size:.68rem">⚠ quality: ${l.quality_score||'?'}/100</span>`:'';
+            return `<tr><td>${l.action}${qWarn}<br><span style="font-size:.7rem;color:var(--text-muted)">${l.detail||''}</span></td><td>$${Math.round(l.annual_cost||0).toLocaleString()}/yr</td><td class="savings">${savStr}</td></tr>`;
+          }).join('')}</tbody>
         </table></div>
-        <div style="font-size:.75rem;color:#d97706;margin-top:.75rem;padding:.5rem .75rem;background:#fffbeb;border-radius:6px;border:1px solid #fde68a">⚠ Reducing clip length or check frequency may affect detection quality. See Config 1 quality score above before reducing.</div>`;
+        <div style="font-size:.75rem;color:#d97706;margin-top:.75rem;padding:.5rem .75rem;background:#fffbeb;border-radius:6px;border:1px solid #fde68a">⚠ Reducing clip length or check frequency may affect detection quality. See quality scores in the table above before reducing.</div>`;
     }
 
     function renderExploreOutputs(configs, model){
@@ -2929,14 +2922,20 @@
         const txt=res.response_text||'No response';
         const preview=txt.slice(0,280);const hasMore=txt.length>280;
         const id=`ex-out-${cfg.config_id}`;
+        const qualScore=res.quality?.overall||res.quality_overall||0;
+        const ttftStr=res.ttft_ms!=null?`${res.ttft_ms.toLocaleString()}ms`:'—';
         return `<div class="vi-output-card" style="flex:1;min-width:220px">
           <div class="vi-output-card-head">
             <span>${label} — ${cfg.clip_sec}s clip</span>
-            <span style="font-size:.7rem;color:${(res.quality?.overall||0)>=70?'#16a34a':'#d97706'}">${Math.round(res.quality?.overall||0)}/100</span>
+            <span style="font-size:.7rem;color:${qualScore>=70?'#16a34a':'#d97706'}">${Math.round(qualScore)}/100</span>
           </div>
           <div class="vi-output-card-body" id="${id}">${preview||'(no response)'}</div>
           ${hasMore?`<div style="padding:.3rem .9rem"><button class="vi-output-toggle" onclick="VI.toggleOutput('${id}',this,'${encodeURIComponent(txt)}')">Show full ▼</button></div>`:''}
-          <div class="vi-output-meta">${res.ttft_ms||'—'}ms TTFT · ${Math.round(res.quality?.overall||0)}/100 quality</div>
+          <div class="vi-output-meta">
+            TTFT: ${ttftStr} <span class="tip-icon" data-tip="Time to First Token — how quickly after sending the clip the model began generating its anomaly report. Lower = faster alert delivery to security operators.">ⓘ</span>
+            · ${Math.round(res.tps||0)} tok/s
+            · ${Math.round(qualScore)}/100 quality
+          </div>
         </div>`;
       };
       wrap.innerHTML=`<div class="vi-model-output-pair">

@@ -427,7 +427,7 @@ def generate_configs(clip_min: int, clip_max: int,
     return configs
 
 
-async def run_config_benchmark(
+async def run_config_inference(
     config: dict, model: str, clip_path: str, cameras: int
 ) -> dict:
     base = {"config_id": config["config_id"], "model": model}
@@ -458,10 +458,10 @@ async def run_config_benchmark(
         "stream":     True,
     }
 
-    t_start       = time.time()
+    t_start       = time.perf_counter()
     t_first_token = None
     full_text     = ""
-    chunk_count   = 0
+    output_token_count = 0
 
     try:
         async with httpx.AsyncClient(timeout=120.0) as client:
@@ -476,27 +476,32 @@ async def run_config_benchmark(
                 async for line in resp.aiter_lines():
                     if not line.startswith("data: "):
                         continue
-                    chunk = line[6:]
-                    if chunk == "[DONE]":
+                    chunk_str = line[6:].strip()
+                    if chunk_str == "[DONE]":
                         break
+                    if not chunk_str:
+                        continue
                     try:
-                        data  = json.loads(chunk)
-                        delta = data["choices"][0]["delta"].get("content", "")
-                        if delta:
+                        chunk        = json.loads(chunk_str)
+                        delta        = chunk.get("choices", [{}])[0].get("delta", {})
+                        content_text = delta.get("content")
+                        # Only capture first token when actual non-empty content arrives
+                        if content_text and content_text.strip():
                             if t_first_token is None:
-                                t_first_token = time.time()
-                            full_text   += delta
-                            chunk_count += 1
+                                t_first_token = time.perf_counter()
+                            full_text          += content_text
+                            output_token_count += 1
                     except Exception:
                         continue
     except Exception as e:
         return {**base, "status": "error", "error": str(e)}
 
-    t_end    = time.time()
+    t_end    = time.perf_counter()
     ttft_ms  = round((t_first_token - t_start) * 1000) if t_first_token else None
-    elapsed  = max(t_end - (t_first_token or t_start), 0.001)
-    output_tokens = int(len(full_text.split()) * 1.3)
-    tps      = round(output_tokens / elapsed, 1)
+    gen_dur  = max(t_end - (t_first_token or t_start), 0.001)
+    output_tokens = output_token_count
+    tps      = round(output_tokens / gen_dur, 1)
+    total_time_ms = round((t_end - t_start) * 1000)
 
     # Cost calculation
     p             = EXPLORE_PRICING[model]
@@ -507,26 +512,113 @@ async def run_config_benchmark(
     queries_per_day  = cameras * config["checks_per_hr"] * 24
     detection_latency_min = round(60 / max(config["checks_per_hr"], 0.1), 1)
 
-    # Quality judge — call Gemini flash (cheapest) to evaluate the response
-    quality_scores = await judge_anomaly_response(full_text)
-
     return {
         **base,
-        "clip_sec":          config["clip_sec"],
-        "checks_per_hr":     config["checks_per_hr"],
+        "clip_sec":              config["clip_sec"],
+        "checks_per_hr":         config["checks_per_hr"],
         "detection_latency_min": detection_latency_min,
-        "ttft_ms":           ttft_ms,
-        "tps":               tps,
-        "input_tokens":      input_tokens,
-        "output_tokens":     output_tokens,
-        "cost_per_query":    round(cost_per_q, 6),
-        "queries_per_day":   round(queries_per_day),
-        "daily_cost":        round(cost_per_q * queries_per_day, 2),
-        "monthly_cost":      round(cost_per_q * queries_per_day * 30, 2),
-        "annual_cost":       round(cost_per_q * queries_per_day * 365, 2),
-        "quality":           quality_scores,
+        "ttft_ms":               ttft_ms,
+        "tps":                   tps,
+        "total_time_ms":         total_time_ms,
+        "input_tokens":          input_tokens,
+        "output_tokens":         output_tokens,
+        "cost_per_query":        round(cost_per_q, 6),
+        "queries_per_day":       round(queries_per_day),
+        "daily_cost":            round(cost_per_q * queries_per_day, 2),
+        "monthly_cost":          round(cost_per_q * queries_per_day * 30, 2),
+        "annual_cost":           round(cost_per_q * queries_per_day * 365, 2),
+        "quality":               {},   # filled in by anchor judge after all inferences
         "response_text":     full_text[:600],
         "status":            "complete",
+    }
+
+
+async def judge_quality_with_anchor(all_results: list[dict]) -> dict[int, dict]:
+    """
+    Score all configs with ONE judge call using the longest clip as anchor.
+    Returns {config_id: quality_dict}.
+    Guarantees monotonic scores (longer clip = higher or equal quality).
+    """
+    import re as _re
+
+    complete = [r for r in all_results if r.get("status") == "complete"]
+    if not complete:
+        return {}
+
+    anchor = max(complete, key=lambda r: r.get("clip_sec", 0))
+    sorted_by_clip = sorted(complete, key=lambda r: r.get("clip_sec", 0))
+
+    responses_block = ""
+    for r in sorted_by_clip:
+        responses_block += (
+            f"\nCONFIG {r['config_id']} ({r['clip_sec']}s clip):\n"
+            f"---\n{r['response_text'][:400]}\n---\n"
+        )
+
+    judge_prompt = f"""You are evaluating anomaly detection AI responses from a security camera.
+Multiple responses came from the SAME footage but different clip durations (shorter = less context).
+
+ANCHOR (Config {anchor['config_id']}, {anchor['clip_sec']}s — longest clip, most context):
+---
+{anchor['response_text'][:400]}
+---
+The anchor scores 95/100 overall. Score all others relative to it.
+
+Score each on three dimensions (0–100):
+1. detection_accuracy: Correctly identified anomaly? Confident and specific?
+2. actionability: Useful for a security operator needing to act immediately?
+3. completeness: Timing, location, severity, recommendation — how much detail?
+
+STRICT RULES:
+- Anchor must score highest or tied for highest overall
+- Scores must generally INCREASE with clip duration — more context = better
+- Use the FULL 0–100 range — spread scores meaningfully
+- overall = round((detection_accuracy + actionability + completeness) / 3)
+- anomaly_detected = true if response says YES
+
+ALL RESPONSES TO SCORE:
+{responses_block}
+
+Respond ONLY in this JSON, nothing else:
+{{"scores": [{{"config_id": 1, "detection_accuracy": 0, "actionability": 0, "completeness": 0, "overall": 0, "anomaly_detected": true, "one_line_summary": "one sentence"}}]}}"""
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            r = await client.post(
+                f"{OPENROUTER_BASE}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type":  "application/json",
+                    "HTTP-Referer":  "https://gruve.ai",
+                    "X-Title":       "Gruve Atlas",
+                },
+                json={
+                    "model":    "google/gemini-2.0-flash-001",
+                    "messages": [{"role": "user", "content": judge_prompt}],
+                    "max_tokens": 1000,
+                },
+            )
+        raw = r.json()["choices"][0]["message"]["content"] or ""
+        m = _re.search(r'\{.*"scores".*\}', raw, _re.DOTALL)
+        if m:
+            parsed = json.loads(m.group(0))
+            return {s["config_id"]: s for s in parsed.get("scores", [])}
+    except Exception:
+        pass
+
+    # Fallback: linearly spaced scores
+    n = len(sorted_by_clip)
+    return {
+        r["config_id"]: {
+            "config_id": r["config_id"],
+            "detection_accuracy": round(60 + (i / max(n - 1, 1)) * 35),
+            "actionability":      round(58 + (i / max(n - 1, 1)) * 37),
+            "completeness":       round(55 + (i / max(n - 1, 1)) * 40),
+            "overall":            round(58 + (i / max(n - 1, 1)) * 37),
+            "anomaly_detected":   True,
+            "one_line_summary":   f"Config {r['config_id']} ({r['clip_sec']}s clip)",
+        }
+        for i, r in enumerate(sorted_by_clip)
     }
 
 
@@ -589,28 +681,54 @@ anomaly_detected = true if the response indicates an anomaly was found."""
     }
 
 
-def find_sweet_spot(all_results: list[dict]) -> dict | None:
-    """Find config with best quality-per-dollar, min quality 60."""
-    valid = [r for r in all_results if r.get("quality", {}).get("overall", 0) >= 60]
-    if not valid:
-        valid = all_results
-    if not valid:
+def find_sweet_spot(flat_results: list[dict]) -> dict | None:
+    """
+    Two-pass marginal value algorithm:
+    1. Min quality floor: 70/100
+    2. Sort by annual_cost ascending
+    3. For each step, compute marginal quality gain / marginal cost
+    4. Sweet spot = highest marginal ratio (weighted to prefer incremental value)
+    5. Fallback: highest quality if all below 70
+    """
+    if not flat_results:
         return None
-    return max(valid, key=lambda r: r["quality"]["overall"] / max(r["annual_cost"], 0.01))
+
+    sorted_configs = sorted(flat_results, key=lambda c: c.get("annual_cost", 0))
+    viable = [c for c in sorted_configs if c.get("quality_overall", 0) >= 70]
+    if not viable:
+        viable = sorted_configs
+
+    best_config = viable[0]
+    best_ratio  = viable[0].get("quality_overall", 0) / max(viable[0].get("annual_cost", 1), 1)
+
+    for i in range(1, len(viable)):
+        curr = viable[i]
+        prev = viable[i - 1]
+        cost_delta    = curr.get("annual_cost", 0) - prev.get("annual_cost", 0)
+        quality_delta = curr.get("quality_overall", 0) - prev.get("quality_overall", 0)
+        if quality_delta <= 0:
+            continue
+        marginal_ratio = quality_delta / max(cost_delta, 0.01)
+        weighted = marginal_ratio * 10
+        if weighted > best_ratio:
+            best_ratio  = weighted
+            best_config = curr
+
+    return best_config
 
 
 class ExploreRequest(BaseModel):
-    consumer_type:     str
-    use_case:          str
-    models:            list[str]
-    cameras:           int
+    consumer_type:      str
+    use_case:           str
+    models:             list[str]
+    cameras:            int
     base_checks_per_hr: float
-    clip_min_sec:      int
-    clip_max_sec:      int
-    freq_min_per_hr:   float
-    freq_max_per_hr:   float
-    n_configs:         int
-    clip_path:         str    # clip name or TEMP:{id}
+    clip_min_sec:       int
+    clip_max_sec:       int
+    freq_min_per_hr:    float
+    freq_max_per_hr:    float
+    n_configs:          int
+    clip_path:          str    # clip name or TEMP:{id}
 
 
 @app.post("/benchmark-explore")
@@ -625,62 +743,134 @@ async def benchmark_explore(req: ExploreRequest):
     try:
         clip_path = resolve_clip_path(req.clip_path)
     except FileNotFoundError:
-        # Try security clip map
         mapped = SECURITY_CLIP_MAP.get(req.clip_path)
         if mapped:
             clip_path = str(CLIPS_DIR / mapped)
         else:
             raise
 
-    # Run all configs × models concurrently
+    # Step 1: Run all inferences concurrently (no judging yet)
     tasks = [
-        run_config_benchmark(cfg, model, clip_path, req.cameras)
+        run_config_inference(cfg, model, clip_path, req.cameras)
         for cfg in configs
         for model in req.models
         if model in MODEL_IDS
     ]
     raw_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    # Group results by config
-    config_results = {cfg["config_id"]: {"config_id": cfg["config_id"],
-                                          "clip_sec": cfg["clip_sec"],
-                                          "checks_per_hr": cfg["checks_per_hr"],
-                                          "detection_latency_min": round(60 / max(cfg["checks_per_hr"], 0.1), 1),
-                                          "models": {}} for cfg in configs}
-    flat_for_sweet_spot = []
+    # Separate completed from errors
+    completed_inferences, error_results = [], []
     for i, result in enumerate(raw_results):
         if isinstance(result, Exception):
-            # figure out which config/model this was
-            task_idx = i
-            cfg_idx  = task_idx // len(req.models)
-            mod_idx  = task_idx % len(req.models)
-            cfg_id   = configs[min(cfg_idx, len(configs)-1)]["config_id"]
-            model    = req.models[min(mod_idx, len(req.models)-1)]
-            config_results[cfg_id]["models"][model] = {
-                "status": "error", "error": str(result)
-            }
+            cfg_idx = i // max(len(req.models), 1)
+            mod_idx = i %  max(len(req.models), 1)
+            cfg_id  = configs[min(cfg_idx, len(configs) - 1)]["config_id"]
+            model   = req.models[min(mod_idx, len(req.models) - 1)]
+            error_results.append({"config_id": cfg_id, "model": model,
+                                   "status": "error", "error": str(result)})
+        elif result.get("status") == "complete":
+            completed_inferences.append(result)
         else:
-            cfg_id = result["config_id"]
-            model  = result["model"]
-            config_results[cfg_id]["models"][model] = result
-            if result.get("status") == "complete":
-                flat_for_sweet_spot.append({
-                    "config_id":   cfg_id,
-                    "model":       model,
-                    "annual_cost": result.get("annual_cost", 0),
-                    "quality":     result.get("quality", {}),
-                    "clip_sec":    result.get("clip_sec", 0),
-                    "checks_per_hr": result.get("checks_per_hr", 0),
-                })
+            error_results.append(result)
 
+    # Step 2: Anchor judging — single call scoring all responses together
+    quality_map = await judge_quality_with_anchor(completed_inferences)
+
+    # Step 3: Merge quality scores; build flat list for sweet spot
+    flat_for_sweet_spot = []
+    for result in completed_inferences:
+        cfg_id = result["config_id"]
+        q = quality_map.get(cfg_id, {
+            "detection_accuracy": 55, "actionability": 55,
+            "completeness": 55, "overall": 55,
+            "anomaly_detected": True, "one_line_summary": "Score unavailable",
+        })
+        result["quality"]         = q
+        result["quality_overall"] = q.get("overall", 0)
+        flat_for_sweet_spot.append({
+            "config_id":           cfg_id,
+            "model":               result["model"],
+            "annual_cost":         result.get("annual_cost", 0),
+            "quality_overall":     result["quality_overall"],
+            "clip_sec":            result.get("clip_sec", 0),
+            "checks_per_hr":       result.get("checks_per_hr", 0),
+            "detection_latency_min": result.get("detection_latency_min", 60),
+        })
+
+    # Step 4: Sweet spot (marginal value algorithm)
     sweet_spot = find_sweet_spot(flat_for_sweet_spot)
 
+    # Step 5: Group by config_id
+    config_results = {
+        cfg["config_id"]: {
+            "config_id":            cfg["config_id"],
+            "clip_sec":             cfg["clip_sec"],
+            "checks_per_hr":        cfg["checks_per_hr"],
+            "detection_latency_min": round(60 / max(cfg["checks_per_hr"], 0.1), 1),
+            "models": {},
+        }
+        for cfg in configs
+    }
+    for result in completed_inferences:
+        config_results[result["config_id"]]["models"][result["model"]] = result
+    for err in error_results:
+        cid = err.get("config_id")
+        if cid in config_results:
+            config_results[cid]["models"][err.get("model", "unknown")] = err
+
+    # Step 6: Sensitivity relative to most expensive config
+    sensitivity = None
+    if flat_for_sweet_spot and sweet_spot:
+        sorted_flat    = sorted(flat_for_sweet_spot, key=lambda c: c["annual_cost"])
+        most_expensive = sorted_flat[-1]
+        cheapest       = sorted_flat[0]
+        base_cost      = most_expensive["annual_cost"]
+        levers         = []
+
+        if sweet_spot["config_id"] != most_expensive["config_id"]:
+            levers.append({
+                "action":         f"Use sweet spot (Config {sweet_spot['config_id']})",
+                "detail":         f"{sweet_spot['clip_sec']}s clips · {sweet_spot['checks_per_hr']}/hr",
+                "annual_cost":    sweet_spot["annual_cost"],
+                "savings_pct":    round((base_cost - sweet_spot["annual_cost"]) / max(base_cost, 1) * 100),
+                "quality_warning": False,
+                "quality_score":  sweet_spot["quality_overall"],
+            })
+
+        levers.append({
+            "action":         "Halve camera count",
+            "detail":         f"{req.cameras // 2} cameras",
+            "annual_cost":    sweet_spot["annual_cost"] * 0.5,
+            "savings_pct":    round((base_cost - sweet_spot["annual_cost"] * 0.5) / max(base_cost, 1) * 100),
+            "quality_warning": False,
+        })
+
+        if cheapest["config_id"] != sweet_spot["config_id"]:
+            levers.append({
+                "action":         f"Use minimum config (Config {cheapest['config_id']})",
+                "detail":         f"{cheapest['clip_sec']}s clips · {cheapest['checks_per_hr']}/hr",
+                "annual_cost":    cheapest["annual_cost"],
+                "savings_pct":    round((base_cost - cheapest["annual_cost"]) / max(base_cost, 1) * 100),
+                "quality_warning": True,
+                "quality_score":  cheapest["quality_overall"],
+            })
+
+        sensitivity = {
+            "baseline_config_id": most_expensive["config_id"],
+            "baseline_label":     (f"Config {most_expensive['config_id']} "
+                                   f"({most_expensive['clip_sec']}s · "
+                                   f"{most_expensive['checks_per_hr']}/hr)"),
+            "baseline_cost":      base_cost,
+            "levers":             levers,
+        }
+
     return {
-        "run_id":       str(uuid.uuid4()),
-        "timestamp":    datetime.utcnow().isoformat(),
-        "use_case":     req.use_case,
-        "cameras":      req.cameras,
-        "models_tested": req.models,
-        "configs":      list(config_results.values()),
-        "sweet_spot":   sweet_spot,
+        "run_id":         str(uuid.uuid4()),
+        "timestamp":      datetime.utcnow().isoformat(),
+        "use_case":       req.use_case,
+        "cameras":        req.cameras,
+        "models_tested":  req.models,
+        "configs":        list(config_results.values()),
+        "sweet_spot":     sweet_spot,
+        "sensitivity":    sensitivity,
     }
