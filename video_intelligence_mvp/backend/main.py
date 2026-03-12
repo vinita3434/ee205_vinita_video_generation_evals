@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import os
+import shutil
 import tempfile
 import time
 import uuid
@@ -12,7 +13,7 @@ from typing import Optional
 import cv2
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -22,8 +23,8 @@ app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-CLIPS_DIR = Path(__file__).parents[2] / "video_analysis" / "data" / "test_clips"
+OPENROUTER_BASE    = "https://openrouter.ai/api/v1"
+CLIPS_DIR          = Path(__file__).parents[2] / "video_analysis" / "data" / "test_clips"
 
 MODEL_IDS = {
     "gpt4o":  "openai/gpt-4o",
@@ -36,18 +37,42 @@ PRICING = {
     "qwen":   {"input": 0.59 / 1e6, "output":  0.59 / 1e6},
 }
 
+# Clip name → filename mapping (handles alias differences)
+CLIP_FILE_MAP = {
+    "nba_highlight": "nba_highlight.mp4",
+    "nfl_play":      "nfl_highlight.mp4",   # actual file is nfl_highlight.mp4
+    "nfl_highlight": "nfl_highlight.mp4",
+    "action_sideways":   "action_attributes__am_i_standing_sideways.mp4",
+    "action_jump":       "action_detection__did_i_jump_a_moment.mp4",
+    "action_window":     "action_detection__do_i_open_the_window.mp4",
+    "object_holding":    "object_referencing__what_am_i_holding_in.mp4",
+    "object_have":       "object_referencing__what_do_i_have_in.mp4",
+}
+
+# Temp upload store: clip_id → Path
+_temp_clips: dict[str, Path] = {}
+
 RESULTS_FILE = Path(__file__).parents[1] / "data" / "results" / "benchmark_results.json"
 RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
-# ── Video processing ──────────────────────────────────────────────
+# ── Video helpers ─────────────────────────────────────────────────
 
-def extract_frames_as_b64(clip_path: str, fps: int = 1) -> list[str]:
+def extract_frames_as_b64(clip_path: str, fps: int = 1,
+                           max_duration_sec: int = None) -> list[str]:
     cap = cv2.VideoCapture(clip_path)
-    video_fps = cap.get(cv2.CAP_PROP_FPS) or 30
-    interval = max(1, int(video_fps / fps))
+    video_fps = cap.get(cv2.CAP_PROP_FPS) or 25
+    interval  = max(1, int(video_fps / fps))
+
+    hard_cap = 20
+    if max_duration_sec:
+        duration_cap = int(max_duration_sec * fps)
+        max_frames   = min(hard_cap, duration_cap)
+    else:
+        max_frames = hard_cap
+
     frames, frame_idx = [], 0
-    while True:
+    while len(frames) < max_frames:
         ret, frame = cap.read()
         if not ret:
             break
@@ -56,56 +81,99 @@ def extract_frames_as_b64(clip_path: str, fps: int = 1) -> list[str]:
             frames.append(base64.b64encode(buf).decode("utf-8"))
         frame_idx += 1
     cap.release()
-    return frames[:20]  # cap at 20 frames
+    return frames
 
 
-def encode_video_as_b64(clip_path: str) -> tuple[str, str]:
-    with open(clip_path, "rb") as f:
-        data = base64.b64encode(f.read()).decode("utf-8")
+def get_video_for_gemini(clip_path: str, duration_sec: int) -> tuple[str, str]:
     mime = "video/quicktime" if clip_path.endswith(".mov") else "video/mp4"
+    source = clip_path
+
+    if shutil.which("ffmpeg"):
+        out_path = f"/tmp/gruve_trim_{duration_sec}s_{Path(clip_path).name}"
+        ret = os.system(
+            f"ffmpeg -i '{clip_path}' -t {duration_sec} -c copy "
+            f"'{out_path}' -y -loglevel quiet 2>/dev/null"
+        )
+        if ret == 0 and Path(out_path).exists():
+            source = out_path
+
+    with open(source, "rb") as f:
+        data = base64.b64encode(f.read()).decode("utf-8")
     return data, mime
 
 
-def build_messages(model: str, prompt: str, clip_path: str) -> list[dict]:
+def resolve_clip_path(clip_path_or_name: str) -> str:
+    """
+    Resolve clip_path from request to an absolute filesystem path.
+    Accepts:
+      - TEMP:{clip_id}    → look up in _temp_clips
+      - a known clip name → look up in CLIP_FILE_MAP → CLIPS_DIR
+      - otherwise assume it's already a filesystem path
+    """
+    if clip_path_or_name.startswith("TEMP:"):
+        clip_id = clip_path_or_name[5:]
+        p = _temp_clips.get(clip_id)
+        if p is None:
+            raise FileNotFoundError(f"Temp clip {clip_id} not found (may have expired)")
+        return str(p)
+
+    if clip_path_or_name in CLIP_FILE_MAP:
+        return str(CLIPS_DIR / CLIP_FILE_MAP[clip_path_or_name])
+
+    # Try as bare filename
+    candidate = CLIPS_DIR / clip_path_or_name
+    if candidate.exists():
+        return str(candidate)
+
+    raise FileNotFoundError(f"Clip not found: {clip_path_or_name}")
+
+
+def build_messages(model: str, prompt: str, clip_path: str,
+                   duration_sec: int) -> tuple[list[dict], int]:
+    """Returns (messages, video_token_count)."""
     if model == "gemini":
-        video_b64, mime = encode_video_as_b64(clip_path)
-        return [{"role": "user", "content": [
-            {"type": "text", "text": prompt},
+        video_b64, mime = get_video_for_gemini(clip_path, duration_sec)
+        video_tokens    = int(duration_sec * 258)
+        messages        = [{"role": "user", "content": [
+            {"type": "text",      "text": prompt},
             {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{video_b64}"}},
         ]}]
     else:
-        frames = extract_frames_as_b64(clip_path, fps=1)
-        content = [{"type": "text", "text": prompt}]
+        frames          = extract_frames_as_b64(clip_path, fps=1,
+                                                max_duration_sec=duration_sec)
+        video_tokens    = len(frames) * 255
+        content         = [{"type": "text", "text": prompt}]
         for fb64 in frames:
-            content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{fb64}"}})
-        return [{"role": "user", "content": content}]
+            content.append({"type": "image_url",
+                             "image_url": {"url": f"data:image/jpeg;base64,{fb64}"}})
+        messages = [{"role": "user", "content": content}]
+
+    return messages, video_tokens
 
 
 # ── Request models ────────────────────────────────────────────────
 
 class ScenarioRequest(BaseModel):
-    id: str
-    name: str
-    model: str
-    clip_length_sec: float
-    daily_volume: int
-    concurrency: int
-    assembled_prompt: str
-    use_case_params: dict = {}
-    clip_name: Optional[str] = None       # local filename, e.g. "nba_highlight.mp4"
-    clip_data_b64: Optional[str] = None   # base64-encoded uploaded file
-    clip_mime_type: Optional[str] = None  # mime type for uploaded file
+    id:                   str
+    name:                 str
+    model:                str            # gpt4o | gemini | qwen
+    clip_path:            str            # clip name OR "TEMP:{clip_id}"
+    analyze_duration_sec: int            # seconds to analyze
+    assembled_prompt:     str
+    daily_volume:         int
+    use_case_params:      dict = {}
+    concurrency:          int = 1
 
 
 class BenchmarkRequest(BaseModel):
     consumer_type: str
-    use_case: str
-    scenarios: list[ScenarioRequest]
+    use_case:      str
+    scenarios:     list[ScenarioRequest]
 
 
 # ── Benchmark runner ──────────────────────────────────────────────
 
-async def run_scenario_benchmark(scenario: ScenarioRequest) -> dict:
+async def run_one_scenario(scenario: ScenarioRequest) -> dict:
     base = {"id": scenario.id, "name": scenario.name, "model": scenario.model}
 
     if scenario.model not in MODEL_IDS:
@@ -113,41 +181,31 @@ async def run_scenario_benchmark(scenario: ScenarioRequest) -> dict:
     if not OPENROUTER_API_KEY:
         return {**base, "status": "error", "error": "OPENROUTER_API_KEY not configured"}
 
-    # Resolve clip to a file path
-    tmp_file = None
-    clip_label = "unknown"
     try:
-        if scenario.clip_name:
-            clip_path = str(CLIPS_DIR / scenario.clip_name)
-            clip_label = scenario.clip_name
-        elif scenario.clip_data_b64:
-            ext = ".mov" if scenario.clip_mime_type == "video/quicktime" else ".mp4"
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
-            tmp.write(base64.b64decode(scenario.clip_data_b64))
-            tmp.close()
-            clip_path = tmp.name
-            tmp_file = tmp.name
-            clip_label = f"uploaded{ext}"
-        else:
-            return {**base, "status": "error", "error": "No clip provided"}
-
-        messages = build_messages(scenario.model, scenario.assembled_prompt, clip_path)
-    except Exception as e:
-        if tmp_file:
-            try: os.unlink(tmp_file)
-            except Exception: pass
+        clip_path = resolve_clip_path(scenario.clip_path)
+    except FileNotFoundError as e:
         return {**base, "status": "error", "error": f"Clip processing failed: {e}"}
 
-    model_id = MODEL_IDS[scenario.model]
-    p = PRICING[scenario.model]
+    try:
+        messages, video_tokens = build_messages(
+            scenario.model, scenario.assembled_prompt,
+            clip_path, scenario.analyze_duration_sec
+        )
+    except Exception as e:
+        return {**base, "status": "error", "error": f"Clip processing failed: {e}"}
 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://gruve.ai",
-        "X-Title": "Gruve Atlas",
+        "Content-Type":  "application/json",
+        "HTTP-Referer":  "https://gruve.ai",
+        "X-Title":       "Gruve Atlas",
     }
-    payload = {"model": model_id, "messages": messages, "max_tokens": 500, "stream": True}
+    payload = {
+        "model":      MODEL_IDS[scenario.model],
+        "messages":   messages,
+        "max_tokens": 500,
+        "stream":     True,
+    }
 
     t_start = time.time()
     t_first_token = None
@@ -171,72 +229,62 @@ async def run_scenario_benchmark(scenario: ScenarioRequest) -> dict:
                     if chunk == "[DONE]":
                         break
                     try:
-                        data = json.loads(chunk)
+                        data  = json.loads(chunk)
                         delta = data["choices"][0]["delta"].get("content", "")
                         if delta:
                             if t_first_token is None:
                                 t_first_token = time.time()
-                            full_text += delta
+                            full_text          += delta
                             output_token_count += 1
                     except Exception:
                         continue
     except Exception as e:
         return {**base, "status": "error", "error": str(e)}
-    finally:
-        if tmp_file:
-            try: os.unlink(tmp_file)
-            except Exception: pass
 
-    t_end = time.time()
-    ttft_ms = round((t_first_token - t_start) * 1000) if t_first_token else None
-    total_sec = max(t_end - t_start, 0.001)
-    tps = round(output_token_count / total_sec, 1)
-
-    clip_sec = scenario.clip_length_sec
-    if scenario.model == "gemini":
-        video_tokens = int(clip_sec * 258)
-    else:
-        n_frames = min(int(clip_sec), 20)
-        video_tokens = n_frames * 255
+    t_end      = time.time()
+    ttft_ms    = round((t_first_token - t_start) * 1000) if t_first_token else None
+    elapsed    = max(t_end - t_start, 0.001)
+    tps        = round(output_token_count / elapsed, 1)
 
     prompt_tokens = int(len(scenario.assembled_prompt.split()) * 1.3)
-    input_tokens = video_tokens + prompt_tokens
+    input_tokens  = int(video_tokens + prompt_tokens)
     output_tokens = output_token_count
+    total_tokens  = max(input_tokens + output_tokens, 1)
 
-    video_cost  = video_tokens  * p["input"]
-    prompt_cost = prompt_tokens * p["input"]
-    output_cost = output_tokens * p["output"]
-    cost_per_query = video_cost + prompt_cost + output_cost
-
-    daily = scenario.daily_volume
-    qacs = round(min(100, tps / (cost_per_query * 10)), 1) if cost_per_query > 0 else 0
-    total_toks = max(input_tokens + output_tokens, 1)
+    p            = PRICING[scenario.model]
+    video_cost   = video_tokens  * p["input"]
+    prompt_cost  = prompt_tokens * p["input"]
+    output_cost  = output_tokens * p["output"]
+    cost_per_q   = video_cost + prompt_cost + output_cost
+    daily        = scenario.daily_volume
+    qacs         = round(min(100, tps / (cost_per_q * 10)), 1) if cost_per_q > 0 else 0
 
     return {
         **base,
-        "ttft_ms": ttft_ms,
-        "tps": tps,
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "cost_per_query": round(cost_per_query, 6),
-        "daily_cost":     round(cost_per_query * daily, 2),
-        "monthly_cost":   round(cost_per_query * daily * 30, 2),
-        "annual_cost":    round(cost_per_query * daily * 365, 2),
-        "qacs": qacs,
+        "clip_used":            Path(clip_path).name,
+        "analyze_duration_sec": scenario.analyze_duration_sec,
+        "ttft_ms":              ttft_ms,
+        "tps":                  tps,
+        "input_tokens":         input_tokens,
+        "output_tokens":        output_tokens,
+        "cost_per_query":       round(cost_per_q,  6),
+        "daily_cost":           round(cost_per_q * daily,       2),
+        "monthly_cost":         round(cost_per_q * daily * 30,  2),
+        "annual_cost":          round(cost_per_q * daily * 365, 2),
+        "qacs":                 qacs,
         "cost_breakdown": {
-            "video_tokens":  video_tokens,
-            "video_cost":    round(video_cost, 6),
-            "video_pct":     round(video_tokens / max(input_tokens, 1) * 100, 1),
-            "prompt_tokens": prompt_tokens,
-            "prompt_cost":   round(prompt_cost, 6),
+            "video_tokens":  int(video_tokens),
+            "video_cost":    round(video_cost,   6),
+            "video_pct":     round(video_tokens  / max(input_tokens, 1) * 100, 1),
+            "prompt_tokens": int(prompt_tokens),
+            "prompt_cost":   round(prompt_cost,  6),
             "prompt_pct":    round(prompt_tokens / max(input_tokens, 1) * 100, 1),
             "output_tokens": output_tokens,
-            "output_cost":   round(output_cost, 6),
-            "output_pct":    round(output_tokens / total_toks * 100, 1),
+            "output_cost":   round(output_cost,  6),
+            "output_pct":    round(output_tokens / total_tokens * 100, 1),
         },
-        "response_text": full_text[:500],
-        "clip_used": clip_label,
-        "status": "complete",
+        "response_text": full_text[:600],
+        "status":        "complete",
     }
 
 
@@ -247,26 +295,76 @@ async def health():
     return {"status": "ok", "port": 8002}
 
 
+@app.post("/upload-clip")
+async def upload_clip(file: UploadFile = File(...)):
+    """Accept a video file upload, save to temp, return clip_id."""
+    ext    = Path(file.filename).suffix.lower() or ".mp4"
+    tmp    = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+    data   = await file.read()
+    tmp.write(data)
+    tmp.close()
+
+    clip_id = str(uuid.uuid4())
+    _temp_clips[clip_id] = Path(tmp.name)
+
+    # Try to get duration via ffprobe
+    duration = None
+    if shutil.which("ffprobe"):
+        import subprocess
+        try:
+            out = subprocess.check_output(
+                ["ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+                 "-of", "csv=p=0", tmp.name],
+                stderr=subprocess.DEVNULL
+            )
+            duration = float(out.decode().strip())
+        except Exception:
+            pass
+
+    return {
+        "clip_id":  clip_id,
+        "clip_path": f"TEMP:{clip_id}",
+        "filename": file.filename,
+        "size_bytes": len(data),
+        "duration_sec": duration,
+    }
+
+
+@app.get("/clip-exists/{clip_name}")
+async def clip_exists(clip_name: str):
+    """Check if a sample clip exists on the server."""
+    try:
+        resolve_clip_path(clip_name)
+        return {"exists": True}
+    except FileNotFoundError:
+        return {"exists": False}
+
+
 @app.post("/benchmark")
 async def benchmark(req: BenchmarkRequest):
     results = await asyncio.gather(
-        *[run_scenario_benchmark(s) for s in req.scenarios],
+        *[run_one_scenario(s) for s in req.scenarios],
         return_exceptions=True,
     )
     cleaned = []
     for i, r in enumerate(results):
         if isinstance(r, Exception):
-            cleaned.append({"id": req.scenarios[i].id, "name": req.scenarios[i].name,
-                            "model": req.scenarios[i].model, "status": "error", "error": str(r)})
+            cleaned.append({
+                "id":     req.scenarios[i].id,
+                "name":   req.scenarios[i].name,
+                "model":  req.scenarios[i].model,
+                "status": "error",
+                "error":  str(r),
+            })
         else:
             cleaned.append(r)
 
     run = {
-        "run_id": str(uuid.uuid4()),
-        "timestamp": datetime.utcnow().isoformat(),
+        "run_id":        str(uuid.uuid4()),
+        "timestamp":     datetime.utcnow().isoformat(),
         "consumer_type": req.consumer_type,
-        "use_case": req.use_case,
-        "scenarios": cleaned,
+        "use_case":      req.use_case,
+        "scenarios":     cleaned,
     }
     existing = []
     if RESULTS_FILE.exists():

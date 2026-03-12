@@ -70,5 +70,155 @@
         "response_preview": "Okay, I need more information to do this! I am a text-based model and cannot see or interpret a security camera feed.\n\nTo analyze the feed, I would need you to describe what you see in the camera feed"
       }
     ]
+  },
+  {
+    "run_id": "7b156076-e5c5-46d0-84fb-56a61b85ea3a",
+    "timestamp": "2026-03-12T06:43:23.638996",
+    "consumer_type": "sports_media",
+    "use_case": "archive_search",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "gemini",
+        "status": "error",
+        "error": "Clip processing failed: [Errno 2] No such file or directory: '/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_analysis/data/test_clips/nba_highlight.mp4'"
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "status": "error",
+        "error": "Clip processing failed: [Errno 2] No such file or directory: '/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_analysis/data/test_clips/nba_highlight.mp4'"
+      }
+    ]
+  },
+  {
+    "run_id": "66552e8c-e3f8-476f-8656-a3af2127793b",
+    "timestamp": "2026-03-12T07:15:21.598213",
+    "consumer_type": "sports_media",
+    "use_case": "archive_search",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "gpt4o",
+        "ttft_ms": 7290,
+        "tps": 20.2,
+        "input_tokens": 5148,
+        "output_tokens": 207,
+        "cost_per_query": 0.01494,
+        "daily_cost": 14.94,
+        "monthly_cost": 448.2,
+        "annual_cost": 5453.1,
+        "qacs": 100,
+        "cost_breakdown": {
+          "video_tokens": 5100,
+          "video_cost": 0.01275,
+          "video_pct": 99.1,
+          "prompt_tokens": 48,
+          "prompt_cost": 0.00012,
+          "prompt_pct": 0.9,
+          "output_tokens": 207,
+          "output_cost": 0.00207,
+          "output_pct": 3.9
+        },
+        "response_text": "I'm unable to watch videos, but I can analyze the images you provided.\n\n**Event Summary for Archive Search Indexing:**\n\n**Teams:**\n- New York Knicks (NYK)\n- Los Angeles Lakers (LAL)\n\n**Game Context:**\n- This appears to be a game recap between the New York Knicks and Los Angeles Lakers.\n- Knicks Season Record: 41-23\n- Lakers Season Record: 38-25\n\n**Players Highlighted:**\n- Luka Don\u010di\u0107 (shown celebrating and in a jersey)\n- A group of Lakers players, including a prominent figure not identified\n\n**A",
+        "clip_used": "nba_highlight.mp4",
+        "status": "complete"
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "ttft_ms": 27979,
+        "tps": 0.3,
+        "input_tokens": 7788,
+        "output_tokens": 9,
+        "cost_per_query": 0.000782,
+        "daily_cost": 0.78,
+        "monthly_cost": 23.47,
+        "annual_cost": 285.58,
+        "qacs": 38.3,
+        "cost_breakdown": {
+          "video_tokens": 7740,
+          "video_cost": 0.000774,
+          "video_pct": 99.4,
+          "prompt_tokens": 48,
+          "prompt_cost": 5e-06,
+          "prompt_pct": 0.6,
+          "output_tokens": 9,
+          "output_cost": 4e-06,
+          "output_pct": 0.1
+        },
+        "response_text": "Okay, here is a structured summary of the basketball clip, suitable for archive search indexing:\n\n**General Information**\n\n*   **Type:** Basketball Game Recap\n*   **Teams:** New York Knicks vs. Los Angeles Lakers\n*   **Location:** Crypto.com Arena of Los Angeles, California\n\n**Key Players (Mentioned)**\n\n*   Luka Don\u010di\u0107\n*   Austin Reaves\n*   Marcus Snart\n*   Rui Hachimura\n*   Deandre Ayton\n*   Jalen Brunson\n*   Josh Hart\n*   Mikal Bridges\n*   OG Anunoby\n*   Karl-Anthony Towns\n*   LeBron James (no",
+        "clip_used": "nba_highlight.mp4",
+        "status": "complete"
+      }
+    ]
+  },
+  {
+    "run_id": "31c6bab7-8350-4e72-b4d5-13b87126c84c",
+    "timestamp": "2026-03-12T07:43:44.522223",
+    "consumer_type": "sports_media",
+    "use_case": "archive_search",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "qwen",
+        "ttft_ms": 26461,
+        "tps": 6.2,
+        "input_tokens": 3873,
+        "output_tokens": 262,
+        "cost_per_query": 0.00244,
+        "daily_cost": 2.44,
+        "monthly_cost": 73.26,
+        "annual_cost": 891.36,
+        "qacs": 100,
+        "cost_breakdown": {
+          "video_tokens": 3825,
+          "video_cost": 0.002257,
+          "video_pct": 98.8,
+          "prompt_tokens": 48,
+          "prompt_cost": 2.8e-05,
+          "prompt_pct": 1.2,
+          "output_tokens": 262,
+          "output_cost": 0.000155,
+          "output_pct": 6.3
+        },
+        "response_text": "**Archive Index Summary:**\n\n**Event:** AFC Championship Game  \n**Teams:** New England Patriots vs. Denver Broncos  \n**Score:** 0-0  \n**Quarter:** 1st  \n**Time Remaining:** 11:52  \n**Down and Distance:** 2nd and 10  \n**Field Position:** 40-yard line  \n\n**Key Players Involved:**  \n- Denver Broncos player #12 (receiver)  \n- New England Patriots player #51 (defender)  \n\n**Actions:**  \n- Broncos player #12 catches a pass near the sideline.  \n- He is tackled by Patriots player #51.  \n- The play result",
+        "clip_used": "nfl_highlight.mp4",
+        "status": "complete"
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "ttft_ms": 65052,
+        "tps": 0.1,
+        "input_tokens": 3918,
+        "output_tokens": 9,
+        "cost_per_query": 0.000395,
+        "daily_cost": 0.2,
+        "monthly_cost": 5.93,
+        "annual_cost": 72.16,
+        "qacs": 25.3,
+        "cost_breakdown": {
+          "video_tokens": 3870,
+          "video_cost": 0.000387,
+          "video_pct": 98.8,
+          "prompt_tokens": 48,
+          "prompt_cost": 5e-06,
+          "prompt_pct": 1.2,
+          "output_tokens": 9,
+          "output_cost": 4e-06,
+          "output_pct": 0.2
+        },
+        "response_text": "Here is a structured summary of the sports archive footage, for search indexing:\n\n**Teams:** New England Patriots vs. Denver Broncos\n\n**Sport:** American Football (NFL)\n\n**Game Details:** AFC Championship. First Quarter.\n\n**Key Event Summary:**\n\n*   **1st and 10:** Broncos quarterback passes down the field and the play results in an incomplete pass to Harvey.\n*   **3rd and 10:** Broncos quarterback goes deep to Mims Jr., who is tackled at the 10-yard line.\n*   **2nd and Goal:** Broncos make a ha",
+        "clip_used": "nfl_highlight.mp4",
+        "status": "complete"
+      }
+    ]
   }
 ]

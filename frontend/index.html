@@ -765,6 +765,31 @@
   .vi-gruve-clean td:last-child{font-weight:600;color:var(--text)}
   .vi-gruve-note{font-size:.72rem;color:var(--text-muted);margin-top:.65rem;font-style:italic}
   .vi-scale-pills{display:flex;gap:.4rem;margin-bottom:.5rem}
+  /* tooltip */
+  .tip-icon{cursor:help;color:#9CA3AF;font-size:.72rem;margin-left:3px;position:relative;display:inline-block}
+  .tip-icon:hover::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#1F2937;color:#F9FAFB;padding:5px 9px;border-radius:6px;font-size:.72rem;white-space:normal;max-width:260px;z-index:200;border:1px solid #374151;line-height:1.4;min-width:120px}
+  /* clip tabs */
+  .vi-ctabs{display:flex;gap:0;margin-bottom:.65rem;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .vi-ctab{flex:1;padding:.4rem .5rem;border:none;background:var(--surface);cursor:pointer;font-size:.72rem;font-weight:600;color:var(--text-muted);font-family:inherit;transition:all .15s;border-right:1px solid var(--border)}
+  .vi-ctab:last-child{border-right:none}
+  .vi-ctab.active{background:var(--accent);color:#fff}
+  .vi-ctab.disabled{opacity:.45;cursor:not-allowed}
+  .vi-ctab-panel{display:none}.vi-ctab-panel.active{display:block}
+  .vi-dropzone{border:2px dashed var(--border);border-radius:8px;padding:1.25rem;text-align:center;cursor:pointer;font-size:.8rem;color:var(--text-muted);transition:all .15s}
+  .vi-dropzone:hover{border-color:var(--accent-soft);color:var(--accent)}
+  .vi-coming-soon{border:1.5px solid var(--border);border-radius:8px;padding:1rem;text-align:center;font-size:.8rem;color:var(--text-muted);background:var(--surface-elevated)}
+  /* duration slider */
+  .vi-dur-info{font-size:.72rem;color:var(--text-muted);margin:.3rem 0}
+  .vi-dur-disabled{font-size:.78rem;color:#d97706;font-style:italic;padding:.5rem;background:#fffbeb;border-radius:6px;border:1px solid #fde68a}
+  /* concurrency */
+  .vi-conc-display{background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.65rem .9rem;font-size:.82rem;margin-bottom:.4rem}
+  .vi-conc-val{font-size:1.1rem;font-weight:700;color:var(--accent)}
+  .vi-conc-note{font-size:.7rem;color:var(--text-muted);margin-top:.2rem}
+  .vi-override-btn{font-size:.7rem;color:var(--text-muted);background:none;border:1px solid var(--border);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;margin-top:.35rem}
+  .vi-override-btn:hover{border-color:var(--accent);color:var(--accent)}
+  /* validation */
+  .vi-val-msg{font-size:.75rem;color:#dc2626;margin-top:.5rem;background:#fef2f2;padding:.5rem .75rem;border-radius:6px;border:1px solid #fca5a5;display:none}
+  .vi-val-msg.show{display:block}
   @media print{.nav-bar,#tab-gen{display:none!important}#tab-vi{display:block!important}.vi-step:not(#vi-s5){display:none!important}#vi-s5{display:block!important}.vi-col-body{display:block!important}}
   </style>
 </head>
@@ -1651,24 +1676,43 @@
 
   // ════════════════════════════════════════ VIDEO INTELLIGENCE ════
   const VI = (() => {
+    const VI_API = 'http://localhost:8002';
+
     const st = {
       consumer: null, consumerLbl: null,
       useCase: null, useCaseLbl: null,
       scenarios: [
-        { id:'s1', name:'GPT-4o',          model:'gpt4o',  clipSec:30, conc:10, clipName:null, clipData:null, clipMime:null, clipLabel:null },
-        { id:'s2', name:'Gemini 2.0 Flash', model:'gemini', clipSec:30, conc:10, clipName:null, clipData:null, clipMime:null, clipLabel:null },
+        { id:'s1', name:'GPT-4o',          model:'gpt4o',  analyzeSeconds:30, conc:1, concOverride:null, clipPath:null, clipLabel:null, clipDuration:null, activeTab:'sample' },
+        { id:'s2', name:'Gemini 2.0 Flash', model:'gemini', analyzeSeconds:30, conc:1, concOverride:null, clipPath:null, clipLabel:null, clipDuration:null, activeTab:'sample' },
       ],
       results: null, growthRate: 0.20, chartInst: null, chartScale: 'linear',
     };
 
-    const CONSUMERS = [
-      { id:'sports_media', lbl:'Sports & Media',          emoji:'🏆' },
-      { id:'safety_ops',   lbl:'Safety & Operations',     emoji:'🔒' },
-      { id:'retail',       lbl:'Retail Analytics',        emoji:'🛒' },
-      { id:'media',        lbl:'Media & Content Platforms',emoji:'🎬' },
-      { id:'robotics',     lbl:'Robotics & Embodied AI',  emoji:'🤝', badge:'Design Partner' },
-    ];
+    // ── Tooltip helper ────────────────────────────────────────────
+    function tip(text){ return `<span class="tip-icon" data-tip="${text}">ⓘ</span>`; }
 
+    const TIPS = {
+      analyze_duration: "How many seconds of the clip to send per query. Shorter = cheaper. Drag to compare durations across scenarios.",
+      frames_to_model:  "GPT-4o and Qwen receive 1 frame/sec as JPEG images. Gemini receives the full video bytes natively.",
+      input_tokens_est: "Estimated tokens based on duration × 258 tokens/sec. Actual count shown after run.",
+      concurrency:      "Simultaneous queries at peak load. Auto-derived from your volume parameters.",
+      ttft:   "Time to First Token — how fast the model starts responding after receiving your video.",
+      tps:    "Tokens per second — how fast the full response streams out.",
+      qacs:   "Quality-Adjusted Cost Score (0–100). Higher = better value. Formula: min(100, TPS ÷ (cost/query × 10)).",
+      cost_per_query: "Total API cost per video inference: (input tokens × input rate) + (output tokens × output rate).",
+      video_tokens:   "Tokens consumed by the video itself. Dominates cost for clips longer than 10s.",
+      prompt_tokens:  "Tokens in your text prompt. Small fraction of total for video workloads.",
+      output_tokens:  "Tokens in the model's response.",
+    };
+
+    // ── Consumers / use-cases ─────────────────────────────────────
+    const CONSUMERS = [
+      { id:'sports_media', lbl:'Sports & Media',           emoji:'🏆' },
+      { id:'safety_ops',   lbl:'Safety & Operations',      emoji:'🔒' },
+      { id:'retail',       lbl:'Retail Analytics',         emoji:'🛒' },
+      { id:'media',        lbl:'Media & Content Platforms',emoji:'🎬' },
+      { id:'robotics',     lbl:'Robotics & Embodied AI',   emoji:'🤝', badge:'Design Partner' },
+    ];
     const USE_CASES = {
       sports_media:['Archive search & retrieval','Live event analysis','Highlights generation'],
       safety_ops:  ['Anomaly detection','Incident investigation','Compliance monitoring'],
@@ -1676,7 +1720,6 @@
       media:       ['Content moderation','Asset search & tagging','Compliance & rights'],
       robotics:    ['Demonstration processing','Instruction grounding','Quality validation'],
     };
-
     const UC_KEY_MAP = {
       'Archive search & retrieval':'archive_search','Live event analysis':'live_event',
       'Highlights generation':'highlights','Anomaly detection':'anomaly_detection',
@@ -1687,87 +1730,153 @@
       'Demonstration processing':'demonstration','Instruction grounding':'instruction_grounding',
       'Quality validation':'quality_validation',
     };
-
     function ucKey(){ return st.consumer+'__'+st.useCase; }
 
-    const BLURBS = {
-      sports_media__archive_search:`Sports archives process thousands of clips daily — game footage, press conferences, training sessions. The primary cost driver is sequence length: a 90-minute game costs ~170–190× more to process than a 30-second highlight. Typical archive queries run $0.01–$0.04 each — most teams don't know their per-clip cost until reconciliation. We'll show you exactly what your archive workload costs at scale.`,
-      sports_media__live_event:`Live analysis demands low TTFT — under 1 second in production environments. Concurrency spikes are brutal: 50,000 simultaneous queries during a championship vs 200 on a Tuesday. A 10× spike in concurrency can increase cost 3× during peak hours. We'll show you what your infrastructure needs to handle peak load without overpaying for idle capacity.`,
-      sports_media__highlights:`A standard 90-minute game yields 200–500 highlight candidates, each needing to be processed, ranked, and packaged within minutes of the final whistle. At ~$0.03 per query, that's $6–15 per game — compounding fast across a full season. We'll show you your monthly cost at your clip volume and what concurrency you actually need.`,
-      safety_ops__anomaly_detection:`Anomaly detection runs continuously — every camera, every shift, every day. A 500-camera facility running 30-second clip checks every minute generates 720,000 queries per day. At $0.005 per query, that's ~$3,600/day before optimization. Most operators have no idea what that costs to run on cloud AI. We'll show you.`,
-      safety_ops__incident_investigation:`Incident investigations process longer clips — 5 to 30 minutes — and need detailed, accurate outputs. A detailed 20-minute clip may cost $1.50 to analyze versus $0.04 for a short anomaly check. Sequence length drives cost here more than anywhere else. We'll show you your cost per investigation at your actual clip lengths.`,
-      safety_ops__compliance_monitoring:`Compliance workloads are predictable and high-volume. If each site runs 200 cameras at 1 clip per minute, monthly volume exceeds 8 million queries. That predictability is an advantage — you can model costs exactly. We'll show you your monthly spend across your full camera network and where the biggest optimization opportunities are.`,
-      retail__shelf_analytics:`Shelf analytics run on a schedule across every aisle, every store. At 50 stores with 20 aisles each, that's 96,000 queries per day — even before expansion. At $0.01 per query, that's ~$1K/day. Cost per query is everything at this volume. We'll show you what your network costs today and what it costs when you scale to 500 stores.`,
-      retail__customer_behavior:`Customer behavior analysis processes variable-length clips — a browsing session might be 45 seconds or 8 minutes. That variability affects token counts by more than 15× and makes cost unpredictable. Sub-2s response time is needed to adapt offers in real time. We'll show you cost and latency across your actual session length distribution.`,
-      retail__queue_traffic:`Queue analysis is time-critical — in a 200-store chain, a 3-minute detection delay can equal 600 lost sales per day. TTFT is your primary performance metric. Cost compounds across hundreds of entry points. We'll show you the tradeoff between latency and cost at your store footprint.`,
-      media__content_moderation:`Large platforms process 1–3 million videos daily. Maintaining sub-30-second moderation at that volume means sustaining 3,000+ concurrent AI threads. A backlog isn't a UX problem — it's a liability. We'll show you what it costs to maintain your moderation SLA at your upload volume without over-provisioning.`,
-      media__asset_tagging:`A 10-million asset library with average 2-minute clips represents ~40+ years of content. One-time processing at $0.02 per minute approaches $400K in initial cost — then ongoing for new ingestion. We'll show you your total processing cost and what monthly ingestion spend looks like as your library grows.`,
-      media__compliance_rights:`Rights compliance requires processing full-length content — feature films, full episodes, long-form interviews. One 2-hour film costs as much as 240 30-second clips to process. Studios re-checking 500 titles quarterly means 1,000+ hours of runtime compliance per cycle. We'll show you your cost per title and total quarterly compliance spend.`,
-      robotics__demonstration:`Robot training starts with human demonstrations — someone shows the robot how to do a task, on video. Each 10-minute demonstration clip may cost $2–3 to process into structured action sequences. At 5,000 demonstrations, that's ~$10K just to build your dataset — before training begins. We'll show you what your demonstration pipeline costs at your dataset scale.`,
-      robotics__instruction_grounding:`Grounding video demonstrations to text manuals requires reasoning across both modalities simultaneously — matching on-screen actions to written instructions. These workloads often exceed 2× tokens per input minute compared to standard vision tasks. We'll show you cost and latency benchmarks for your specific manual and video combination.`,
-      robotics__quality_validation:`Before a demonstration enters your training pipeline, it needs validation — was the action performed correctly? Was the manual followed? Validating 100K demonstrations monthly at $0.20 each is $20K in overhead alone. We'll show you what a validation pipeline costs at your dataset scale and where the latency bottlenecks are.`,
+    // ── Clip options ──────────────────────────────────────────────
+    const CLIP_OPTIONS = {
+      sports_media__archive_search: ['nba_highlight','nfl_play'],
+      sports_media__live_event:     ['nba_highlight','nfl_play'],
+      sports_media__highlights:     ['nba_highlight','nfl_play'],
+      media__content_moderation:    ['nba_highlight','nfl_play'],
+      media__asset_tagging:         ['nba_highlight','nfl_play'],
+      media__compliance_rights:     ['nba_highlight','nfl_play'],
+    };
+    const CLIP_META = {
+      'nba_highlight': { label:'🏀 NBA Highlight', duration:30, name:'nba_highlight.mp4' },
+      'nfl_play':      { label:'🏈 NFL Play',       duration:15, name:'nfl_highlight.mp4' },
+    };
+    // Clip range minimums per use case
+    const CLIP_RANGES = {
+      sports_media__archive_search:        { min:30 },
+      safety_ops__incident_investigation:  { min:30 },
+      safety_ops__compliance_monitoring:   { min:30 },
+      media__asset_tagging:                { min:30 },
+      media__compliance_rights:            { min:30 },
+      robotics__demonstration:             { min:30 },
+      robotics__instruction_grounding:     { min:30 },
+      robotics__quality_validation:        { min:30 },
+    };
+    function clipMin(){ return (CLIP_RANGES[ucKey()]||{}).min || 5; }
+
+    // ── PROMPTS as functions ──────────────────────────────────────
+    const PROMPTS = {
+      sports_media__archive_search: (p) =>
+        `You are analyzing sports archive footage for a library processing ${p.clips_per_day||1000} clips/day. `+
+        `Identify the key events, players, and actions visible in this ${p.analyze_duration||30}s clip. `+
+        `Extract any scoreboard info, timestamps, or game context. `+
+        `Summarize in structured format suitable for archive search indexing.`,
+      sports_media__live_event: (p) =>
+        `You are analyzing live sports footage in real time (${p.events_per_week||5} events/week, ${p.queries_per_event||500} queries/event). `+
+        `Within 1 second, identify: (1) current game situation, (2) key players in frame, (3) any notable action. Output must be concise and structured.`,
+      sports_media__highlights: (p) =>
+        `You are evaluating this clip for highlight reel inclusion (${p.candidates_per_game||300} candidates per game). `+
+        `Score 1–10: excitement level, action quality, broadcast value. Identify primary event and suggest a 5-word caption.`,
+      safety_ops__anomaly_detection: (p) =>
+        `You are monitoring ${p.cameras||500} security cameras (${p.checks_per_hour||2} checks/camera/hr). `+
+        `Analyze this ${p.analyze_duration||30}s clip and report: (1) anomalous behavior detected? `+
+        `(2) if yes — describe anomaly, location, severity (low/medium/high). If none: output "CLEAR".`,
+      safety_ops__incident_investigation: (p) =>
+        `You are investigating a security incident. Analyze this ${p.analyze_duration||600}s clip in detail: `+
+        `(1) timeline of events, (2) individuals involved and their actions, `+
+        `(3) objects or vehicles relevant, (4) your assessment of what occurred.`,
+      safety_ops__compliance_monitoring: (p) =>
+        `You are performing compliance monitoring across ${p.sites||10} sites × ${p.cameras_per_site||200} cameras. `+
+        `Check this ${p.analyze_duration||30}s clip for: (1) PPE compliance, (2) restricted zone violations, `+
+        `(3) equipment usage compliance. Output structured pass/fail per category.`,
+      retail__shelf_analytics: (p) =>
+        `You are analyzing retail shelf footage across ${p.stores||50} stores × ${p.aisles_per_store||20} aisles. `+
+        `Identify: (1) out-of-stock locations, (2) misplaced products, (3) fill percentage. `+
+        `Output JSON: {out_of_stock: [], misplaced: [], fill_pct: number}`,
+      retail__customer_behavior: (p) =>
+        `You are analyzing customer behavior across ${p.daily_sessions||10000} daily sessions. `+
+        `Track: (1) dwell time at product displays, (2) products examined, (3) customer flow direction. `+
+        `Summarize behavioral patterns relevant to merchandising.`,
+      retail__queue_traffic: (p) =>
+        `You are monitoring queue flow across ${p.stores||200} stores × ${p.entry_points||3} entry points. `+
+        `Count: (1) people in queue, (2) estimated wait time, (3) traffic flow rate. `+
+        `Flag if queue > 5. Response must arrive within 2 seconds.`,
+      media__content_moderation: (p) =>
+        `You are moderating video for platform policy (${p.daily_uploads||100000} uploads/day, SLA: ${p.sla_minutes||30}min). `+
+        `Check for: (1) violence/graphic content, (2) hate speech, (3) adult content, (4) dangerous activities. `+
+        `Output: APPROVED or FLAGGED with specific violation.`,
+      media__asset_tagging: (p) =>
+        `You are tagging a media asset (library: ${(p.library_size||10000000).toLocaleString()}, +${(p.monthly_new||50000).toLocaleString()}/mo). `+
+        `Generate: (1) 10 descriptive tags, (2) primary category, (3) mood, (4) key subjects. Output JSON.`,
+      media__compliance_rights: (p) =>
+        `You are performing rights compliance on title ${p.titles_per_run||500} of ${(p.titles_per_run||500)*(p.runs_per_year||4)} annual reviews. `+
+        `Identify: (1) visible brand logos/trademarks, (2) recognizable music, `+
+        `(3) individuals requiring clearance, (4) third-party content requiring rights review.`,
+      robotics__demonstration: (p) =>
+        `You are processing robot training demonstration ${Math.round(p.dataset_size||5000)} (timeline: ${p.timeline_months||3} months). `+
+        `Extract: (1) step-by-step action sequence, (2) objects manipulated and state changes, `+
+        `(3) spatial relationships. Output structured action sequence in JSON.`,
+      robotics__instruction_grounding: (p) =>
+        `You are grounding this video to a ${p.manual_pages||50}-page instruction manual (${p.pairs_per_day||200} pairs/day). `+
+        `For each observed action: (1) matching manual step, (2) correct execution?, (3) deviations. Output grounding map.`,
+      robotics__quality_validation: (p) =>
+        `You are validating robot training demonstration (${(p.validations_per_month||100000).toLocaleString()}/month, ${p.rejection_rate||30}% rejection rate). `+
+        `Check: (1) task completed successfully? (2) correct sequence? (3) errors/deviations? `+
+        `Output: ACCEPTED or REJECTED with specific reason.`,
     };
 
-    const PROMPTS = {
-      sports_media__archive_search:`You are analyzing sports archive footage. Identify the key events, players, and actions visible in this clip. Extract any scoreboard information, timestamps, or game context. Summarize what occurred in a structured format suitable for archive search indexing.`,
-      sports_media__live_event:`You are analyzing live sports footage in real time. Within 1 second, identify: (1) current game situation, (2) key players in frame, (3) any notable action or event occurring. Output must be concise and structured for downstream processing.`,
-      sports_media__highlights:`You are evaluating this clip for highlight reel inclusion. Score it 1–10 on: excitement level, key action quality, broadcast value. Identify the primary event and suggest a 5-word highlight caption.`,
-      safety_ops__anomaly_detection:`You are monitoring this security camera feed for anomalies. Report: (1) whether any anomalous behavior is detected, (2) if yes — describe the anomaly, location in frame, and severity (low/medium/high). If no anomaly: output "CLEAR".`,
-      safety_ops__incident_investigation:`You are investigating a security incident. Analyze this footage and provide: (1) timeline of events visible, (2) individuals involved and their actions, (3) any objects or vehicles relevant, (4) your assessment of what occurred.`,
-      safety_ops__compliance_monitoring:`You are performing compliance monitoring. Check for: (1) PPE compliance, (2) restricted zone violations, (3) equipment usage compliance. Output a structured compliance report with pass/fail per category.`,
-      retail__shelf_analytics:`You are analyzing retail shelf footage. Identify: (1) out-of-stock locations, (2) misplaced products, (3) overall shelf fill percentage. Output in structured JSON: {out_of_stock: [], misplaced: [], fill_pct: number}`,
-      retail__customer_behavior:`You are analyzing customer behavior in retail footage. Track: (1) dwell time at product displays, (2) products examined, (3) customer flow direction. Summarize behavioral patterns relevant to merchandising optimization.`,
-      retail__queue_traffic:`You are monitoring queue and traffic flow at a retail entry point. Count: (1) number of people in queue, (2) estimated wait time, (3) traffic flow rate. Flag if queue length exceeds 5 people. Output must arrive within 2 seconds.`,
-      media__content_moderation:`You are moderating this video for platform policy compliance. Check for: (1) violence or graphic content, (2) hate speech, (3) adult content, (4) dangerous activities. Output: APPROVED or FLAGGED with specific policy violation if flagged.`,
-      media__asset_tagging:`You are tagging this media asset. Generate: (1) 10 descriptive tags, (2) primary category, (3) mood, (4) key subjects visible. Output structured JSON.`,
-      media__compliance_rights:`You are performing rights compliance analysis. Identify: (1) any visible brand logos or trademarks, (2) recognizable music, (3) identifiable individuals who may require clearance, (4) any third-party content requiring rights review.`,
-      robotics__demonstration:`You are processing a robot training demonstration. Extract: (1) step-by-step action sequence, (2) objects manipulated and their state changes, (3) spatial relationships and movements. Output as structured action sequence in JSON.`,
-      robotics__instruction_grounding:`You are grounding this video demonstration to a text manual. For each observed action: (1) identify the matching manual step number, (2) confirm if executed correctly, (3) flag any deviations. Output a grounding map.`,
-      robotics__quality_validation:`You are validating this robot training demonstration. Check: (1) was the task completed successfully? (2) were all required steps performed in the correct sequence? (3) were there any errors? Output: ACCEPTED or REJECTED with reason if rejected.`,
-    };
+    // ── Use-case parameters ───────────────────────────────────────
+    function safeVolume(v){ return Math.max(1,Math.round(v))||1; }
 
     const UC_PARAMS = {
-      sports_media__archive_search:{clip_default:90,fields:[{id:'clips_per_day',label:'Clips per day',type:'number',default:1000}],derive:p=>`→ ${p.clips_per_day} queries/day`,daily_volume:p=>p.clips_per_day},
-      sports_media__live_event:{clip_default:30,fields:[{id:'events_per_week',label:'Events per week',type:'number',default:5},{id:'queries_per_event',label:'Queries per event',type:'number',default:500},{id:'peak_multiplier',label:'Peak concurrency multiplier',type:'slider',min:1,max:20,default:10}],derive:p=>`→ ${Math.round(p.queries_per_event*p.events_per_week/7)} queries/day avg`,daily_volume:p=>Math.round(p.queries_per_event*p.events_per_week/7)},
-      sports_media__highlights:{clip_default:30,fields:[{id:'games_per_week',label:'Games per week',type:'number',default:7},{id:'candidates_per_game',label:'Highlight candidates per game',type:'number',default:300}],derive:p=>`→ ${Math.round(p.candidates_per_game*p.games_per_week/7)} queries/day`,daily_volume:p=>Math.round(p.candidates_per_game*p.games_per_week/7)},
-      safety_ops__anomaly_detection:{clip_default:30,fields:[{id:'cameras',label:'Number of cameras',type:'number',default:500},{id:'checks_per_hour',label:'Checks per camera/hour',type:'slider',min:1,max:60,default:2}],derive:p=>`→ ${p.cameras}×${p.checks_per_hour}×24 = ${p.cameras*p.checks_per_hour*24} queries/day`,daily_volume:p=>p.cameras*p.checks_per_hour*24},
-      safety_ops__incident_investigation:{clip_default:1200,fields:[{id:'incidents_per_day',label:'Incidents per day',type:'number',default:20}],derive:p=>`→ ${p.incidents_per_day} queries/day`,daily_volume:p=>p.incidents_per_day},
-      safety_ops__compliance_monitoring:{clip_default:30,fields:[{id:'sites',label:'Number of sites',type:'number',default:10},{id:'cameras_per_site',label:'Cameras per site',type:'number',default:200},{id:'checks_per_hour',label:'Checks per camera/hour',type:'slider',min:1,max:60,default:1}],derive:p=>`→ ${p.sites}×${p.cameras_per_site}×${p.checks_per_hour}×24 = ${p.sites*p.cameras_per_site*p.checks_per_hour*24} queries/day`,daily_volume:p=>p.sites*p.cameras_per_site*p.checks_per_hour*24},
-      retail__shelf_analytics:{clip_default:30,fields:[{id:'stores',label:'Number of stores',type:'number',default:50},{id:'aisles_per_store',label:'Aisles per store',type:'number',default:20},{id:'scans_per_hour',label:'Scans per aisle/hour',type:'slider',min:1,max:12,default:4}],derive:p=>`→ ${p.stores}×${p.aisles_per_store}×${p.scans_per_hour}×24 = ${p.stores*p.aisles_per_store*p.scans_per_hour*24} queries/day`,daily_volume:p=>p.stores*p.aisles_per_store*p.scans_per_hour*24},
-      retail__customer_behavior:{clip_default:120,fields:[{id:'daily_sessions',label:'Daily sessions',type:'number',default:10000}],derive:p=>`→ ${p.daily_sessions} queries/day`,daily_volume:p=>p.daily_sessions},
-      retail__queue_traffic:{clip_default:15,fields:[{id:'stores',label:'Number of stores',type:'number',default:200},{id:'entry_points',label:'Entry points per store',type:'number',default:3},{id:'checks_per_hour',label:'Checks per hour',type:'slider',min:1,max:60,default:12}],derive:p=>`→ ${p.stores}×${p.entry_points}×${p.checks_per_hour}×24 = ${p.stores*p.entry_points*p.checks_per_hour*24} queries/day`,daily_volume:p=>p.stores*p.entry_points*p.checks_per_hour*24},
-      media__content_moderation:{clip_default:180,fields:[{id:'daily_uploads',label:'Daily uploads',type:'number',default:100000},{id:'sla_minutes',label:'Target SLA (minutes)',type:'slider',min:5,max:120,default:30}],derive:p=>`→ ${p.daily_uploads} queries/day`,daily_volume:p=>p.daily_uploads},
-      media__asset_tagging:{clip_default:120,fields:[{id:'library_size',label:'Library size (total assets)',type:'number',default:10000000},{id:'monthly_new',label:'New assets per month',type:'number',default:50000}],derive:p=>`→ Ongoing: ${p.monthly_new.toLocaleString()} queries/month`,daily_volume:p=>Math.round(p.monthly_new/30)},
-      media__compliance_rights:{clip_default:7200,fields:[{id:'titles_per_run',label:'Titles per compliance run',type:'number',default:500},{id:'runs_per_year',label:'Runs per year',type:'slider',min:1,max:12,default:4}],derive:p=>`→ ${p.titles_per_run} queries/run · ${p.titles_per_run*p.runs_per_year} queries/year`,daily_volume:p=>Math.round(p.titles_per_run*p.runs_per_year/365)},
-      robotics__demonstration:{clip_default:600,fields:[{id:'dataset_size',label:'Dataset size (demonstrations)',type:'number',default:5000},{id:'timeline_months',label:'Processing timeline (months)',type:'slider',min:1,max:24,default:3}],derive:p=>`→ ${Math.round(p.dataset_size/(p.timeline_months*30))} demos/day`,daily_volume:p=>Math.round(p.dataset_size/(p.timeline_months*30))},
-      robotics__instruction_grounding:{clip_default:600,fields:[{id:'pairs_per_day',label:'Video-manual pairs per day',type:'number',default:200},{id:'manual_pages',label:'Manual length (pages)',type:'number',default:50}],derive:p=>`→ ${p.pairs_per_day} queries/day · ~2× tokens vs standard video`,daily_volume:p=>p.pairs_per_day},
-      robotics__quality_validation:{clip_default:600,fields:[{id:'validations_per_month',label:'Validations per month',type:'number',default:100000},{id:'rejection_rate',label:'Rejection rate (%)',type:'slider',min:0,max:80,default:30}],derive:p=>`→ ${Math.round(p.validations_per_month/30)} queries/day · cost applies to full volume`,daily_volume:p=>Math.round(p.validations_per_month/30)},
+      sports_media__archive_search:{clip_default:90,fields:[{id:'clips_per_day',label:'Clips per day',type:'number',default:1000,min:1,max:10000000,tip:'clips_per_day'}],derive:p=>`→ ${safeVolume(p.clips_per_day)} queries/day`,daily_volume:p=>safeVolume(p.clips_per_day)},
+      sports_media__live_event:{clip_default:30,fields:[{id:'events_per_week',label:'Events per week',type:'number',default:5,min:0,max:365,tip:'events_per_week'},{id:'queries_per_event',label:'Queries per event',type:'number',default:500,min:1,max:100000,tip:'queries_per_event'},{id:'peak_multiplier',label:'Peak concurrency multiplier',type:'slider',min:1,max:100,default:10,tip:'peak_multiplier'}],derive:p=>`→ ${safeVolume(p.queries_per_event*p.events_per_week/7)} queries/day avg`,daily_volume:p=>safeVolume(p.queries_per_event*p.events_per_week/7)},
+      sports_media__highlights:{clip_default:30,fields:[{id:'games_per_week',label:'Games per week',type:'number',default:7,min:0,max:365},{id:'candidates_per_game',label:'Highlight candidates per game',type:'number',default:300,min:1,max:100000}],derive:p=>`→ ${safeVolume(p.candidates_per_game*p.games_per_week/7)} queries/day`,daily_volume:p=>safeVolume(p.candidates_per_game*p.games_per_week/7)},
+      safety_ops__anomaly_detection:{clip_default:30,fields:[{id:'cameras',label:'Number of cameras',type:'number',default:500,min:1,max:100000,tip:'cameras'},{id:'checks_per_hour',label:'Checks per camera/hour',type:'slider',min:1,max:60,default:2,tip:'checks_per_hour'}],derive:p=>`→ ${safeVolume(p.cameras*p.checks_per_hour*24)} queries/day`,daily_volume:p=>safeVolume(p.cameras*p.checks_per_hour*24)},
+      safety_ops__incident_investigation:{clip_default:1200,fields:[{id:'incidents_per_day',label:'Incidents per day',type:'number',default:20,min:1,max:100000}],derive:p=>`→ ${safeVolume(p.incidents_per_day)} queries/day`,daily_volume:p=>safeVolume(p.incidents_per_day)},
+      safety_ops__compliance_monitoring:{clip_default:30,fields:[{id:'sites',label:'Number of sites',type:'number',default:10,min:1,max:50000,tip:'stores'},{id:'cameras_per_site',label:'Cameras per site',type:'number',default:200,min:1,max:100000,tip:'cameras'},{id:'checks_per_hour',label:'Checks per camera/hour',type:'slider',min:1,max:60,default:1,tip:'checks_per_hour'}],derive:p=>`→ ${safeVolume(p.sites*p.cameras_per_site*p.checks_per_hour*24)} queries/day`,daily_volume:p=>safeVolume(p.sites*p.cameras_per_site*p.checks_per_hour*24)},
+      retail__shelf_analytics:{clip_default:30,fields:[{id:'stores',label:'Number of stores',type:'number',default:50,min:1,max:50000,tip:'stores'},{id:'aisles_per_store',label:'Aisles per store',type:'number',default:20,min:1,max:100,tip:'aisles_per_store'},{id:'scans_per_hour',label:'Scans per aisle/hour',type:'slider',min:1,max:12,default:4,tip:'scans_per_hour'}],derive:p=>`→ ${safeVolume(p.stores*p.aisles_per_store*p.scans_per_hour*24)} queries/day`,daily_volume:p=>safeVolume(p.stores*p.aisles_per_store*p.scans_per_hour*24)},
+      retail__customer_behavior:{clip_default:120,fields:[{id:'daily_sessions',label:'Daily sessions',type:'number',default:10000,min:1,max:100000000}],derive:p=>`→ ${safeVolume(p.daily_sessions)} queries/day`,daily_volume:p=>safeVolume(p.daily_sessions)},
+      retail__queue_traffic:{clip_default:15,fields:[{id:'stores',label:'Number of stores',type:'number',default:200,min:1,max:50000,tip:'stores'},{id:'entry_points',label:'Entry points per store',type:'number',default:3,min:1,max:100},{id:'checks_per_hour',label:'Checks per hour',type:'slider',min:1,max:60,default:12,tip:'checks_per_hour'}],derive:p=>`→ ${safeVolume(p.stores*p.entry_points*p.checks_per_hour*24)} queries/day`,daily_volume:p=>safeVolume(p.stores*p.entry_points*p.checks_per_hour*24)},
+      media__content_moderation:{clip_default:180,fields:[{id:'daily_uploads',label:'Daily uploads',type:'number',default:100000,min:1,max:100000000,tip:'daily_uploads'},{id:'sla_minutes',label:'Target SLA (minutes)',type:'slider',min:1,max:1440,default:30,tip:'sla_minutes'}],derive:p=>`→ ${safeVolume(p.daily_uploads)} queries/day`,daily_volume:p=>safeVolume(p.daily_uploads)},
+      media__asset_tagging:{clip_default:120,fields:[{id:'library_size',label:'Library size (total assets)',type:'number',default:10000000,min:1,max:1000000000,tip:'library_size'},{id:'monthly_new',label:'New assets per month',type:'number',default:50000,min:0,max:10000000,tip:'monthly_new'}],derive:p=>`→ ${safeVolume(p.monthly_new/30)} queries/day ongoing`,daily_volume:p=>safeVolume(p.monthly_new/30)},
+      media__compliance_rights:{clip_default:7200,fields:[{id:'titles_per_run',label:'Titles per compliance run',type:'number',default:500,min:1,max:100000,tip:'titles_per_run'},{id:'runs_per_year',label:'Runs per year',type:'slider',min:1,max:52,default:4,tip:'runs_per_year'}],derive:p=>`→ ${safeVolume(p.titles_per_run*p.runs_per_year/365)} queries/day avg`,daily_volume:p=>safeVolume(p.titles_per_run*p.runs_per_year/365)},
+      robotics__demonstration:{clip_default:600,fields:[{id:'dataset_size',label:'Dataset size (demonstrations)',type:'number',default:5000,min:1,max:10000000,tip:'dataset_size'},{id:'timeline_months',label:'Processing timeline (months)',type:'slider',min:1,max:60,default:3,tip:'timeline_months'}],derive:p=>`→ ${safeVolume(p.dataset_size/(p.timeline_months*30))} demos/day`,daily_volume:p=>safeVolume(p.dataset_size/(p.timeline_months*30))},
+      robotics__instruction_grounding:{clip_default:600,fields:[{id:'pairs_per_day',label:'Video-manual pairs per day',type:'number',default:200,min:1,max:100000,tip:'pairs_per_day'},{id:'manual_pages',label:'Manual length (pages)',type:'number',default:50,min:1,max:10000,tip:'manual_pages'}],derive:p=>`→ ${safeVolume(p.pairs_per_day)} queries/day`,daily_volume:p=>safeVolume(p.pairs_per_day)},
+      robotics__quality_validation:{clip_default:600,fields:[{id:'validations_per_month',label:'Validations per month',type:'number',default:100000,min:1,max:10000000,tip:'validations_per_month'},{id:'rejection_rate',label:'Rejection rate (%)',type:'slider',min:0,max:99,default:30,tip:'rejection_rate'}],derive:p=>`→ ${safeVolume(p.validations_per_month/30)} queries/day`,daily_volume:p=>safeVolume(p.validations_per_month/30)},
     };
 
     const PRICING = {
-      gpt4o: {input:2.50/1e6,output:10.00/1e6},
-      gemini:{input:0.10/1e6,output: 0.40/1e6},
-      qwen:  {input:0.59/1e6,output: 0.59/1e6},
+      gpt4o:{input:2.50/1e6,output:10.00/1e6},
+      gemini:{input:0.10/1e6,output:0.40/1e6},
+      qwen:{input:0.59/1e6,output:0.59/1e6},
+    };
+    const SLA_THRESHOLDS = {
+      'sports_media__live_event':1000,
+      'retail__queue_traffic':2000,
+      'safety_ops__anomaly_detection':3000,
     };
 
-    function calcCost(model,clipSec,daily){
-      const p=PRICING[model]||PRICING.gpt4o;
-      const cpq=clipSec*258*p.input+150*p.output;
-      return{cpq,daily:cpq*daily,monthly:cpq*daily*30,annual:cpq*daily*365};
-    }
-
+    // ── Helpers ───────────────────────────────────────────────────
     function getParams(idx){
-      const uc=UC_PARAMS[ucKey()]; if(!uc)return{};
+      const uc=UC_PARAMS[ucKey()];if(!uc)return{};
       const r={};
       uc.fields.forEach(f=>{const el=document.getElementById(`vi-p-s${idx+1}-${f.id}`);if(el)r[f.id]=parseFloat(el.value)||f.default;});
+      r.analyze_duration=st.scenarios[idx].analyzeSeconds||30;
       return r;
     }
     function getDailyVol(idx){
       const uc=UC_PARAMS[ucKey()];if(!uc)return 100;
       return uc.daily_volume(getParams(idx));
     }
+    function deriveConcurrency(idx){
+      const uc=ucKey();const p=getParams(idx);const daily=getDailyVol(idx);
+      if(uc==='sports_media__live_event') return Math.max(1,Math.ceil(daily/86400*((p.peak_multiplier||10)*60)));
+      if(uc==='safety_ops__anomaly_detection') return Math.max(1,Math.ceil((p.cameras||500)*(p.checks_per_hour||2)/3600));
+      if(uc==='media__content_moderation') return Math.max(1,Math.ceil(daily/((p.sla_minutes||30)*60)));
+      return Math.max(1,Math.ceil(daily/(8*3600)));
+    }
+    function calcCost(model,durSec,daily){
+      const p=PRICING[model]||PRICING.gpt4o;
+      const cpq=durSec*258*p.input+150*p.output;
+      return{cpq,daily:cpq*daily,monthly:cpq*daily*30,annual:cpq*daily*365};
+    }
 
-    // ── Render consumer grid ──
+    // ── Consumer grid ─────────────────────────────────────────────
     function initConsumerGrid(){
       const el=document.getElementById('vi-cg');if(!el)return;
       el.innerHTML=CONSUMERS.map((c,i)=>{
@@ -1779,7 +1888,6 @@
         </div>`;
       }).join('');
     }
-
     function selConsumer(id,lbl){
       st.consumer=id;st.consumerLbl=lbl;
       document.querySelectorAll('#vi-cg .vi-card').forEach(c=>c.classList.toggle('selected',c.dataset.id===id));
@@ -1789,7 +1897,6 @@
       pills.innerHTML=(USE_CASES[id]||[]).map(u=>`<button class="vi-pill" onclick="VI.selUC('${u.replace(/'/g,"\\'")}',this)">${u}</button>`).join('');
       s2.scrollIntoView({behavior:'smooth',block:'start'});
     }
-
     function selUC(lbl,btn){
       st.useCase=UC_KEY_MAP[lbl]||lbl.toLowerCase().replace(/ /g,'_');
       st.useCaseLbl=lbl;
@@ -1800,53 +1907,98 @@
       document.getElementById('vi-blurb').textContent=BLURBS[ucKey()]||'Select a use case to see context.';
       s3.scrollIntoView({behavior:'smooth',block:'start'});
     }
-
     function showS4(){
       const uc=UC_PARAMS[ucKey()];
-      st.scenarios.forEach(s=>{s.clipSec=uc?uc.clip_default:30;});
+      st.scenarios.forEach(s=>{s.analyzeSeconds=uc?Math.min(uc.clip_default,30):30;});
       const s4=document.getElementById('vi-s4');s4.style.display='block';
       document.getElementById('vi-s4sub').textContent=`Define up to 3 ways to run ${st.useCaseLbl}. We'll benchmark cost and performance for each.`;
       renderScenarios();
       s4.scrollIntoView({behavior:'smooth',block:'start'});
     }
 
+    // ── Scenario rendering ────────────────────────────────────────
     function renderScenarios(){
       const wrap=document.getElementById('vi-sw');if(!wrap)return;
       const uc=UC_PARAMS[ucKey()];
       wrap.innerHTML=st.scenarios.map((s,i)=>scCard(s,i,uc)).join('')+
         (st.scenarios.length<3?`<button class="vi-add-sc" onclick="VI.addSc()">+ Add Scenario</button>`:'');
       setTimeout(()=>st.scenarios.forEach((_,i)=>updateCost(i)),0);
-      checkClipValidation();
+      checkValidation();
     }
 
-    const SLA_THRESHOLDS = {
-      'sports_media__live_event':1000,
-      'retail__queue_traffic':2000,
-      'safety_ops__anomaly_detection':3000,
-    };
-
-    function clipSelectorHTML(idx){
-      const n=idx+1;const isSports=st.consumer==='sports_media';
-      const sel=st.scenarios[idx]||{};const lbl=sel.clipLabel||'';
-      if(isSports){
-        return `<div class="vi-sec-lbl">F — Sample Clip</div>
-          <div class="vi-clip-btns">
-            <button class="vi-clip-btn${lbl==='NBA Highlight'?' selected':''}" onclick="VI.selClip(${idx},'nba_highlight.mp4','🏀 NBA Highlight',30)">🏀 NBA Highlight · 30s</button>
-            <button class="vi-clip-btn${lbl==='NFL Play'?' selected':''}" onclick="VI.selClip(${idx},'nfl_highlight.mp4','🏈 NFL Play',15)">🏈 NFL Play · 15s</button>
-          </div>
-          ${lbl?`<div class="vi-clip-info">✓ Selected: ${lbl}</div>`:'<div class="vi-clip-info" id="vi-clip-info-s${n}" style="color:#d97706">⚠ Select a clip to enable Run</div>'}
-          <div class="vi-clip-note">This clip will be sent to the model API for live inferencing. Capped at 20 frames for benchmarking.</div>`;
+    function clipTabPanel(idx){
+      const n=idx+1;const s=st.scenarios[idx];const uc=ucKey();
+      const clips=(CLIP_OPTIONS[uc]||[]).filter(id=>CLIP_META[id]);
+      // sample panel
+      let sampleHTML;
+      if(clips.length===0){
+        sampleHTML=`<div style="font-size:.78rem;color:var(--text-muted);padding:.65rem;background:var(--surface-elevated);border-radius:6px">No sample clip available for this use case — use Upload tab.</div>`;
+      }else{
+        sampleHTML=`<div class="vi-clip-btns">${clips.map(id=>{
+          const m=CLIP_META[id];
+          return `<button class="vi-clip-btn${s.clipPath===id?' selected':''}" onclick="VI.selClip(${idx},'${id}')">${m.label} · ${m.duration}s</button>`;
+        }).join('')}</div>`;
       }
-      return `<div class="vi-sec-lbl">F — Sample Clip</div>
-        <input type="file" class="vi-file-in" accept=".mp4,.mov" onchange="VI.onClipUpload(${idx},this)" id="vi-file-s${n}">
-        ${lbl?`<div class="vi-clip-info">✓ Selected: ${lbl}</div>`:'<div class="vi-clip-info" id="vi-clip-info-s${n}" style="color:#d97706">⚠ Select a clip to enable Run</div>'}
-        <div class="vi-clip-note">This clip will be sent to the model API for live inferencing. Capped at 20 frames for benchmarking.</div>`;
+      const uploadHTML=`<div class="vi-dropzone" onclick="document.getElementById('vi-file-s${n}').click()" ondragover="event.preventDefault()" ondrop="VI.onDrop(${idx},event)">Drop your video here or click to browse<br><span style="font-size:.68rem;color:var(--text-muted)">.mp4, .mov, .avi accepted</span></div>
+        <input type="file" id="vi-file-s${n}" accept=".mp4,.mov,.avi" style="display:none" onchange="VI.onClipUpload(${idx},this)">`;
+      const activeTab=s.activeTab||'sample';
+      return `<div class="vi-ctabs">
+          <button class="vi-ctab${activeTab==='sample'?' active':''}" onclick="VI.switchClipTab(${idx},'sample',this)">📁 Sample Clips</button>
+          <button class="vi-ctab${activeTab==='upload'?' active':''}" onclick="VI.switchClipTab(${idx},'upload',this)">↑ Upload Your Own</button>
+          <button class="vi-ctab disabled" disabled>📷 Live Camera · Coming Soon</button>
+        </div>
+        <div class="vi-ctab-panel${activeTab==='sample'?' active':''}" id="vi-cpanel-sample-s${n}">${sampleHTML}</div>
+        <div class="vi-ctab-panel${activeTab==='upload'?' active':''}" id="vi-cpanel-upload-s${n}">${uploadHTML}</div>
+        <div class="vi-ctab-panel" id="vi-cpanel-camera-s${n}"><div class="vi-coming-soon">Live camera benchmarking — coming soon</div></div>
+        ${s.clipLabel?`<div class="vi-clip-info">✓ Selected: ${s.clipLabel}${s.clipDuration?' · '+s.clipDuration+'s':''}</div>`:`<div class="vi-clip-info" style="color:#d97706">⚠ Select a clip to enable Run</div>`}
+        <div class="vi-clip-note">Clip sent live to model API for inferencing. Capped at 20 frames for benchmarking.</div>`;
+    }
+
+    function durationSection(idx){
+      const n=idx+1;const s=st.scenarios[idx];
+      const clipDur=s.clipDuration||30;
+      const minSec=Math.max(5,clipMin());
+      const maxSec=clipDur;
+      const curSec=Math.min(Math.max(s.analyzeSeconds||minSec,minSec),maxSec);
+      const framesEst=Math.min(curSec,20);
+      if(!s.clipPath&&!s.clipLabel){
+        return `<div class="vi-dur-disabled">Select a clip above first to configure duration</div>`;
+      }
+      return `Analyze first <strong id="vi-dur-val-s${n}">${curSec}s</strong> of ${clipDur}s ${tip(TIPS.analyze_duration)}
+        <input type="range" min="${minSec}" max="${maxSec}" value="${curSec}" style="width:100%;margin:.35rem 0" oninput="VI.onDurSlide(${idx},this.value)">
+        <div class="vi-dur-info">Frames to model: <strong>${framesEst} frames @ 1fps</strong> (GPT-4o/Qwen) ${tip(TIPS.frames_to_model)} · Full ${curSec}s video (Gemini)</div>
+        <div class="vi-derive" id="vi-ct-s${n}">≈ ${curSec*258} input tokens (estimated) ${tip(TIPS.input_tokens_est)}</div>`;
+    }
+
+    function concSection(idx){
+      const n=idx+1;const s=st.scenarios[idx];
+      const conc=s.concOverride!==null?s.concOverride:deriveConcurrency(idx);
+      const daily=getDailyVol(idx);
+      return `<div class="vi-conc-display">
+        <span class="vi-conc-val">~ ${conc}</span> concurrent threads ${tip(TIPS.concurrency)}
+        <div class="vi-conc-note">Based on: ${daily.toLocaleString()} queries/day at uniform distribution</div>
+        <button class="vi-override-btn" onclick="VI.toggleConcOverride(${idx})">⚙ Override</button>
+        <div id="vi-conc-ov-s${n}" style="display:${s.concOverride!==null?'block':'none'};margin-top:.35rem">
+          <input type="range" min="1" max="500" value="${conc}" oninput="VI.onConcOverride(${idx},this.value)">
+          <div class="vi-derive">Manual: ${s.concOverride||conc} concurrent</div>
+        </div>
+      </div>`;
+    }
+
+    function ucFields(uc,n,idx){
+      return `<div class="vi-sec-lbl">C — Use-Case Parameters</div>`+
+        uc.fields.map(f=>{
+          const tipHTML=f.tip?tip(TIPS[f.tip]||f.tip):'';
+          if(f.type==='slider')return `<div class="vi-sl"><label>${f.label}${tipHTML}: <strong id="vi-pl-s${n}-${f.id}">${f.default}</strong></label>
+            <input type="range" id="vi-p-s${n}-${f.id}" min="${f.min||1}" max="${f.max||100}" value="${f.default}" oninput="document.getElementById('vi-pl-s${n}-${f.id}').textContent=this.value;VI.updateCost(${n-1})"></div>`;
+          return `<div class="vi-sl"><label>${f.label}${tipHTML}</label>
+            <input type="number" class="vi-num-in" id="vi-p-s${n}-${f.id}" value="${f.default}" min="${f.min||1}" max="${f.max||10000000}" oninput="VI.updateCost(${n-1})"></div>`;
+        }).join('')+`<div class="vi-derive" id="vi-dv-s${n}"></div>`;
     }
 
     function scCard(s,idx,uc){
       const n=idx+1;
       const models=[{k:'gpt4o',l:'GPT-4o'},{k:'gemini',l:'Gemini 2.0 Flash'},{k:'qwen',l:'Qwen2.5-VL-72B · OSS'}];
-      const clip=s.clipSec||(uc?uc.clip_default:30);
       return `<div class="vi-sc-card" id="vi-sc${n}">
         <div class="vi-sc-head">
           <span class="vi-sc-num">SCENARIO ${n}</span>
@@ -1856,49 +2008,102 @@
         <div class="vi-sc-body">
           <div class="vi-sec-lbl">A — Model</div>
           <div class="vi-model-pills">${models.map(m=>`<button class="vi-mpill${s.model===m.k?' selected':''}" onclick="VI.selModel(${idx},'${m.k}',this)">${m.l}</button>`).join('')}</div>
-          ${clipSelectorHTML(idx)}
-          <div class="vi-sec-lbl">B — Core Workload</div>
-          <div class="vi-sl"><label>Clip length: <strong id="vi-cv-s${n}">${clip}s</strong></label>
-            <input type="range" min="5" max="3600" value="${clip}" oninput="VI.onClip(${idx},this.value)">
-            <div class="vi-derive" id="vi-ct-s${n}">≈ ${clip*258} input tokens (estimated)</div>
-          </div>
-          <div class="vi-sl"><label>Concurrency: <strong id="vi-cc-s${n}">${s.conc}</strong></label>
-            <input type="range" min="1" max="500" value="${s.conc}" oninput="VI.onConc(${idx},this.value)">
-          </div>
-          ${uc?ucFields(uc,n):''}
+          <div class="vi-sec-lbl">F — Your Video Clip</div>
+          ${clipTabPanel(idx)}
+          <div class="vi-sec-lbl" style="margin-top:.75rem">B — Analyze Duration ${tip(TIPS.analyze_duration)}</div>
+          <div id="vi-dur-s${n}">${durationSection(idx)}</div>
+          ${uc?ucFields(uc,n,idx):''}
+          <div class="vi-sec-lbl">Peak Concurrency (auto-derived) ${tip(TIPS.concurrency)}</div>
+          <div id="vi-conc-wrap-s${n}">${concSection(idx)}</div>
           <div class="vi-sec-lbl">D — Assembled Prompt</div>
-          <textarea class="vi-prompt" readonly>${PROMPTS[ucKey()]||''}</textarea>
+          <textarea class="vi-prompt" id="vi-prompt-s${n}" readonly>${buildPrompt(idx)}</textarea>
           <div class="vi-sec-lbl">E — Estimated Cost</div>
           <div class="vi-cost-box" id="vi-cb-s${n}">
             <div class="vi-cost-row"><span>Cost / query</span><span class="v" id="vi-cpq-s${n}">—</span></div>
             <div class="vi-cost-row"><span>Daily cost</span><span class="v" id="vi-dc-s${n}">—</span></div>
             <div class="vi-cost-row"><span>Monthly cost</span><span class="v" id="vi-mc-s${n}">—</span></div>
             <div class="vi-cost-row"><span>Annual cost</span><span class="v" id="vi-ac-s${n}">—</span></div>
-            <div class="vi-cost-src">Estimated cost — actual shown in Results after run</div>
+            <div class="vi-cost-src">Estimated cost — actual shown in Results after live run</div>
           </div>
+          <div class="vi-val-msg" id="vi-val-s${n}"></div>
         </div>
       </div>`;
     }
 
-    function ucFields(uc,n){
-      return `<div class="vi-sec-lbl">C — Use-Case Parameters</div>`+
-        uc.fields.map(f=>{
-          if(f.type==='slider')return `<div class="vi-sl"><label>${f.label}: <strong id="vi-pl-s${n}-${f.id}">${f.default}</strong></label>
-            <input type="range" id="vi-p-s${n}-${f.id}" min="${f.min}" max="${f.max}" value="${f.default}" oninput="document.getElementById('vi-pl-s${n}-${f.id}').textContent=this.value;VI.updateCost(${n-1})"></div>`;
-          return `<div class="vi-sl"><label>${f.label}</label>
-            <input type="number" class="vi-num-in" id="vi-p-s${n}-${f.id}" value="${f.default}" oninput="VI.updateCost(${n-1})"></div>`;
-        }).join('')+`<div class="vi-derive" id="vi-dv-s${n}"></div>`;
+    function buildPrompt(idx){
+      const fn=PROMPTS[ucKey()];if(!fn)return'';
+      const p=getParams(idx);
+      try{return fn(p);}catch(e){return'';}
     }
 
-    function onClip(idx,val){
+    // ── Clip selection ────────────────────────────────────────────
+    function switchClipTab(idx,tab,btn){
+      st.scenarios[idx].activeTab=tab;
       const n=idx+1;
-      const cv=document.getElementById(`vi-cv-s${n}`);const ct=document.getElementById(`vi-ct-s${n}`);
-      if(cv)cv.textContent=val+'s';if(ct)ct.textContent=`≈ ${Math.round(val*258)} input tokens`;
-      st.scenarios[idx].clipSec=parseFloat(val);updateCost(idx);
+      ['sample','upload','camera'].forEach(t=>{
+        const panel=document.getElementById(`vi-cpanel-${t}-s${n}`);
+        if(panel)panel.classList.toggle('active',t===tab);
+      });
+      const tabs=document.querySelector(`#vi-sc${n} .vi-ctabs`);
+      if(tabs)tabs.querySelectorAll('.vi-ctab:not(.disabled)').forEach(b=>b.classList.remove('active'));
+      if(btn)btn.classList.add('active');
     }
-    function onConc(idx,val){
-      const n=idx+1;const el=document.getElementById(`vi-cc-s${n}`);if(el)el.textContent=val;
-      st.scenarios[idx].conc=parseInt(val);
+    function selClip(idx,clipId){
+      const m=CLIP_META[clipId];if(!m)return;
+      st.scenarios[idx].clipPath=clipId;
+      st.scenarios[idx].clipLabel=m.label;
+      st.scenarios[idx].clipDuration=m.duration;
+      const minSec=Math.max(5,clipMin());
+      st.scenarios[idx].analyzeSeconds=Math.min(m.duration,Math.max(minSec,m.duration));
+      renderScenarios();
+    }
+    function onClipUpload(idx,input){
+      const file=input.files[0];if(!file)return;
+      // Detect duration via hidden video element
+      const url=URL.createObjectURL(file);
+      const vid=document.createElement('video');
+      vid.preload='metadata';
+      vid.onloadedmetadata=async()=>{
+        const dur=Math.round(vid.duration)||30;
+        URL.revokeObjectURL(url);
+        // Upload to backend
+        const fd=new FormData();fd.append('file',file);
+        try{
+          const r=await fetch(`${VI_API}/upload-clip`,{method:'POST',body:fd});
+          const data=await r.json();
+          st.scenarios[idx].clipPath=data.clip_path;
+          st.scenarios[idx].clipLabel=file.name;
+          st.scenarios[idx].clipDuration=data.duration_sec?Math.round(data.duration_sec):dur;
+          const minSec=Math.max(5,clipMin());
+          st.scenarios[idx].analyzeSeconds=Math.min(st.scenarios[idx].clipDuration,Math.max(minSec,30));
+          renderScenarios();
+        }catch(e){
+          alert('Upload failed: '+e.message);
+        }
+      };
+      vid.src=url;
+    }
+    function onDrop(idx,event){
+      event.preventDefault();
+      const file=event.dataTransfer.files[0];if(!file)return;
+      const n=idx+1;const input=document.getElementById(`vi-file-s${n}`);
+      if(input){const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;onClipUpload(idx,input);}
+    }
+    function onDurSlide(idx,val){
+      const n=idx+1;st.scenarios[idx].analyzeSeconds=parseInt(val);
+      const el=document.getElementById(`vi-dur-val-s${n}`);if(el)el.textContent=val+'s';
+      const tok=document.getElementById(`vi-ct-s${n}`);if(tok)tok.innerHTML=`≈ ${Math.round(val*258)} input tokens (estimated) ${tip(TIPS.input_tokens_est)}`;
+      const frEl=document.querySelector(`#vi-dur-s${n} .vi-dur-info strong`);if(frEl)frEl.textContent=`${Math.min(parseInt(val),20)} frames @ 1fps`;
+      updateCost(idx);updatePrompt(idx);
+    }
+    function toggleConcOverride(idx){
+      const n=idx+1;const el=document.getElementById(`vi-conc-ov-s${n}`);if(!el)return;
+      const open=el.style.display==='none';
+      el.style.display=open?'block':'none';
+      if(!open)st.scenarios[idx].concOverride=null;
+    }
+    function onConcOverride(idx,val){
+      st.scenarios[idx].concOverride=parseInt(val);
     }
     function selModel(idx,key,btn){
       st.scenarios[idx].model=key;
@@ -1906,69 +2111,77 @@
       card.querySelectorAll('.vi-mpill').forEach(p=>p.classList.remove('selected'));
       btn.classList.add('selected');updateCost(idx);
     }
-
+    function updatePrompt(idx){
+      const n=idx+1;const el=document.getElementById(`vi-prompt-s${n}`);
+      if(el)el.value=buildPrompt(idx);
+    }
     function updateCost(idx){
       const n=idx+1;const s=st.scenarios[idx];if(!s)return;
       const uc=UC_PARAMS[ucKey()];let daily=100;
       if(uc){const p=getParams(idx);daily=uc.daily_volume(p);const dv=document.getElementById(`vi-dv-s${n}`);if(dv)dv.textContent=uc.derive(p);}
-      const c=calcCost(s.model||'gpt4o',s.clipSec||30,daily);
+      const c=calcCost(s.model||'gpt4o',s.analyzeSeconds||30,daily);
       const fmt=v=>'$'+v.toFixed(v<0.01?6:v<1?4:2);
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
       set(`vi-cpq-s${n}`,fmt(c.cpq));set(`vi-dc-s${n}`,fmt(c.daily));
       set(`vi-mc-s${n}`,fmt(c.monthly));set(`vi-ac-s${n}`,fmt(c.annual));
+      // Update derived concurrency display
+      const cWrap=document.getElementById(`vi-conc-wrap-s${n}`);
+      if(cWrap)cWrap.innerHTML=concSection(idx);
+      updatePrompt(idx);
     }
-
     function addSc(){
       if(st.scenarios.length>=3)return;
       const defaults=[{name:'GPT-4o',model:'gpt4o'},{name:'Gemini 2.0 Flash',model:'gemini'},{name:'Qwen VL',model:'qwen'}];
       const i=st.scenarios.length;const d=defaults[i]||{name:`Scenario ${i+1}`,model:'qwen'};
       const uc=UC_PARAMS[ucKey()];
-      st.scenarios.push({id:`s${i+1}`,name:d.name,model:d.model,clipSec:uc?uc.clip_default:30,conc:10,clipName:null,clipData:null,clipMime:null,clipLabel:null});
+      st.scenarios.push({id:`s${i+1}`,name:d.name,model:d.model,analyzeSeconds:uc?Math.min(uc.clip_default,30):30,conc:1,concOverride:null,clipPath:null,clipLabel:null,clipDuration:null,activeTab:'sample'});
       renderScenarios();
     }
     function rmSc(idx){st.scenarios.splice(idx,1);renderScenarios();}
 
-    // ── Clip selection ────────────────────────────────────────────
-    function selClip(idx,name,label,sec){
-      st.scenarios[idx].clipName=name;st.scenarios[idx].clipData=null;
-      st.scenarios[idx].clipLabel=label;st.scenarios[idx].clipSec=sec;
-      renderScenarios();
-    }
-    function onClipUpload(idx,input){
-      const file=input.files[0];if(!file)return;
-      const reader=new FileReader();
-      reader.onload=e=>{
-        const b64=e.target.result.split(',')[1];
-        st.scenarios[idx].clipData=b64;st.scenarios[idx].clipName=null;
-        st.scenarios[idx].clipMime=file.type;st.scenarios[idx].clipLabel=file.name;
-        st.scenarios[idx].clipSec=30;// estimate
-        const info=document.getElementById(`vi-clip-info-s${idx+1}`);
-        if(info){info.textContent=`✓ Selected: ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;info.style.color='';}
-        checkClipValidation();
-      };
-      reader.readAsDataURL(file);
-    }
-    function checkClipValidation(){
-      const allHaveClip=st.scenarios.every(s=>s.clipName||s.clipData);
-      const btn=document.getElementById('vi-run-btn');if(btn)btn.disabled=!allHaveClip;
+    // ── Validation ────────────────────────────────────────────────
+    function checkValidation(){
+      let allOk=true;
+      st.scenarios.forEach((s,i)=>{
+        const n=i+1;const msg=document.getElementById(`vi-val-s${n}`);
+        const issues=[];
+        if(!s.clipPath&&!s.clipLabel)issues.push('Select a sample clip or upload a video.');
+        if(!msg)return;
+        if(issues.length){msg.innerHTML='⚠ '+issues.join(' ');msg.classList.add('show');allOk=false;}
+        else{msg.innerHTML='';msg.classList.remove('show');}
+      });
+      const btn=document.getElementById('vi-run-btn');if(btn)btn.disabled=!allOk;
     }
 
+    // ── Run benchmark ─────────────────────────────────────────────
     async function runBenchmark(){
+      // Final validation
+      const errors=[];
+      st.scenarios.forEach((s,i)=>{if(!s.clipPath&&!s.clipLabel)errors.push(`Scenario ${i+1}: please select a clip.`);});
+      if(errors.length){alert(errors.join('\n'));return;}
+
       const btn=document.getElementById('vi-run-btn');
       if(btn){btn.disabled=true;btn.textContent='RUNNING…';}
+
       const uc=UC_PARAMS[ucKey()];
       const payload=st.scenarios.map((s,i)=>{
         const p=getParams(i);const daily=uc?uc.daily_volume(p):100;
-        const base={id:s.id,name:document.getElementById(`vi-nm-s${i+1}`)?.value||s.name,
-          model:s.model,clip_length_sec:s.clipSec||(uc?uc.clip_default:30),
-          daily_volume:daily,concurrency:s.conc||10,
-          assembled_prompt:PROMPTS[ucKey()]||s.name,use_case_params:p};
-        if(s.clipName)base.clip_name=s.clipName;
-        if(s.clipData){base.clip_data_b64=s.clipData;base.clip_mime_type=s.clipMime||'video/mp4';}
-        return base;
+        const conc=s.concOverride!==null?s.concOverride:deriveConcurrency(i);
+        return{
+          id:s.id,
+          name:document.getElementById(`vi-nm-s${i+1}`)?.value||s.name,
+          model:s.model,
+          clip_path:s.clipPath||'nba_highlight',
+          analyze_duration_sec:s.analyzeSeconds||30,
+          assembled_prompt:buildPrompt(i)||s.name,
+          daily_volume:daily,
+          concurrency:conc,
+          use_case_params:p,
+        };
       });
+
       try{
-        const r=await fetch('http://localhost:8002/benchmark',{
+        const r=await fetch(`${VI_API}/benchmark`,{
           method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({consumer_type:st.consumer,use_case:st.useCase,scenarios:payload}),
         });
@@ -1980,6 +2193,7 @@
       }
     }
 
+    // ── Dashboard (Step 5) ────────────────────────────────────────
     function showS5(data){
       const s5=document.getElementById('vi-s5');s5.style.display='block';
       s5.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1991,11 +2205,11 @@
     function renderDBHeader(data){
       const bc=document.getElementById('vi-db-bc-text');if(!bc)return;
       const clip=data.scenarios[0]?.clip_used||'';
-      const uc=UC_PARAMS[ucKey()];const daily=uc?uc.daily_volume(getParams(0)):100;
-      bc.textContent=`${st.consumerLbl} · ${st.useCaseLbl}${clip?' · '+clip:''} · ${daily.toLocaleString()} queries/day`;
+      const dur=data.scenarios[0]?.analyze_duration_sec||'';
+      const daily=getDailyVol(0);
+      bc.textContent=`${st.consumerLbl} · ${st.useCaseLbl}${clip?' · '+clip+(dur?' (analyzed '+dur+'s)':''):''}  · ${daily.toLocaleString()} queries/day`;
     }
 
-    // ── Section 1: Cost Projection ────────────────────────────────
     function renderCostSection(scenarios){
       const ok=scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
       const costs=ok.map(s=>s.monthly_cost);
@@ -2015,16 +2229,13 @@
       }).join('');
       const insight=document.getElementById('vi-db-cost-insight');
       if(insight&&ok.length>1){
-        const delta=maxC/Math.max(minC,0.001);
         const second=ok.find(s=>s!==cheapest);
         const save=(second?second.monthly_cost*Math.pow(1+st.growthRate,11):0)-(cheapest.monthly_cost*Math.pow(1+st.growthRate,11));
-        insight.textContent=`${cheapest.name} saves you ~$${save.toFixed(save<1?2:0)}/month by M12 at ${Math.round(st.growthRate*100)}% growth`;
+        insight.textContent=`${cheapest.name} saves ~$${save.toFixed(save<1?2:0)}/month by M12 at ${Math.round(st.growthRate*100)}% growth`;
       }
-      // Auto-use log scale if cost delta > 10×
       const delta=maxC/Math.max(minC,0.001);
-      if(delta>10)st.chartScale='log'; else st.chartScale='linear';
-      syncScalePills();
-      drawChart();
+      if(delta>10)st.chartScale='log';else st.chartScale='linear';
+      syncScalePills();drawChart();
     }
 
     function setGrowth(rate,btn){
@@ -2033,27 +2244,19 @@
       btn.classList.add('active');
       if(st.results)renderCostSection(st.results.scenarios);
     }
-
-    function setScale(scale,btn){
-      st.chartScale=scale;syncScalePills();drawChart();
-    }
+    function setScale(scale,btn){st.chartScale=scale;syncScalePills();drawChart();}
     function syncScalePills(){
       const lin=document.getElementById('vi-sc-lin'),log=document.getElementById('vi-sc-log');
       if(lin)lin.classList.toggle('active',st.chartScale!=='log');
       if(log)log.classList.toggle('active',st.chartScale==='log');
     }
-
     function drawChart(){
       if(!st.results)return;
       const ok=st.results.scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
       const labels=Array.from({length:12},(_,i)=>`M${i+1}`);
       const COLORS=['#3B82F6','#7EE8A2','#F59E0B'];
       const r=st.growthRate;
-      const datasets=ok.map((s,i)=>({
-        label:s.name,
-        data:labels.map((_,m)=>parseFloat((s.monthly_cost*Math.pow(1+r,m)).toFixed(6))),
-        borderColor:COLORS[i]||'#999',backgroundColor:'transparent',tension:.2,fill:false,
-      }));
+      const datasets=ok.map((s,i)=>({label:s.name,data:labels.map((_,m)=>parseFloat((s.monthly_cost*Math.pow(1+r,m)).toFixed(6))),borderColor:COLORS[i]||'#999',backgroundColor:'transparent',tension:.2,fill:false}));
       const curCost=parseFloat(document.getElementById('vi-cur-cost')?.value||'');
       if(!isNaN(curCost)&&curCost>0&&ok[0]){
         const daily=ok[0].monthly_cost/Math.max(ok[0].cost_per_query*30,0.001);
@@ -2062,19 +2265,9 @@
       const ctx=document.getElementById('vi-chart');if(!ctx)return;
       if(st.chartInst)st.chartInst.destroy();
       const useLog=st.chartScale==='log';
-      st.chartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{labels:{color:'#475569'}}},
-        scales:{
-          x:{ticks:{color:'#64748b'}},
-          y:{type:useLog?'logarithmic':'linear',beginAtZero:!useLog,
-            ticks:{color:'#64748b',callback:v=>'$'+parseFloat(v).toFixed(v<0.01?4:v<1?2:0)},
-            grid:{color:'#e2e8f0'}},
-        },
-      }});
+      st.chartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569'}}},scales:{x:{ticks:{color:'#64748b'}},y:{type:useLog?'logarithmic':'linear',beginAtZero:!useLog,ticks:{color:'#64748b',callback:v=>'$'+parseFloat(v).toFixed(v<0.01?4:v<1?2:0)},grid:{color:'#e2e8f0'}}}}});
     }
 
-    // ── Section 2: Scenario result cards ─────────────────────────
     function renderScenarioCards(scenarios){
       const wrap=document.getElementById('vi-db-sc-cards');if(!wrap)return;
       const ok=scenarios.filter(s=>s.status==='complete');
@@ -2089,15 +2282,13 @@
         const isWin=s.monthly_cost===minC&&ok.length>1;
         const isFastT=s.ttft_ms===minT&&ok.length>1;
         const bd=s.cost_breakdown||{};
-        // SLA
         let slaHTML='';
         if(slaThr){
-          if((s.ttft_ms||0)>slaThr)slaHTML=`<span class="vi-sla-warn">⚠ Exceeds ${slaKey.split('__')[1].replace(/_/g,' ')} SLA (${slaThr}ms max)</span>`;
+          if((s.ttft_ms||0)>slaThr)slaHTML=`<span class="vi-sla-warn">⚠ Exceeds SLA (${slaThr}ms max)</span>`;
           else slaHTML=`<span class="vi-sla-ok">✓ Meets SLA</span>`;
         }
-        // breakdown bars
         const barRow=(lbl,pct,cost,color)=>`<div class="vi-breakdown-row">
-          <span style="min-width:55px;color:var(--text-muted)">${lbl}</span>
+          <span style="min-width:50px;color:var(--text-muted)">${lbl}</span>
           <div class="vi-breakdown-bar-wrap"><div class="vi-breakdown-bar" style="width:${pct}%;background:${color}"></div></div>
           <span class="vi-breakdown-meta">${pct}% / ${fmt$(cost)}</span>
         </div>`;
@@ -2108,44 +2299,41 @@
             ${isWin?'<span class="vi-sc-winner-badge">✓ WINNER</span>':''}
           </div>
           <div class="vi-sc-result-body">
-            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">TTFT</span>
+            ${s.clip_used?`<div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.5rem">${s.clip_used} · ${s.analyze_duration_sec||'?'}s analyzed</div>`:''}
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">TTFT ${tip(TIPS.ttft)}</span>
               <span class="vi-sc-metric-val${isFastT?' vi-sc-metric-win':''}">${s.ttft_ms!=null?s.ttft_ms+' ms':'—'} ${slaHTML}</span></div>
-            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">TPS</span>
-              <span class="vi-sc-metric-val">${fmtN(s.tps)} tok/s</span></div>
-            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">Cost / query</span>
-              <span class="vi-sc-metric-val${isWin?' vi-sc-metric-win':''}">${fmt$(s.cost_per_query)}</span></div>
-            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">Cost / month</span>
-              <span class="vi-sc-metric-val${isWin?' vi-sc-metric-win':''}">${fmt$(s.monthly_cost)}</span></div>
-            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">QACS</span>
-              <span class="vi-sc-metric-val"><span class="${qCls}">${fmtN(s.qacs)} ${s.qacs>=60?'Good':s.qacs>=40?'Moderate':'Poor'}</span></span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">TPS ${tip(TIPS.tps)}</span><span class="vi-sc-metric-val">${fmtN(s.tps)} tok/s</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">Cost/query ${tip(TIPS.cost_per_query)}</span><span class="vi-sc-metric-val${isWin?' vi-sc-metric-win':''}">${fmt$(s.cost_per_query)}</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">Cost/month</span><span class="vi-sc-metric-val${isWin?' vi-sc-metric-win':''}">${fmt$(s.monthly_cost)}</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">QACS ${tip(TIPS.qacs)}</span><span class="vi-sc-metric-val"><span class="${qCls}">${fmtN(s.qacs)} ${s.qacs>=60?'Good':s.qacs>=40?'Moderate':'Poor'}</span></span></div>
             <div class="vi-breakdown-section">
-              <div class="vi-breakdown-lbl">COST BREAKDOWN</div>
+              <div class="vi-breakdown-lbl">COST BREAKDOWN ${tip(TIPS.video_tokens)}</div>
               ${barRow('Video',bd.video_pct||0,bd.video_cost,'#3B82F6')}
               ${barRow('Prompt',bd.prompt_pct||0,bd.prompt_cost,'#9CA3AF')}
               ${barRow('Output',bd.output_pct||0,bd.output_cost,'#F59E0B')}
-              <div class="vi-cost-src" style="margin-top:.4rem">Video tokens dominate cost for clips >10s. Reduce clip length to cut cost proportionally.</div>
+              ${(bd.video_pct||0)>80?'<div class="vi-cost-src" style="margin-top:.35rem">💡 Video tokens dominate — reducing clip duration cuts cost proportionally</div>':''}
             </div>
-            <button class="vi-edit-rerun" onclick="document.getElementById('vi-s4').scrollIntoView({behavior:'smooth'})">✎ Edit &amp; Re-run</button>
+            <button class="vi-edit-rerun" onclick="document.getElementById(\'vi-s4\').scrollIntoView({behavior:\'smooth\'})">✎ Edit &amp; Re-run</button>
           </div>
         </div>`;
       }).join('');
     }
 
-    // ── Section 3: Model Outputs ──────────────────────────────────
     function renderModelOutputs(scenarios){
       const hd=document.getElementById('vi-db-out-hd');
       const wrap=document.getElementById('vi-db-outputs');if(!wrap)return;
       const clip=scenarios[0]?.clip_used||'';
-      if(hd&&clip)hd.textContent=`WHAT THE MODELS SAID — ${clip}`;
+      const dur=scenarios[0]?.analyze_duration_sec||'';
+      if(hd)hd.textContent=`WHAT THE MODELS SAID${clip?' — '+clip+(dur?' · '+dur+'s':''):''}`;
       wrap.innerHTML=scenarios.map(s=>{
         if(s.status!=='complete')return`<div class="vi-output-card" style="flex:1;min-width:220px"><div class="vi-output-err">FAILED — ${s.error||'no response'}</div></div>`;
         const txt=s.response_text||'';
         const preview=txt.slice(0,300);const hasMore=txt.length>300;
         const id=`vi-out-full-${s.id}`;
         return`<div class="vi-output-card" style="flex:1;min-width:220px">
-          <div class="vi-output-card-head"><span>${s.name}</span><span>${s.clip_used||''}</span></div>
-          <div class="vi-output-card-body" id="${id}">${preview||'(no response text returned)'}${hasMore?'…':''}</div>
-          ${hasMore?`<div style="padding:.35rem .9rem"><button class="vi-output-toggle" onclick="VI.toggleOutput('${id}',this,'${encodeURIComponent(txt)}')">Show full response</button></div>`:''}
+          <div class="vi-output-card-head"><span>${s.name}</span><span style="font-size:.68rem;color:var(--text-muted)">${s.clip_used||''}</span></div>
+          <div class="vi-output-card-body" id="${id}">${preview||'(no response text returned)'}</div>
+          ${hasMore?`<div style="padding:.3rem .9rem"><button class="vi-output-toggle" onclick="VI.toggleOutput('${id}',this,'${encodeURIComponent(txt)}')">Show full response ▼</button></div>`:''}
           <div class="vi-output-meta">${s.output_tokens} output tokens · ${s.ttft_ms}ms TTFT</div>
         </div>`;
       }).join('');
@@ -2154,48 +2342,47 @@
       const el=document.getElementById(id);if(!el)return;
       const full=decodeURIComponent(encoded);
       const isShort=btn.textContent.startsWith('Show');
-      el.textContent=isShort?full:full.slice(0,300)+'…';
-      btn.textContent=isShort?'Show less':'Show full response';
+      el.textContent=isShort?full:full.slice(0,300);
+      btn.textContent=isShort?'Show less ▲':'Show full response ▼';
     }
 
-    // ── Section 4: Recommendation ─────────────────────────────────
     function renderRecommendation(scenarios){
       const wrap=document.getElementById('vi-db-rec');if(!wrap)return;
       const ok=scenarios.filter(s=>s.status==='complete');
-      if(!ok.length){wrap.innerHTML='<p style="color:var(--text-muted)">No successful scenarios to recommend from.</p>';return;}
+      if(!ok.length){wrap.innerHTML='<p style="color:var(--text-muted)">No successful scenarios.</p>';return;}
       const costs=ok.map(s=>s.monthly_cost),qacs=ok.map(s=>s.qacs);
       const minC=Math.min(...costs),maxC=Math.max(...costs);
       const costDelta=maxC/Math.max(minC,0.001);
       const minQ=Math.min(...qacs),maxQ=Math.max(...qacs);
       const qacsDelta=(maxQ-minQ)/Math.max(minQ,0.001);
-      const cheapest=ok[costs.indexOf(minC)];
-      const fastest=ok[qacs.indexOf(maxQ)];
-      // Lead sentence
+      const cheapest=ok[costs.indexOf(minC)],fastest=ok[qacs.indexOf(maxQ)];
       let lead,body;
       if(costDelta>5&&qacsDelta<0.20){
         lead=`Use ${cheapest.name} for your ${st.useCaseLbl||'workload'}.`;
-        body=`At ${getDailyVol(0).toLocaleString()} queries/day, ${cheapest.name} is ${costDelta.toFixed(1)}× cheaper than ${fastest.name} ($${cheapest.monthly_cost.toFixed(2)} vs $${ok.find(s=>s!==cheapest)?.monthly_cost.toFixed(2)||'?'}/month) with comparable performance. Video tokens account for ${cheapest.cost_breakdown?.video_pct||0}% of cost — reducing clip length will cut cost proportionally.`;
+        const other=ok.find(s=>s!==cheapest);
+        body=`At ${getDailyVol(0).toLocaleString()} queries/day, ${cheapest.name} is ${costDelta.toFixed(1)}× cheaper than ${other?.name||'the alternative'} ($${cheapest.monthly_cost.toFixed(2)} vs $${(other?.monthly_cost||0).toFixed(2)}/month) with comparable performance. Video tokens account for ${cheapest.cost_breakdown?.video_pct||0}% of cost — reducing analyze duration cuts cost proportionally.`;
       }else if(costDelta>5&&qacsDelta>=0.20){
         lead=`Trade-off: ${cheapest.name} is cheapest, ${fastest.name} leads on performance.`;
-        body=`${cheapest.name} is ${costDelta.toFixed(1)}× cheaper; ${fastest.name} leads on throughput (QACS ${(qacsDelta*100).toFixed(0)}% higher). For latency-sensitive workloads like ${st.useCaseLbl}, prioritize ${fastest.name}. For cost-optimized batch processing, use ${cheapest.name}.`;
+        body=`${cheapest.name} is ${costDelta.toFixed(1)}× cheaper; ${fastest.name} leads on throughput (QACS ${(qacsDelta*100).toFixed(0)}% higher). For latency-sensitive workloads, prioritize ${fastest.name}. For cost-optimized batch processing, use ${cheapest.name}.`;
       }else if(costDelta<2&&qacsDelta>0.20){
         lead=`Recommend ${fastest.name} — similar cost, better performance.`;
-        body=`Both scenarios cost similarly, but ${fastest.name} scores ${(qacsDelta*100).toFixed(0)}% higher QACS. At this workload the performance gain outweighs the marginal cost difference.`;
+        body=`Both scenarios cost similarly, but ${fastest.name} scores ${(qacsDelta*100).toFixed(0)}% higher QACS. The performance gain outweighs the marginal cost difference.`;
       }else{
         lead=`Results are workload-dependent.`;
-        body=`${cheapest.name} is marginally cheaper; ${fastest.name} is marginally faster. Review your SLA requirements to choose. Both models are viable for ${st.useCaseLbl}.`;
+        body=`${cheapest.name} is marginally cheaper; ${fastest.name} is marginally faster. Review your SLA requirements to choose.`;
       }
-      // Key lever
       const bd=cheapest.cost_breakdown||{};
-      const clipSec=st.scenarios[0]?.clipSec||30;const daily=getDailyVol(0);
+      const analyzeS=cheapest.analyze_duration_sec||30;
+      const daily=getDailyVol(0);
       let leverHTML='';
       if((bd.video_pct||0)>80){
-        const savePct=Math.round((1-30/Math.max(clipSec,30))*100);
-        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest cost lever: Clip length</strong><br>A ${clipSec}s clip costs ${Math.ceil(clipSec/30)}× more than a 30s clip. At ${daily.toLocaleString()} queries/day: 30s → $${(cheapest.cost_per_query*30/clipSec*daily*30).toFixed(2)}/mo vs ${clipSec}s → $${cheapest.monthly_cost.toFixed(2)}/mo</div>`;
-      }else if(daily>10000){
-        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest cost lever: Query volume</strong><br>At ${daily.toLocaleString()}/day, a 10% volume reduction saves $${(cheapest.monthly_cost*0.1).toFixed(2)}/month.</div>`;
+        const ratio=analyzeS/30;
+        const costAt30=cheapest.cost_per_query*30/analyzeS;
+        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest lever: Clip duration</strong><br>${analyzeS}s clip costs ${ratio.toFixed(1)}× vs 30s baseline. Halving duration halves your cost.<br>${analyzeS}s → $${cheapest.monthly_cost.toFixed(2)}/mo · 30s → $${(costAt30*daily*30).toFixed(2)}/mo</div>`;
+      }else if(costDelta>5){
+        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest lever: Model selection</strong><br>Switching to ${cheapest.name} saves ${costDelta.toFixed(1)}× at this workload.</div>`;
       }else{
-        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest cost lever: Model selection</strong><br>Switching to ${cheapest.name} saves ${costDelta.toFixed(1)}× at this workload.</div>`;
+        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest lever: Query volume</strong><br>At ${daily.toLocaleString()}/day, a 10% reduction saves $${(cheapest.monthly_cost*0.1).toFixed(2)}/month.</div>`;
       }
       const speed=ok.reduce((a,b)=>a.tps>b.tps?a:b);
       const value=ok.reduce((a,b)=>a.cost_per_query<b.cost_per_query?a:b);
@@ -2208,7 +2395,6 @@
       </div>`;
     }
 
-    // ── Section 5: Gruve Panel ────────────────────────────────────
     function renderGruvePanel(scenarios){
       const wrap=document.getElementById('vi-db-gruve');if(!wrap)return;
       const ok=scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
@@ -2216,13 +2402,13 @@
       const modelNames={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'};
       const rows=[
         ['Recommended model',best.name],
-        ['Direct API cost',`$${best.monthly_cost.toFixed(best.monthly_cost<1?4:2)} / month (at ${getDailyVol(0).toLocaleString()} queries/day)`],
+        ['Direct API cost',`$${best.monthly_cost.toFixed(best.monthly_cost<1?4:2)} / month (live-measured at ${getDailyVol(0).toLocaleString()} queries/day)`],
         ['On Gruve','Lower — confirm exact pricing with team'],
-        ['Infrastructure','Managed concurrency, no rate limit throttling'],
+        ['Infrastructure','Managed concurrency · No rate limit throttling'],
         ['Support','Dedicated onboarding for video workloads'],
       ].map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
       wrap.innerHTML=`<table class="vi-gruve-clean"><tbody>${rows}</tbody></table>
-        <p class="vi-gruve-note">* Gruve pricing confirmed on request. Direct API costs shown above are live-measured.</p>
+        <p class="vi-gruve-note">* Direct API costs are live-measured. Gruve infrastructure pricing confirmed on request.</p>
         <div class="vi-cta-row" style="margin-top:1.1rem">
           <a href="mailto:hello@gruve.ai" class="vi-cta-btn" style="text-decoration:none">TALK TO GRUVE →</a>
           <button class="vi-sec-btn" onclick="window.print()">Export PDF</button>
@@ -2234,19 +2420,38 @@
       if(!st.results)return;
       const sc=st.results.scenarios;
       const rates=[0,0.20,0.50];const months=Array.from({length:12},(_,i)=>i+1);
-      const header=['Scenario','Model','Clip','TTFT_ms','TPS','Cost_per_query','QACS','Monthly_cost',...rates.flatMap(r=>months.map(m=>`M${m}_growth${Math.round(r*100)}pct`))].join(',');
+      const header=['Scenario','Model','Clip','Duration_sec','TTFT_ms','TPS','Cost_per_query','QACS','Monthly_cost',...rates.flatMap(r=>months.map(m=>`M${m}_growth${Math.round(r*100)}pct`))].join(',');
       const rows=sc.map(s=>{
-        if(s.status!=='complete')return[s.name,s.model,s.clip_used||'','error'].join(',');
-        return[s.name,s.model,s.clip_used||'',s.ttft_ms,s.tps,s.cost_per_query,s.qacs,s.monthly_cost,...rates.flatMap(r=>months.map(m=>(s.monthly_cost*Math.pow(1+r,m-1)).toFixed(4)))].join(',');
+        if(s.status!=='complete')return[s.name,s.model,'','','error'].join(',');
+        return[s.name,s.model,s.clip_used||'',s.analyze_duration_sec||'',s.ttft_ms,s.tps,s.cost_per_query,s.qacs,s.monthly_cost,...rates.flatMap(r=>months.map(m=>(s.monthly_cost*Math.pow(1+r,m-1)).toFixed(4)))].join(',');
       });
       const blob=new Blob([[header,...rows].join('\n')],{type:'text/csv'});
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gruve_atlas_benchmark.csv';a.click();
     }
 
+    // ── Blurbs (unchanged) ────────────────────────────────────────
+    const BLURBS = {
+      sports_media__archive_search:`Sports archives process thousands of clips daily — game footage, press conferences, training sessions. The primary cost driver is sequence length: a 90-minute game costs ~170–190× more to process than a 30-second highlight. Typical archive queries run $0.01–$0.04 each — most teams don't know their per-clip cost until reconciliation. We'll show you exactly what your archive workload costs at scale.`,
+      sports_media__live_event:`Live analysis demands low TTFT — under 1 second in production environments. Concurrency spikes are brutal: 50,000 simultaneous queries during a championship vs 200 on a Tuesday. A 10× spike in concurrency can increase cost 3× during peak hours. We'll show you what your infrastructure needs to handle peak load without overpaying for idle capacity.`,
+      sports_media__highlights:`A standard 90-minute game yields 200–500 highlight candidates, each needing to be processed, ranked, and packaged within minutes of the final whistle. At ~$0.03 per query, that's $6–15 per game — compounding fast across a full season. We'll show you your monthly cost at your clip volume and what concurrency you actually need.`,
+      safety_ops__anomaly_detection:`Anomaly detection runs continuously — every camera, every shift, every day. A 500-camera facility running 30-second clip checks every minute generates 720,000 queries per day. At $0.005 per query, that's ~$3,600/day before optimization. Most operators have no idea what that costs to run on cloud AI. We'll show you.`,
+      safety_ops__incident_investigation:`Incident investigations process longer clips — 5 to 30 minutes — and need detailed, accurate outputs. A detailed 20-minute clip may cost $1.50 to analyze versus $0.04 for a short anomaly check. Sequence length drives cost here more than anywhere else. We'll show you your cost per investigation at your actual clip lengths.`,
+      safety_ops__compliance_monitoring:`Compliance workloads are predictable and high-volume. If each site runs 200 cameras at 1 clip per minute, monthly volume exceeds 8 million queries. That predictability is an advantage — you can model costs exactly. We'll show you your monthly spend across your full camera network and where the biggest optimization opportunities are.`,
+      retail__shelf_analytics:`Shelf analytics run on a schedule across every aisle, every store. At 50 stores with 20 aisles each, that's 96,000 queries per day — even before expansion. At $0.01 per query, that's ~$1K/day. Cost per query is everything at this volume. We'll show you what your network costs today and what it costs when you scale to 500 stores.`,
+      retail__customer_behavior:`Customer behavior analysis processes variable-length clips — a browsing session might be 45 seconds or 8 minutes. That variability affects token counts by more than 15× and makes cost unpredictable. Sub-2s response time is needed to adapt offers in real time. We'll show you cost and latency across your actual session length distribution.`,
+      retail__queue_traffic:`Queue analysis is time-critical — in a 200-store chain, a 3-minute detection delay can equal 600 lost sales per day. TTFT is your primary performance metric. Cost compounds across hundreds of entry points. We'll show you the tradeoff between latency and cost at your store footprint.`,
+      media__content_moderation:`Large platforms process 1–3 million videos daily. Maintaining sub-30-second moderation at that volume means sustaining 3,000+ concurrent AI threads. A backlog isn't a UX problem — it's a liability. We'll show you what it costs to maintain your moderation SLA at your upload volume without over-provisioning.`,
+      media__asset_tagging:`A 10-million asset library with average 2-minute clips represents ~40+ years of content. One-time processing at $0.02 per minute approaches $400K in initial cost — then ongoing for new ingestion. We'll show you your total processing cost and what monthly ingestion spend looks like as your library grows.`,
+      media__compliance_rights:`Rights compliance requires processing full-length content — feature films, full episodes, long-form interviews. One 2-hour film costs as much as 240 30-second clips to process. Studios re-checking 500 titles quarterly means 1,000+ hours of runtime compliance per cycle. We'll show you your cost per title and total quarterly compliance spend.`,
+      robotics__demonstration:`Robot training starts with human demonstrations — someone shows the robot how to do a task, on video. Each 10-minute demonstration clip may cost $2–3 to process into structured action sequences. At 5,000 demonstrations, that's ~$10K just to build your dataset — before training begins. We'll show you what your demonstration pipeline costs at your dataset scale.`,
+      robotics__instruction_grounding:`Grounding video demonstrations to text manuals requires reasoning across both modalities simultaneously — matching on-screen actions to written instructions. These workloads often exceed 2× tokens per input minute compared to standard vision tasks. We'll show you cost and latency benchmarks for your specific manual and video combination.`,
+      robotics__quality_validation:`Before a demonstration enters your training pipeline, it needs validation — was the action performed correctly? Was the manual followed? Validating 100K demonstrations monthly at $0.20 each is $20K in overhead alone. We'll show you what a validation pipeline costs at your dataset scale and where the latency bottlenecks are.`,
+    };
+
     // Init
     initConsumerGrid();
 
-    return{selConsumer,selUC,showS4,addSc,rmSc,onClip,onConc,selModel,selClip,onClipUpload,updateCost,runBenchmark,setGrowth,setScale,drawChart,toggleOutput,exportCSV};
+    return{selConsumer,selUC,showS4,addSc,rmSc,onDurSlide,onConcOverride,toggleConcOverride,selModel,selClip,onClipUpload,onDrop,switchClipTab,updateCost,runBenchmark,setGrowth,setScale,drawChart,toggleOutput,exportCSV};
   })();
   // ════════════════════════════════════════════════════════════════
 
