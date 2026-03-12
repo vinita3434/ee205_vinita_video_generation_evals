@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "run_id": "edc6156c-665b-4f1a-9808-cfda6479c132",
+    "timestamp": "2026-03-12T03:35:39.263349",
+    "consumer_type": "sports_media",
+    "use_case": "archive_search",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "gpt4o",
+        "ttft_ms": 5471,
+        "tps": 54.8,
+        "input_tokens": 54,
+        "output_tokens": 300,
+        "cost_per_query": 0.003135,
+        "monthly_cost": 94.05,
+        "qacs": 100,
+        "status": "complete",
+        "response_preview": "To effectively analyze sports archive footage for indexing, I would follow a structured approach. Here\u2019s how I would present the extracted information:\n\n1. **General Context:**\n   - **Sport:** [Sport "
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "ttft_ms": 2813,
+        "tps": 106.6,
+        "input_tokens": 46,
+        "output_tokens": 300,
+        "cost_per_query": 0.000125,
+        "monthly_cost": 3.74,
+        "qacs": 100,
+        "status": "complete",
+        "response_preview": "Okay, I'm ready to analyze your sports archive footage. To give you the best possible analysis, please provide me with the footage (you can describe it if you can't directly provide it).  The more det"
+      }
+    ]
+  },
+  {
+    "run_id": "aa8a72d2-71f8-4748-8370-d7b6da9fe718",
+    "timestamp": "2026-03-12T04:13:23.762158",
+    "consumer_type": "safety_ops",
+    "use_case": "anomaly_detection",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "gpt4o",
+        "ttft_ms": 1391,
+        "tps": 49.6,
+        "input_tokens": 60,
+        "output_tokens": 69,
+        "cost_per_query": 0.00084,
+        "monthly_cost": 604.8,
+        "qacs": 100,
+        "status": "complete",
+        "response_preview": "To accurately respond to your request, I need a visual input to analyze for anomalies. Since I cannot directly view video feeds or images, you would typically provide a description of behaviors or sce"
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "ttft_ms": 2578,
+        "tps": 116.4,
+        "input_tokens": 53,
+        "output_tokens": 300,
+        "cost_per_query": 0.000125,
+        "monthly_cost": 90.22,
+        "qacs": 100,
+        "status": "complete",
+        "response_preview": "Okay, I need more information to do this! I am a text-based model and cannot see or interpret a security camera feed.\n\nTo analyze the feed, I would need you to describe what you see in the camera feed"
+      }
+    ]
+  }
+]

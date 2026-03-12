@@ -700,6 +700,71 @@
   .vi-cta-row{display:flex;gap:.85rem;margin-top:1.25rem;flex-wrap:wrap}
   .vi-sec-btn{padding:.6rem 1.1rem;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text);font-family:inherit}
   .vi-sec-btn:hover{border-color:var(--accent);color:var(--accent)}
+  /* clip selector */
+  .vi-clip-btns{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
+  .vi-clip-btn{padding:.4rem .85rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;background:var(--bg);color:var(--text-dim);font-family:inherit;transition:all .15s}
+  .vi-clip-btn:hover{border-color:var(--accent-soft);color:var(--accent)}
+  .vi-clip-btn.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+  .vi-clip-info{font-size:.72rem;color:var(--text-muted);margin-top:.35rem;font-style:italic}
+  .vi-clip-note{font-size:.65rem;color:var(--text-muted);margin-top:.25rem}
+  .vi-file-in{font-size:.78rem;color:var(--text-dim);margin-top:.35rem;width:100%}
+  /* dashboard */
+  .vi-db-section{padding:1.75rem 0;border-bottom:1px solid var(--border)}
+  .vi-db-section:last-child{border-bottom:none}
+  .vi-db-hd{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.1rem}
+  .vi-db-breadcrumb{font-size:.82rem;color:var(--text-dim);margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  .vi-db-breadcrumb button{padding:.35rem .8rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:.75rem;cursor:pointer;color:var(--text-dim);font-family:inherit}
+  .vi-db-breadcrumb button:hover{border-color:var(--accent);color:var(--accent)}
+  .vi-cost-hero{display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:1rem}
+  .vi-cost-card{flex:1;min-width:160px;padding:1rem 1.25rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px}
+  .vi-cost-card.winner{border-color:var(--accent);background:var(--accent-dim)}
+  .vi-cost-card-name{font-size:.72rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.25rem}
+  .vi-cost-card-val{font-size:1.6rem;font-weight:700;color:var(--text);line-height:1.1}
+  .vi-cost-card-sub{font-size:.72rem;color:var(--text-muted);margin-top:.25rem}
+  .vi-cost-card-proj{font-size:.8rem;color:var(--text-dim);margin-top:.35rem}
+  .vi-cost-insight{font-size:.88rem;color:var(--text-dim);margin:.4rem 0 1rem;line-height:1.55}
+  .vi-sc-result-card{flex:1;min-width:260px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+  .vi-sc-result-card.winner{border-top:3px solid #7EE8A2}
+  .vi-sc-result-head{padding:.75rem 1rem;background:var(--surface-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .vi-sc-result-title{font-weight:700;font-size:.88rem;color:var(--text)}
+  .vi-sc-winner-badge{background:#7EE8A2;color:#0a0e1a;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.05em}
+  .vi-sc-result-body{padding:.9rem 1rem}
+  .vi-sc-metric-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.82rem}
+  .vi-sc-metric-row:last-child{border-bottom:none}
+  .vi-sc-metric-lbl{color:var(--text-muted)}
+  .vi-sc-metric-val{font-weight:600;color:var(--text);display:flex;align-items:center;gap:.35rem}
+  .vi-sc-metric-win{color:var(--accent)}
+  .vi-sc-metric-warn{color:#d97706}
+  .vi-sla-warn{font-size:.68rem;color:#d97706}
+  .vi-sla-ok{font-size:.68rem;color:#16a34a}
+  .vi-breakdown-section{margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border)}
+  .vi-breakdown-lbl{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.5rem}
+  .vi-breakdown-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;font-size:.72rem;color:var(--text-dim)}
+  .vi-breakdown-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+  .vi-breakdown-bar{height:100%;border-radius:4px;transition:width .3s}
+  .vi-breakdown-meta{min-width:70px;text-align:right;font-size:.68rem;color:var(--text-muted)}
+  .vi-edit-rerun{display:block;width:100%;margin-top:.85rem;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;font-size:.78rem;color:var(--text-muted);font-family:inherit;text-align:center}
+  .vi-edit-rerun:hover{border-color:var(--accent);color:var(--accent)}
+  .vi-failed-card{padding:1rem;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;color:#991b1b;font-size:.85rem}
+  .vi-output-cards{display:flex;gap:1rem;flex-wrap:wrap}
+  .vi-output-card{flex:1;min-width:220px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden}
+  .vi-output-card-head{padding:.6rem .9rem;background:var(--surface-elevated);border-bottom:1px solid var(--border);font-size:.75rem;font-weight:700;color:var(--text);display:flex;justify-content:space-between}
+  .vi-output-card-body{padding:.85rem .9rem;font-size:.82rem;color:var(--text-dim);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .vi-output-toggle{font-size:.72rem;color:var(--accent);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+  .vi-output-meta{font-size:.68rem;color:var(--text-muted);padding:.5rem .9rem;border-top:1px solid var(--border)}
+  .vi-output-err{padding:.85rem .9rem;font-size:.82rem;color:#991b1b;font-style:italic}
+  .vi-rec-full{border-left:4px solid var(--accent);padding:1.25rem 1.5rem;background:var(--surface);border-radius:0 12px 12px 0}
+  .vi-rec-lead{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.75rem;line-height:1.4}
+  .vi-rec-body{font-size:.9rem;color:var(--text-dim);line-height:1.7;margin-bottom:1rem}
+  .vi-lever-box{background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;margin-top:1rem;font-size:.85rem;color:var(--text-dim);line-height:1.6}
+  .vi-lever-box strong{color:var(--text)}
+  .vi-gruve-clean{font-size:.88rem}
+  .vi-gruve-clean tr td{padding:.55rem 0;border-bottom:1px solid var(--border)}
+  .vi-gruve-clean tr:last-child td{border-bottom:none}
+  .vi-gruve-clean td:first-child{color:var(--text-muted);width:220px}
+  .vi-gruve-clean td:last-child{font-weight:600;color:var(--text)}
+  .vi-gruve-note{font-size:.72rem;color:var(--text-muted);margin-top:.65rem;font-style:italic}
+  .vi-scale-pills{display:flex;gap:.4rem;margin-bottom:.5rem}
   @media print{.nav-bar,#tab-gen{display:none!important}#tab-vi{display:block!important}.vi-step:not(#vi-s5){display:none!important}#vi-s5{display:block!important}.vi-col-body{display:block!important}}
   </style>
 </head>
@@ -903,46 +968,60 @@
       </div>
     </div>
 
-    <!-- STEP 5: Results -->
+    <!-- STEP 5: Results Dashboard -->
     <div class="vi-step" id="vi-s5" style="display:none">
       <div class="vi-step-lbl">STEP 5 OF 5</div>
-      <h2 class="vi-h1" style="margin-bottom:1.25rem">RESULTS</h2>
-
-      <!-- Rec card (open by default) -->
-      <div class="vi-rec" id="vi-rec">
-        <div id="vi-rec-txt" style="color:var(--text-muted)">ANALYZING…</div>
-        <div class="vi-badges-row" id="vi-badges"></div>
+      <!-- breadcrumb + reconfigure -->
+      <div class="vi-db-breadcrumb" id="vi-db-bc">
+        <span id="vi-db-bc-text"></span>
+        <button onclick="document.getElementById('vi-s4').scrollIntoView({behavior:'smooth'})">↺ Reconfigure</button>
       </div>
 
-      <!-- Scenario comparison -->
-      <div class="vi-col-hd" onclick="VI.tog('vi-ct',this)">▶ SCENARIO COMPARISON</div>
-      <div class="vi-col-body" id="vi-ct"><div id="vi-tbl-wrap"></div></div>
-
-      <!-- 12-month projection -->
-      <div class="vi-col-hd" onclick="VI.tog('vi-cc',this)">▶ 12-MONTH COST PROJECTION</div>
-      <div class="vi-col-body" id="vi-cc">
-        <div class="vi-gpills">
-          <button class="vi-gpill" onclick="VI.setGrowth(0,this)">Flat 0%</button>
-          <button class="vi-gpill active" onclick="VI.setGrowth(0.20,this)">20% ← default</button>
-          <button class="vi-gpill" onclick="VI.setGrowth(0.50,this)">50%</button>
+      <!-- Section 1: Cost Projection -->
+      <div class="vi-db-section">
+        <div class="vi-db-hd">COST PROJECTION</div>
+        <div class="vi-cost-hero" id="vi-db-cost-cards"></div>
+        <div class="vi-cost-insight" id="vi-db-cost-insight"></div>
+        <div style="display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:.75rem;align-items:center">
+          <div class="vi-gpills" id="vi-db-gpills">
+            <button class="vi-gpill" onclick="VI.setGrowth(0,this)">Flat 0%</button>
+            <button class="vi-gpill active" onclick="VI.setGrowth(0.20,this)">20% ← default</button>
+            <button class="vi-gpill" onclick="VI.setGrowth(0.50,this)">50%</button>
+          </div>
+          <div class="vi-scale-pills">
+            <button class="vi-gpill" id="vi-sc-lin" onclick="VI.setScale('linear',this)">Linear</button>
+            <button class="vi-gpill active" id="vi-sc-log" onclick="VI.setScale('log',this)">Log scale</button>
+          </div>
         </div>
+        <div class="vi-chart-wrap" style="height:300px"><canvas id="vi-chart"></canvas></div>
         <div class="vi-opt-grid">
           <div><label>Your current cost/query (optional)</label><input type="number" id="vi-cur-cost" placeholder="e.g. 0.05" step="0.001" oninput="VI.drawChart()"></div>
           <div><label>Migration cost (optional, $)</label><input type="number" id="vi-mig-cost" placeholder="e.g. 50000" oninput="VI.drawChart()"></div>
         </div>
-        <div class="vi-chart-wrap"><canvas id="vi-chart"></canvas></div>
       </div>
 
-      <!-- Gruve Advantage -->
-      <div class="vi-col-hd" onclick="VI.tog('vi-cg2',this)">▶ YOUR WORKLOAD ON GRUVE</div>
-      <div class="vi-col-body" id="vi-cg2">
-        <table class="vi-gruve-tbl" id="vi-gt"></table>
-        <p style="font-size:.75rem;color:var(--text-muted);margin-top:.65rem;font-style:italic">All Gruve figures are estimates. Exact pricing confirmed on request.</p>
-        <div class="vi-cta-row">
-          <button class="vi-cta-btn" onclick="alert('Talk to Gruve — coming soon!')">Talk to Gruve →</button>
-          <button class="vi-sec-btn" onclick="window.print()">Export as PDF</button>
-          <button class="vi-sec-btn" onclick="VI.exportCSV()">Export as CSV</button>
-        </div>
+      <!-- Section 2: Scenario Result Cards -->
+      <div class="vi-db-section">
+        <div class="vi-db-hd">SCENARIO RESULTS — ACTUAL COST (LIVE RUN)</div>
+        <div id="vi-db-sc-cards" style="display:flex;gap:1rem;flex-wrap:wrap"></div>
+      </div>
+
+      <!-- Section 3: Model Outputs -->
+      <div class="vi-db-section">
+        <div class="vi-db-hd" id="vi-db-out-hd">WHAT THE MODELS SAID</div>
+        <div class="vi-output-cards" id="vi-db-outputs"></div>
+      </div>
+
+      <!-- Section 4: Recommendation -->
+      <div class="vi-db-section">
+        <div class="vi-db-hd">RECOMMENDATION</div>
+        <div id="vi-db-rec"></div>
+      </div>
+
+      <!-- Section 5: Gruve Panel -->
+      <div class="vi-db-section">
+        <div class="vi-db-hd">YOUR WORKLOAD ON GRUVE</div>
+        <div id="vi-db-gruve"></div>
       </div>
     </div>
 
@@ -1576,10 +1655,10 @@
       consumer: null, consumerLbl: null,
       useCase: null, useCaseLbl: null,
       scenarios: [
-        { id:'s1', name:'GPT-4o',          model:'gpt4o',  clipSec:30, conc:10 },
-        { id:'s2', name:'Gemini 2.0 Flash', model:'gemini', clipSec:30, conc:10 },
+        { id:'s1', name:'GPT-4o',          model:'gpt4o',  clipSec:30, conc:10, clipName:null, clipData:null, clipMime:null, clipLabel:null },
+        { id:'s2', name:'Gemini 2.0 Flash', model:'gemini', clipSec:30, conc:10, clipName:null, clipData:null, clipMime:null, clipLabel:null },
       ],
-      results: null, growthRate: 0.20, chartInst: null,
+      results: null, growthRate: 0.20, chartInst: null, chartScale: 'linear',
     };
 
     const CONSUMERS = [
@@ -1737,6 +1816,31 @@
       wrap.innerHTML=st.scenarios.map((s,i)=>scCard(s,i,uc)).join('')+
         (st.scenarios.length<3?`<button class="vi-add-sc" onclick="VI.addSc()">+ Add Scenario</button>`:'');
       setTimeout(()=>st.scenarios.forEach((_,i)=>updateCost(i)),0);
+      checkClipValidation();
+    }
+
+    const SLA_THRESHOLDS = {
+      'sports_media__live_event':1000,
+      'retail__queue_traffic':2000,
+      'safety_ops__anomaly_detection':3000,
+    };
+
+    function clipSelectorHTML(idx){
+      const n=idx+1;const isSports=st.consumer==='sports_media';
+      const sel=st.scenarios[idx]||{};const lbl=sel.clipLabel||'';
+      if(isSports){
+        return `<div class="vi-sec-lbl">F — Sample Clip</div>
+          <div class="vi-clip-btns">
+            <button class="vi-clip-btn${lbl==='NBA Highlight'?' selected':''}" onclick="VI.selClip(${idx},'nba_highlight.mp4','🏀 NBA Highlight',30)">🏀 NBA Highlight · 30s</button>
+            <button class="vi-clip-btn${lbl==='NFL Play'?' selected':''}" onclick="VI.selClip(${idx},'nfl_highlight.mp4','🏈 NFL Play',15)">🏈 NFL Play · 15s</button>
+          </div>
+          ${lbl?`<div class="vi-clip-info">✓ Selected: ${lbl}</div>`:'<div class="vi-clip-info" id="vi-clip-info-s${n}" style="color:#d97706">⚠ Select a clip to enable Run</div>'}
+          <div class="vi-clip-note">This clip will be sent to the model API for live inferencing. Capped at 20 frames for benchmarking.</div>`;
+      }
+      return `<div class="vi-sec-lbl">F — Sample Clip</div>
+        <input type="file" class="vi-file-in" accept=".mp4,.mov" onchange="VI.onClipUpload(${idx},this)" id="vi-file-s${n}">
+        ${lbl?`<div class="vi-clip-info">✓ Selected: ${lbl}</div>`:'<div class="vi-clip-info" id="vi-clip-info-s${n}" style="color:#d97706">⚠ Select a clip to enable Run</div>'}
+        <div class="vi-clip-note">This clip will be sent to the model API for live inferencing. Capped at 20 frames for benchmarking.</div>`;
     }
 
     function scCard(s,idx,uc){
@@ -1752,10 +1856,11 @@
         <div class="vi-sc-body">
           <div class="vi-sec-lbl">A — Model</div>
           <div class="vi-model-pills">${models.map(m=>`<button class="vi-mpill${s.model===m.k?' selected':''}" onclick="VI.selModel(${idx},'${m.k}',this)">${m.l}</button>`).join('')}</div>
+          ${clipSelectorHTML(idx)}
           <div class="vi-sec-lbl">B — Core Workload</div>
           <div class="vi-sl"><label>Clip length: <strong id="vi-cv-s${n}">${clip}s</strong></label>
             <input type="range" min="5" max="3600" value="${clip}" oninput="VI.onClip(${idx},this.value)">
-            <div class="vi-derive" id="vi-ct-s${n}">≈ ${clip*258} input tokens</div>
+            <div class="vi-derive" id="vi-ct-s${n}">≈ ${clip*258} input tokens (estimated)</div>
           </div>
           <div class="vi-sl"><label>Concurrency: <strong id="vi-cc-s${n}">${s.conc}</strong></label>
             <input type="range" min="1" max="500" value="${s.conc}" oninput="VI.onConc(${idx},this.value)">
@@ -1769,7 +1874,7 @@
             <div class="vi-cost-row"><span>Daily cost</span><span class="v" id="vi-dc-s${n}">—</span></div>
             <div class="vi-cost-row"><span>Monthly cost</span><span class="v" id="vi-mc-s${n}">—</span></div>
             <div class="vi-cost-row"><span>Annual cost</span><span class="v" id="vi-ac-s${n}">—</span></div>
-            <div class="vi-cost-src">Pricing: OpenAI / Google AI / SiliconFlow (March 2026)</div>
+            <div class="vi-cost-src">Estimated cost — actual shown in Results after run</div>
           </div>
         </div>
       </div>`;
@@ -1818,10 +1923,35 @@
       const defaults=[{name:'GPT-4o',model:'gpt4o'},{name:'Gemini 2.0 Flash',model:'gemini'},{name:'Qwen VL',model:'qwen'}];
       const i=st.scenarios.length;const d=defaults[i]||{name:`Scenario ${i+1}`,model:'qwen'};
       const uc=UC_PARAMS[ucKey()];
-      st.scenarios.push({id:`s${i+1}`,name:d.name,model:d.model,clipSec:uc?uc.clip_default:30,conc:10});
+      st.scenarios.push({id:`s${i+1}`,name:d.name,model:d.model,clipSec:uc?uc.clip_default:30,conc:10,clipName:null,clipData:null,clipMime:null,clipLabel:null});
       renderScenarios();
     }
     function rmSc(idx){st.scenarios.splice(idx,1);renderScenarios();}
+
+    // ── Clip selection ────────────────────────────────────────────
+    function selClip(idx,name,label,sec){
+      st.scenarios[idx].clipName=name;st.scenarios[idx].clipData=null;
+      st.scenarios[idx].clipLabel=label;st.scenarios[idx].clipSec=sec;
+      renderScenarios();
+    }
+    function onClipUpload(idx,input){
+      const file=input.files[0];if(!file)return;
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const b64=e.target.result.split(',')[1];
+        st.scenarios[idx].clipData=b64;st.scenarios[idx].clipName=null;
+        st.scenarios[idx].clipMime=file.type;st.scenarios[idx].clipLabel=file.name;
+        st.scenarios[idx].clipSec=30;// estimate
+        const info=document.getElementById(`vi-clip-info-s${idx+1}`);
+        if(info){info.textContent=`✓ Selected: ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;info.style.color='';}
+        checkClipValidation();
+      };
+      reader.readAsDataURL(file);
+    }
+    function checkClipValidation(){
+      const allHaveClip=st.scenarios.every(s=>s.clipName||s.clipData);
+      const btn=document.getElementById('vi-run-btn');if(btn)btn.disabled=!allHaveClip;
+    }
 
     async function runBenchmark(){
       const btn=document.getElementById('vi-run-btn');
@@ -1829,10 +1959,13 @@
       const uc=UC_PARAMS[ucKey()];
       const payload=st.scenarios.map((s,i)=>{
         const p=getParams(i);const daily=uc?uc.daily_volume(p):100;
-        return{id:s.id,name:document.getElementById(`vi-nm-s${i+1}`)?.value||s.name,
+        const base={id:s.id,name:document.getElementById(`vi-nm-s${i+1}`)?.value||s.name,
           model:s.model,clip_length_sec:s.clipSec||(uc?uc.clip_default:30),
           daily_volume:daily,concurrency:s.conc||10,
           assembled_prompt:PROMPTS[ucKey()]||s.name,use_case_params:p};
+        if(s.clipName)base.clip_name=s.clipName;
+        if(s.clipData){base.clip_data_b64=s.clipData;base.clip_mime_type=s.clipMime||'video/mp4';}
+        return base;
       });
       try{
         const r=await fetch('http://localhost:8002/benchmark',{
@@ -1841,7 +1974,7 @@
         });
         const data=await r.json();st.results=data;showS5(data);
       }catch(e){
-        alert('Cannot reach Video Intelligence backend (port 8002). Run: uvicorn video_intelligence_mvp.backend.main:app --port 8002');
+        alert('Cannot reach Video Intelligence backend (port 8002).\nRun: uvicorn video_intelligence_mvp.backend.main:app --port 8002');
       }finally{
         if(btn){btn.disabled=false;btn.textContent='▶ RUN VIDEO INTELLIGENCE →';}
       }
@@ -1850,99 +1983,261 @@
     function showS5(data){
       const s5=document.getElementById('vi-s5');s5.style.display='block';
       s5.scrollIntoView({behavior:'smooth',block:'start'});
-      renderRec(data.scenarios);renderTable(data.scenarios);drawChart();renderGruve(data.scenarios);
+      renderDBHeader(data);renderCostSection(data.scenarios);
+      renderScenarioCards(data.scenarios);renderModelOutputs(data.scenarios);
+      renderRecommendation(data.scenarios);renderGruvePanel(data.scenarios);
     }
 
-    function renderRec(scenarios){
-      const ok=scenarios.filter(s=>s.status==='complete');
-      const txt=document.getElementById('vi-rec-txt');const badges=document.getElementById('vi-badges');
-      if(!ok.length){if(txt)txt.textContent='All scenarios returned errors. Check API key and backend.';return;}
-      const costs=ok.map(s=>s.monthly_cost),qacs=ok.map(s=>s.qacs);
+    function renderDBHeader(data){
+      const bc=document.getElementById('vi-db-bc-text');if(!bc)return;
+      const clip=data.scenarios[0]?.clip_used||'';
+      const uc=UC_PARAMS[ucKey()];const daily=uc?uc.daily_volume(getParams(0)):100;
+      bc.textContent=`${st.consumerLbl} · ${st.useCaseLbl}${clip?' · '+clip:''} · ${daily.toLocaleString()} queries/day`;
+    }
+
+    // ── Section 1: Cost Projection ────────────────────────────────
+    function renderCostSection(scenarios){
+      const ok=scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
+      const costs=ok.map(s=>s.monthly_cost);
       const minC=Math.min(...costs),maxC=Math.max(...costs);
-      const costDelta=maxC/Math.max(minC,0.001);
-      const minQ=Math.min(...qacs),maxQ=Math.max(...qacs);
-      const qacsDelta=(maxQ-minQ)/Math.max(minQ,0.001);
-      const cheapest=ok[costs.indexOf(minC)],fastest=ok[qacs.indexOf(maxQ)];
-      let rec;
-      if(costDelta>5&&qacsDelta<0.20)rec=`Strong recommendation: ${cheapest.name}. ${costDelta.toFixed(1)}× cheaper with comparable performance.`;
-      else if(costDelta>5&&qacsDelta>=0.20)rec=`Trade-off decision: ${cheapest.name} is ${costDelta.toFixed(1)}× cheaper; ${fastest.name} leads on throughput. For latency-sensitive workloads, prioritize ${fastest.name}.`;
-      else if(costDelta<2&&qacsDelta>0.20)rec=`Recommend ${fastest.name} — similar cost but ${(qacsDelta*100).toFixed(0)}% higher QACS.`;
-      else rec=`Results are workload-dependent. ${cheapest.name} is marginally cheaper; ${fastest.name} is marginally faster. Choose based on your SLA requirements.`;
-      if(txt)txt.textContent=rec;
-      const speed=ok.reduce((a,b)=>a.tps>b.tps?a:b);
-      const value=ok.reduce((a,b)=>a.cost_per_query<b.cost_per_query?a:b);
-      const qacsL=ok.reduce((a,b)=>a.qacs>b.qacs?a:b);
-      if(badges)badges.innerHTML=[`<span class="vi-bpill">⚡ Speed Leader: ${speed.name}</span>`,`<span class="vi-bpill">💰 Value Leader: ${value.name}</span>`,`<span class="vi-bpill">◆ QACS Leader: ${qacsL.name}</span>`].join('');
-    }
-
-    function renderTable(scenarios){
-      const wrap=document.getElementById('vi-tbl-wrap');if(!wrap)return;
-      const fmt$=v=>v!=null?'$'+v.toFixed(v<0.01?6:2):'—';
-      const fmtN=v=>v!=null?v.toFixed(1):'—';
-      const metrics=[
-        {l:'TTFT (ms)',k:'ttft_ms',lo:true,f:fmtN},
-        {l:'TPS (tok/s)',k:'tps',lo:false,f:fmtN},
-        {l:'Cost / query',k:'cost_per_query',lo:true,f:fmt$},
-        {l:'Cost / month',k:'monthly_cost',lo:true,f:fmt$},
-        {l:'QACS',k:'qacs',lo:false,f:v=>{if(v==null)return'—';const cl=v>=60?'vi-qg':v>=40?'vi-qm':'vi-qb';return`<span class="${cl}">${v.toFixed(1)} ${v>=60?'Good':v>=40?'Moderate':'Poor'}</span>`;}},
-      ];
-      const head=`<thead><tr><th>Metric</th>${scenarios.map(s=>`<th>${s.name}</th>`).join('')}</tr></thead>`;
-      const body=metrics.map(m=>{
-        const vals=scenarios.map(s=>s[m.k]);
-        const avail=vals.filter(v=>v!=null);if(!avail.length)return`<tr><td><strong>${m.l}</strong></td>${scenarios.map(()=>`<td class="vi-pend">—</td>`).join('')}</tr>`;
-        const best=m.lo?Math.min(...avail):Math.max(...avail);
-        const cells=scenarios.map(s=>{const v=s[m.k];const isBest=v===best&&avail.filter(x=>x===best).length<avail.length;return`<td class="${v==null?'vi-pend':isBest?'vi-win':''}">${m.f(v)}</td>`;}).join('');
-        return`<tr><td><strong>${m.l}</strong></td>${cells}</tr>`;
+      const cheapest=ok[costs.indexOf(minC)];
+      const COLORS=['#3B82F6','#7EE8A2','#F59E0B'];
+      const cards=document.getElementById('vi-db-cost-cards');if(!cards)return;
+      cards.innerHTML=ok.map((s,i)=>{
+        const proj=s.monthly_cost*Math.pow(1+st.growthRate,11);
+        const isWin=s===cheapest&&ok.length>1;
+        return`<div class="vi-cost-card${isWin?' winner':''}">
+          <div class="vi-cost-card-name">${s.name}</div>
+          <div class="vi-cost-card-val" style="color:${COLORS[i]||'#64748b'}">$${s.monthly_cost.toFixed(s.monthly_cost<1?4:2)}/mo</div>
+          <div class="vi-cost-card-sub">at ${Math.round(st.growthRate*100)}% growth</div>
+          <div class="vi-cost-card-proj">→ $${proj.toFixed(proj<1?4:2)} by M12${isWin?' ✓':''}</div>
+        </div>`;
       }).join('');
-      wrap.innerHTML=`<table class="vi-tbl">${head}<tbody>${body}</tbody></table>`;
+      const insight=document.getElementById('vi-db-cost-insight');
+      if(insight&&ok.length>1){
+        const delta=maxC/Math.max(minC,0.001);
+        const second=ok.find(s=>s!==cheapest);
+        const save=(second?second.monthly_cost*Math.pow(1+st.growthRate,11):0)-(cheapest.monthly_cost*Math.pow(1+st.growthRate,11));
+        insight.textContent=`${cheapest.name} saves you ~$${save.toFixed(save<1?2:0)}/month by M12 at ${Math.round(st.growthRate*100)}% growth`;
+      }
+      // Auto-use log scale if cost delta > 10×
+      const delta=maxC/Math.max(minC,0.001);
+      if(delta>10)st.chartScale='log'; else st.chartScale='linear';
+      syncScalePills();
+      drawChart();
     }
 
     function setGrowth(rate,btn){
       st.growthRate=rate;
-      document.querySelectorAll('.vi-gpill').forEach(p=>p.classList.remove('active'));
-      btn.classList.add('active');drawChart();
+      document.querySelectorAll('#vi-db-gpills .vi-gpill').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      if(st.results)renderCostSection(st.results.scenarios);
+    }
+
+    function setScale(scale,btn){
+      st.chartScale=scale;syncScalePills();drawChart();
+    }
+    function syncScalePills(){
+      const lin=document.getElementById('vi-sc-lin'),log=document.getElementById('vi-sc-log');
+      if(lin)lin.classList.toggle('active',st.chartScale!=='log');
+      if(log)log.classList.toggle('active',st.chartScale==='log');
     }
 
     function drawChart(){
       if(!st.results)return;
       const ok=st.results.scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
       const labels=Array.from({length:12},(_,i)=>`M${i+1}`);
-      const COLORS=['#0040F2','#64748b','#d97706'];
+      const COLORS=['#3B82F6','#7EE8A2','#F59E0B'];
       const r=st.growthRate;
-      const datasets=ok.map((s,i)=>({label:s.name,data:labels.map((_,m)=>parseFloat((s.monthly_cost*Math.pow(1+r,m)).toFixed(2))),borderColor:COLORS[i]||'#999',backgroundColor:'transparent',tension:.2,fill:false}));
+      const datasets=ok.map((s,i)=>({
+        label:s.name,
+        data:labels.map((_,m)=>parseFloat((s.monthly_cost*Math.pow(1+r,m)).toFixed(6))),
+        borderColor:COLORS[i]||'#999',backgroundColor:'transparent',tension:.2,fill:false,
+      }));
       const curCost=parseFloat(document.getElementById('vi-cur-cost')?.value||'');
-      if(!isNaN(curCost)&&curCost>0){
-        const uc=UC_PARAMS[ucKey()];const daily=uc?uc.daily_volume(getParams(0)):ok[0].monthly_cost/30/ok[0].cost_per_query;
-        const curMonthly=curCost*daily*30;
-        datasets.push({label:'Current provider',data:labels.map(()=>+curMonthly.toFixed(2)),borderColor:'#dc2626',borderDash:[5,5],backgroundColor:'transparent',tension:0,fill:false});
+      if(!isNaN(curCost)&&curCost>0&&ok[0]){
+        const daily=ok[0].monthly_cost/Math.max(ok[0].cost_per_query*30,0.001);
+        datasets.push({label:'Current provider',data:labels.map(()=>+(curCost*daily*30).toFixed(2)),borderColor:'#dc2626',borderDash:[5,5],backgroundColor:'transparent',tension:0,fill:false});
       }
       const ctx=document.getElementById('vi-chart');if(!ctx)return;
       if(st.chartInst)st.chartInst.destroy();
-      st.chartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569'}}},scales:{x:{ticks:{color:'#64748b'}},y:{beginAtZero:true,ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#e2e8f0'}}}}});
+      const useLog=st.chartScale==='log';
+      st.chartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:'#475569'}}},
+        scales:{
+          x:{ticks:{color:'#64748b'}},
+          y:{type:useLog?'logarithmic':'linear',beginAtZero:!useLog,
+            ticks:{color:'#64748b',callback:v=>'$'+parseFloat(v).toFixed(v<0.01?4:v<1?2:0)},
+            grid:{color:'#e2e8f0'}},
+        },
+      }});
     }
 
-    function renderGruve(scenarios){
+    // ── Section 2: Scenario result cards ─────────────────────────
+    function renderScenarioCards(scenarios){
+      const wrap=document.getElementById('vi-db-sc-cards');if(!wrap)return;
+      const ok=scenarios.filter(s=>s.status==='complete');
+      if(!ok.length){wrap.innerHTML='<p style="color:var(--text-muted);font-size:.88rem">All scenarios failed. Check backend logs.</p>';return;}
+      const costs=ok.map(s=>s.monthly_cost);const minC=Math.min(...costs);
+      const ttfts=ok.map(s=>s.ttft_ms||Infinity);const minT=Math.min(...ttfts);
+      const slaKey=ucKey();const slaThr=SLA_THRESHOLDS[slaKey];
+      const fmt$=v=>v!=null?'$'+v.toFixed(v<0.0001?6:v<0.01?4:2):'—';
+      const fmtN=v=>v!=null?v.toFixed(1):'—';
+      wrap.innerHTML=scenarios.map(s=>{
+        if(s.status!=='complete')return`<div class="vi-failed-card" style="flex:1;min-width:260px"><strong>FAILED: ${s.name}</strong><br>${s.error||'Unknown error'}</div>`;
+        const isWin=s.monthly_cost===minC&&ok.length>1;
+        const isFastT=s.ttft_ms===minT&&ok.length>1;
+        const bd=s.cost_breakdown||{};
+        // SLA
+        let slaHTML='';
+        if(slaThr){
+          if((s.ttft_ms||0)>slaThr)slaHTML=`<span class="vi-sla-warn">⚠ Exceeds ${slaKey.split('__')[1].replace(/_/g,' ')} SLA (${slaThr}ms max)</span>`;
+          else slaHTML=`<span class="vi-sla-ok">✓ Meets SLA</span>`;
+        }
+        // breakdown bars
+        const barRow=(lbl,pct,cost,color)=>`<div class="vi-breakdown-row">
+          <span style="min-width:55px;color:var(--text-muted)">${lbl}</span>
+          <div class="vi-breakdown-bar-wrap"><div class="vi-breakdown-bar" style="width:${pct}%;background:${color}"></div></div>
+          <span class="vi-breakdown-meta">${pct}% / ${fmt$(cost)}</span>
+        </div>`;
+        const qCls=s.qacs>=60?'vi-qg':s.qacs>=40?'vi-qm':'vi-qb';
+        return`<div class="vi-sc-result-card${isWin?' winner':''}" style="flex:1;min-width:260px">
+          <div class="vi-sc-result-head">
+            <span class="vi-sc-result-title">${s.name}</span>
+            ${isWin?'<span class="vi-sc-winner-badge">✓ WINNER</span>':''}
+          </div>
+          <div class="vi-sc-result-body">
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">TTFT</span>
+              <span class="vi-sc-metric-val${isFastT?' vi-sc-metric-win':''}">${s.ttft_ms!=null?s.ttft_ms+' ms':'—'} ${slaHTML}</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">TPS</span>
+              <span class="vi-sc-metric-val">${fmtN(s.tps)} tok/s</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">Cost / query</span>
+              <span class="vi-sc-metric-val${isWin?' vi-sc-metric-win':''}">${fmt$(s.cost_per_query)}</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">Cost / month</span>
+              <span class="vi-sc-metric-val${isWin?' vi-sc-metric-win':''}">${fmt$(s.monthly_cost)}</span></div>
+            <div class="vi-sc-metric-row"><span class="vi-sc-metric-lbl">QACS</span>
+              <span class="vi-sc-metric-val"><span class="${qCls}">${fmtN(s.qacs)} ${s.qacs>=60?'Good':s.qacs>=40?'Moderate':'Poor'}</span></span></div>
+            <div class="vi-breakdown-section">
+              <div class="vi-breakdown-lbl">COST BREAKDOWN</div>
+              ${barRow('Video',bd.video_pct||0,bd.video_cost,'#3B82F6')}
+              ${barRow('Prompt',bd.prompt_pct||0,bd.prompt_cost,'#9CA3AF')}
+              ${barRow('Output',bd.output_pct||0,bd.output_cost,'#F59E0B')}
+              <div class="vi-cost-src" style="margin-top:.4rem">Video tokens dominate cost for clips >10s. Reduce clip length to cut cost proportionally.</div>
+            </div>
+            <button class="vi-edit-rerun" onclick="document.getElementById('vi-s4').scrollIntoView({behavior:'smooth'})">✎ Edit &amp; Re-run</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Section 3: Model Outputs ──────────────────────────────────
+    function renderModelOutputs(scenarios){
+      const hd=document.getElementById('vi-db-out-hd');
+      const wrap=document.getElementById('vi-db-outputs');if(!wrap)return;
+      const clip=scenarios[0]?.clip_used||'';
+      if(hd&&clip)hd.textContent=`WHAT THE MODELS SAID — ${clip}`;
+      wrap.innerHTML=scenarios.map(s=>{
+        if(s.status!=='complete')return`<div class="vi-output-card" style="flex:1;min-width:220px"><div class="vi-output-err">FAILED — ${s.error||'no response'}</div></div>`;
+        const txt=s.response_text||'';
+        const preview=txt.slice(0,300);const hasMore=txt.length>300;
+        const id=`vi-out-full-${s.id}`;
+        return`<div class="vi-output-card" style="flex:1;min-width:220px">
+          <div class="vi-output-card-head"><span>${s.name}</span><span>${s.clip_used||''}</span></div>
+          <div class="vi-output-card-body" id="${id}">${preview||'(no response text returned)'}${hasMore?'…':''}</div>
+          ${hasMore?`<div style="padding:.35rem .9rem"><button class="vi-output-toggle" onclick="VI.toggleOutput('${id}',this,'${encodeURIComponent(txt)}')">Show full response</button></div>`:''}
+          <div class="vi-output-meta">${s.output_tokens} output tokens · ${s.ttft_ms}ms TTFT</div>
+        </div>`;
+      }).join('');
+    }
+    function toggleOutput(id,btn,encoded){
+      const el=document.getElementById(id);if(!el)return;
+      const full=decodeURIComponent(encoded);
+      const isShort=btn.textContent.startsWith('Show');
+      el.textContent=isShort?full:full.slice(0,300)+'…';
+      btn.textContent=isShort?'Show less':'Show full response';
+    }
+
+    // ── Section 4: Recommendation ─────────────────────────────────
+    function renderRecommendation(scenarios){
+      const wrap=document.getElementById('vi-db-rec');if(!wrap)return;
+      const ok=scenarios.filter(s=>s.status==='complete');
+      if(!ok.length){wrap.innerHTML='<p style="color:var(--text-muted)">No successful scenarios to recommend from.</p>';return;}
+      const costs=ok.map(s=>s.monthly_cost),qacs=ok.map(s=>s.qacs);
+      const minC=Math.min(...costs),maxC=Math.max(...costs);
+      const costDelta=maxC/Math.max(minC,0.001);
+      const minQ=Math.min(...qacs),maxQ=Math.max(...qacs);
+      const qacsDelta=(maxQ-minQ)/Math.max(minQ,0.001);
+      const cheapest=ok[costs.indexOf(minC)];
+      const fastest=ok[qacs.indexOf(maxQ)];
+      // Lead sentence
+      let lead,body;
+      if(costDelta>5&&qacsDelta<0.20){
+        lead=`Use ${cheapest.name} for your ${st.useCaseLbl||'workload'}.`;
+        body=`At ${getDailyVol(0).toLocaleString()} queries/day, ${cheapest.name} is ${costDelta.toFixed(1)}× cheaper than ${fastest.name} ($${cheapest.monthly_cost.toFixed(2)} vs $${ok.find(s=>s!==cheapest)?.monthly_cost.toFixed(2)||'?'}/month) with comparable performance. Video tokens account for ${cheapest.cost_breakdown?.video_pct||0}% of cost — reducing clip length will cut cost proportionally.`;
+      }else if(costDelta>5&&qacsDelta>=0.20){
+        lead=`Trade-off: ${cheapest.name} is cheapest, ${fastest.name} leads on performance.`;
+        body=`${cheapest.name} is ${costDelta.toFixed(1)}× cheaper; ${fastest.name} leads on throughput (QACS ${(qacsDelta*100).toFixed(0)}% higher). For latency-sensitive workloads like ${st.useCaseLbl}, prioritize ${fastest.name}. For cost-optimized batch processing, use ${cheapest.name}.`;
+      }else if(costDelta<2&&qacsDelta>0.20){
+        lead=`Recommend ${fastest.name} — similar cost, better performance.`;
+        body=`Both scenarios cost similarly, but ${fastest.name} scores ${(qacsDelta*100).toFixed(0)}% higher QACS. At this workload the performance gain outweighs the marginal cost difference.`;
+      }else{
+        lead=`Results are workload-dependent.`;
+        body=`${cheapest.name} is marginally cheaper; ${fastest.name} is marginally faster. Review your SLA requirements to choose. Both models are viable for ${st.useCaseLbl}.`;
+      }
+      // Key lever
+      const bd=cheapest.cost_breakdown||{};
+      const clipSec=st.scenarios[0]?.clipSec||30;const daily=getDailyVol(0);
+      let leverHTML='';
+      if((bd.video_pct||0)>80){
+        const savePct=Math.round((1-30/Math.max(clipSec,30))*100);
+        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest cost lever: Clip length</strong><br>A ${clipSec}s clip costs ${Math.ceil(clipSec/30)}× more than a 30s clip. At ${daily.toLocaleString()} queries/day: 30s → $${(cheapest.cost_per_query*30/clipSec*daily*30).toFixed(2)}/mo vs ${clipSec}s → $${cheapest.monthly_cost.toFixed(2)}/mo</div>`;
+      }else if(daily>10000){
+        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest cost lever: Query volume</strong><br>At ${daily.toLocaleString()}/day, a 10% volume reduction saves $${(cheapest.monthly_cost*0.1).toFixed(2)}/month.</div>`;
+      }else{
+        leverHTML=`<div class="vi-lever-box">💡 <strong>Biggest cost lever: Model selection</strong><br>Switching to ${cheapest.name} saves ${costDelta.toFixed(1)}× at this workload.</div>`;
+      }
+      const speed=ok.reduce((a,b)=>a.tps>b.tps?a:b);
+      const value=ok.reduce((a,b)=>a.cost_per_query<b.cost_per_query?a:b);
+      const qacsL=ok.reduce((a,b)=>a.qacs>b.qacs?a:b);
+      wrap.innerHTML=`<div class="vi-rec-full">
+        <div class="vi-rec-lead">${lead}</div>
+        <div class="vi-rec-body">${body}</div>
+        <div class="vi-badges-row">${[`<span class="vi-bpill">⚡ Speed: ${speed.name}</span>`,`<span class="vi-bpill">💰 Value: ${value.name}</span>`,`<span class="vi-bpill">◆ QACS: ${qacsL.name}</span>`].join('')}</div>
+        ${leverHTML}
+      </div>`;
+    }
+
+    // ── Section 5: Gruve Panel ────────────────────────────────────
+    function renderGruvePanel(scenarios){
+      const wrap=document.getElementById('vi-db-gruve');if(!wrap)return;
       const ok=scenarios.filter(s=>s.status==='complete');if(!ok.length)return;
       const best=ok.reduce((a,b)=>a.monthly_cost<b.monthly_cost?a:b);
       const modelNames={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'};
-      const tbl=document.getElementById('vi-gt');if(!tbl)return;
-      tbl.innerHTML=[['Best scenario on Gruve',best.name],['Model',modelNames[best.model]||best.model],['Est. cost / query','Confirm with Gruve team'],['Direct API cost','$'+best.cost_per_query.toFixed(6)],['Est. monthly savings','Confirm with Gruve team'],['Est. annual savings','Confirm with Gruve team'],['Concurrency headroom','Higher than direct API limits']].map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
-    }
-
-    function tog(id,hdr){
-      const body=document.getElementById(id);if(!body)return;
-      const open=body.classList.toggle('open');
-      hdr.firstChild.textContent=(open?'▼':'▶')+hdr.firstChild.textContent.slice(1);
+      const rows=[
+        ['Recommended model',best.name],
+        ['Direct API cost',`$${best.monthly_cost.toFixed(best.monthly_cost<1?4:2)} / month (at ${getDailyVol(0).toLocaleString()} queries/day)`],
+        ['On Gruve','Lower — confirm exact pricing with team'],
+        ['Infrastructure','Managed concurrency, no rate limit throttling'],
+        ['Support','Dedicated onboarding for video workloads'],
+      ].map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+      wrap.innerHTML=`<table class="vi-gruve-clean"><tbody>${rows}</tbody></table>
+        <p class="vi-gruve-note">* Gruve pricing confirmed on request. Direct API costs shown above are live-measured.</p>
+        <div class="vi-cta-row" style="margin-top:1.1rem">
+          <a href="mailto:hello@gruve.ai" class="vi-cta-btn" style="text-decoration:none">TALK TO GRUVE →</a>
+          <button class="vi-sec-btn" onclick="window.print()">Export PDF</button>
+          <button class="vi-sec-btn" onclick="VI.exportCSV()">Export CSV</button>
+        </div>`;
     }
 
     function exportCSV(){
       if(!st.results)return;
       const sc=st.results.scenarios;
       const rates=[0,0.20,0.50];const months=Array.from({length:12},(_,i)=>i+1);
-      const header=['Scenario','Model','TTFT_ms','TPS','Cost_per_query','QACS',...rates.flatMap(r=>months.map(m=>`M${m}_growth${Math.round(r*100)}pct`))].join(',');
+      const header=['Scenario','Model','Clip','TTFT_ms','TPS','Cost_per_query','QACS','Monthly_cost',...rates.flatMap(r=>months.map(m=>`M${m}_growth${Math.round(r*100)}pct`))].join(',');
       const rows=sc.map(s=>{
-        if(s.status!=='complete')return[s.name,s.model,'error'].join(',');
-        return[s.name,s.model,s.ttft_ms,s.tps,s.cost_per_query,s.qacs,...rates.flatMap(r=>months.map(m=>(s.monthly_cost*Math.pow(1+r,m-1)).toFixed(2)))].join(',');
+        if(s.status!=='complete')return[s.name,s.model,s.clip_used||'','error'].join(',');
+        return[s.name,s.model,s.clip_used||'',s.ttft_ms,s.tps,s.cost_per_query,s.qacs,s.monthly_cost,...rates.flatMap(r=>months.map(m=>(s.monthly_cost*Math.pow(1+r,m-1)).toFixed(4)))].join(',');
       });
       const blob=new Blob([[header,...rows].join('\n')],{type:'text/csv'});
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gruve_atlas_benchmark.csv';a.click();
@@ -1951,7 +2246,7 @@
     // Init
     initConsumerGrid();
 
-    return{selConsumer,selUC,showS4,addSc,rmSc,onClip,onConc,selModel,updateCost,runBenchmark,setGrowth,drawChart,tog,exportCSV};
+    return{selConsumer,selUC,showS4,addSc,rmSc,onClip,onConc,selModel,selClip,onClipUpload,updateCost,runBenchmark,setGrowth,setScale,drawChart,toggleOutput,exportCSV};
   })();
   // ════════════════════════════════════════════════════════════════
 
