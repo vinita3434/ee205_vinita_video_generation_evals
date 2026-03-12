@@ -1180,8 +1180,10 @@ async def sensitivity_analysis(req: SensitivityRequest):
             entry["detection_latency_min"] = round(60 / max(freq, 0.1), 1)
             freq_sweep_raw.append(entry)
 
-    # Score quality for clip_sweep + model_sweep (in parallel)
-    all_to_score = [r for r in clip_sweep_raw + model_sweep_raw if r.get("status") == "complete"]
+    # Score quality for clip_sweep + model_sweep + freq_base (in parallel)
+    # BUG 2 FIX: include freq_base_result so its quality is set before copying to freq entries
+    freq_base_list = [freq_base_result] if freq_base_result and freq_base_result.get("status") == "complete" else []
+    all_to_score = [r for r in clip_sweep_raw + model_sweep_raw + freq_base_list if r.get("status") == "complete"]
     score_tasks = [score_response_quality(r["response_text"], req.ground_truth) for r in all_to_score]
     quality_results = await asyncio.gather(*score_tasks, return_exceptions=True)
 

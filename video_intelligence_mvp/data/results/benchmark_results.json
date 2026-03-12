@@ -220,5 +220,137 @@
         "status": "complete"
       }
     ]
+  },
+  {
+    "run_id": "3966e6e9-28fd-4a32-a53f-a8637ec1760a",
+    "timestamp": "2026-03-12T08:28:36.116084",
+    "consumer_type": "sports_media",
+    "use_case": "live_event",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "gpt4o",
+        "clip_used": "tmpztfaobs3.mp4",
+        "analyze_duration_sec": 30,
+        "ttft_ms": 3391,
+        "tps": 10.6,
+        "input_tokens": 5146,
+        "output_tokens": 51,
+        "cost_per_query": 0.013375,
+        "daily_cost": 4.77,
+        "monthly_cost": 143.25,
+        "annual_cost": 1742.83,
+        "qacs": 79.3,
+        "cost_breakdown": {
+          "video_tokens": 5100,
+          "video_cost": 0.01275,
+          "video_pct": 99.1,
+          "prompt_tokens": 46,
+          "prompt_cost": 0.000115,
+          "prompt_pct": 0.9,
+          "output_tokens": 51,
+          "output_cost": 0.00051,
+          "output_pct": 1.0
+        },
+        "response_text": "I'm unable to process live footage or identify people in images. For automated sports analysis, specialized software and tools tailored for real-time sports data processing would be necessary. These tools can recognize game situations, players, and actions to provide structured output almost instantaneously.",
+        "status": "complete"
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "clip_used": "tmpdd7etikf.mp4",
+        "analyze_duration_sec": 15,
+        "ttft_ms": 5690,
+        "tps": 1.1,
+        "input_tokens": 3916,
+        "output_tokens": 7,
+        "cost_per_query": 0.000394,
+        "daily_cost": 0.14,
+        "monthly_cost": 4.21,
+        "annual_cost": 51.25,
+        "qacs": 100,
+        "cost_breakdown": {
+          "video_tokens": 3870,
+          "video_cost": 0.000387,
+          "video_pct": 98.8,
+          "prompt_tokens": 46,
+          "prompt_cost": 5e-06,
+          "prompt_pct": 1.2,
+          "output_tokens": 7,
+          "output_cost": 3e-06,
+          "output_pct": 0.2
+        },
+        "response_text": "Okay, here\u2019s the analysis of the sports footage within 1 second:\n\n**(1) Game situation:**\n*   Pregame introduction scene between the NY Knicks and the LA Lakers at Crypto Arena.\n*   Lebron James has been ruled out of the contest due to left elbow contusion, as well as left foot arthritis.\n\n**(2) Key players in frame:**\n\n*   New York Knicks: Jalen Brunson, Josh Hart, Mikal Bridges, OG Anunoby, and Karl-Anthony Towns.\n*   L.A. Lakers: Luka Don\u010di\u0107, Austin Reaves, Marcus Smart, Rui Hachimura, and Deandre Ayton.\n\n**(3) Notable action:**\n*   Both teams are preparing to compete against one another. T",
+        "status": "complete"
+      }
+    ]
+  },
+  {
+    "run_id": "f61b7518-d44b-4086-a491-d58308872bfc",
+    "timestamp": "2026-03-12T08:31:18.257801",
+    "consumer_type": "sports_media",
+    "use_case": "live_event",
+    "scenarios": [
+      {
+        "id": "s1",
+        "name": "GPT-4o",
+        "model": "gemini",
+        "clip_used": "tmpztfaobs3.mp4",
+        "analyze_duration_sec": 30,
+        "ttft_ms": 26150,
+        "tps": 0.2,
+        "input_tokens": 7786,
+        "output_tokens": 5,
+        "cost_per_query": 0.000781,
+        "daily_cost": 0.28,
+        "monthly_cost": 8.36,
+        "annual_cost": 101.72,
+        "qacs": 25.6,
+        "cost_breakdown": {
+          "video_tokens": 7740,
+          "video_cost": 0.000774,
+          "video_pct": 99.4,
+          "prompt_tokens": 46,
+          "prompt_cost": 5e-06,
+          "prompt_pct": 0.6,
+          "output_tokens": 5,
+          "output_cost": 2e-06,
+          "output_pct": 0.1
+        },
+        "response_text": "Okay, here's the analysis:\n\n*   **(1) Game Situation:** NBA Game recap/pre-game coverage. Knicks vs. Lakers.\n*   **(2) Key Players:** Luca Don\u010di\u0107, Jalen Brunson, LeBron James, Karl-Anthony Towns\n*   **(3) Notable Action:** News report that LeBron James is out with a left elbow contusion and left-foot arthritis.",
+        "status": "complete"
+      },
+      {
+        "id": "s2",
+        "name": "Gemini 2.0 Flash",
+        "model": "gemini",
+        "clip_used": "tmpdd7etikf.mp4",
+        "analyze_duration_sec": 15,
+        "ttft_ms": 10110,
+        "tps": 0.6,
+        "input_tokens": 3916,
+        "output_tokens": 7,
+        "cost_per_query": 0.000394,
+        "daily_cost": 0.14,
+        "monthly_cost": 4.32,
+        "annual_cost": 52.54,
+        "qacs": 100,
+        "cost_breakdown": {
+          "video_tokens": 3870,
+          "video_cost": 0.000387,
+          "video_pct": 98.8,
+          "prompt_tokens": 46,
+          "prompt_cost": 5e-06,
+          "prompt_pct": 1.2,
+          "output_tokens": 7,
+          "output_cost": 3e-06,
+          "output_pct": 0.2
+        },
+        "response_text": "Okay, I can provide a concise breakdown as per your request.\n\n**Timestamp: 0:00**\n*   **Game Situation:** Game Recap Intro\n*   **Key Players:** N/A\n*   **Notable Action:** Team Logos displayed\n\n**Timestamp: 0:13**\n*   **Game Situation:** Los Angeles Lakers Intro\n*   **Key Players:** Luka Doncic\n*   **Notable Action:** Player Spotlight\n\n**Timestamp: 0:17**\n*   **Game Situation:** Current Game\n*   **Key Players:** Jalen Brunson\n*   **Notable Action:** Player Spotlight\n\n**Timestamp: 0:50**\n*   **Game Situation:** Before game starts\n*   **Key Players:** Karl Anthony Towns and Deandre Ayton\n*   **N",
+        "status": "complete"
+      }
+    ]
   }
 ]

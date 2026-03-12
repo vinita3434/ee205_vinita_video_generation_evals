@@ -1,0 +1,154 @@
+{
+  "resolution_720p": {
+    "model": "sora2",
+    "resolution": "720p",
+    "clip_sec": 10,
+    "cost_per_gen": 1.5,
+    "label": "720p",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/resolution_720p.mp4",
+    "scores": {
+      "subject_quality": 7,
+      "temporal_coherence": 2,
+      "motion_quality": 3,
+      "visual_fidelity": 8,
+      "scene_stability": 6,
+      "overall": 4.9,
+      "one_line_summary": "The pirate ships are well-rendered, but the motion and sequence of events seem disconnected and the video has selective areas in focus, leading to a confused narrative."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "resolution_1080p": {
+    "model": "sora2",
+    "resolution": "1080p",
+    "clip_sec": 10,
+    "cost_per_gen": 3.0,
+    "label": "1080p",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/resolution_1080p.mp4",
+    "scores": {
+      "subject_quality": 9,
+      "temporal_coherence": 6,
+      "motion_quality": 7,
+      "visual_fidelity": 8,
+      "scene_stability": 9,
+      "overall": 7.7,
+      "one_line_summary": "The AI-generated video shows a majestic bird with good visual quality, coherent but not perfect narrative, and natural-looking motion, but some inconsistencies exist across frames."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "resolution_4k": {
+    "model": "sora2",
+    "resolution": "4K",
+    "clip_sec": 10,
+    "cost_per_gen": 6.0,
+    "label": "4K",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/resolution_4k.mp4",
+    "scores": {
+      "subject_quality": 8,
+      "temporal_coherence": 9,
+      "motion_quality": 8,
+      "visual_fidelity": 8,
+      "scene_stability": 9,
+      "overall": 8.3,
+      "one_line_summary": "The AI-generated video presents a high-quality aerial view of a coastal landscape, exhibiting good visual fidelity, scene stability, and coherent motion between frames. "
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "clip_5s": {
+    "model": "sora2",
+    "resolution": "1080p",
+    "clip_sec": 5,
+    "cost_per_gen": 1.5,
+    "label": "5s",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/clip_5s.mp4",
+    "scores": {
+      "subject_quality": 7,
+      "temporal_coherence": 4,
+      "motion_quality": 5,
+      "visual_fidelity": 7,
+      "scene_stability": 8,
+      "overall": 5.9,
+      "one_line_summary": "The video features stylized pirate ship models, but suffers from some temporal inconsistencies and limited motion quality, though visual fidelity and scene stability are reasonably good."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "clip_10s": {
+    "model": "sora2",
+    "resolution": "1080p",
+    "clip_sec": 10,
+    "cost_per_gen": 3.0,
+    "label": "10s",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/clip_10s.mp4",
+    "scores": {
+      "subject_quality": 7,
+      "temporal_coherence": 5,
+      "motion_quality": 3,
+      "visual_fidelity": 7,
+      "scene_stability": 7,
+      "overall": 5.8,
+      "one_line_summary": "The AI-generated video shows a detailed bird portrait, but the motion and coherent narrative progression are lacking."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "clip_15s": {
+    "model": "sora2",
+    "resolution": "1080p",
+    "clip_sec": 15,
+    "cost_per_gen": 4.5,
+    "label": "15s",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/clip_15s.mp4",
+    "scores": {
+      "subject_quality": 8,
+      "temporal_coherence": 6,
+      "motion_quality": 7,
+      "visual_fidelity": 9,
+      "scene_stability": 8,
+      "overall": 7.5,
+      "one_line_summary": "The video shows an astronaut in a stark landscape, with generally good visual quality and a coherent but somewhat slow narrative progression."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "clip_20s": {
+    "model": "sora2",
+    "resolution": "1080p",
+    "clip_sec": 20,
+    "cost_per_gen": 6.0,
+    "label": "20s",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/clip_20s.mp4",
+    "scores": {
+      "subject_quality": 9,
+      "temporal_coherence": 8,
+      "motion_quality": 7,
+      "visual_fidelity": 9,
+      "scene_stability": 9,
+      "overall": 8.3,
+      "one_line_summary": "The video shows mammoths in a snowy landscape with good visual quality but potential areas for improvement in motion cohesiveness across frames."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  },
+  "clip_30s": {
+    "model": "sora2",
+    "resolution": "1080p",
+    "clip_sec": 30,
+    "cost_per_gen": 9.0,
+    "label": "30s",
+    "video_path": "/Users/kritimaloo/EE_205_GRUVE_MVP/ee205_vinita_video_generation_evals/video_generation/data/cached_videos/clip_30s.mp4",
+    "scores": {
+      "subject_quality": 9,
+      "temporal_coherence": 8,
+      "motion_quality": 8,
+      "visual_fidelity": 8,
+      "scene_stability": 9,
+      "overall": 8.3,
+      "one_line_summary": "This AI-generated video depicts a coastal scene with high subject clarity, coherent progression and natural motion, exhibiting good fidelity and stable scene characteristics."
+    },
+    "source": "sora_official_sample",
+    "scored": true
+  }
+}

@@ -789,6 +789,183 @@ def generate_eval(request: GenerateEvalRequest):
     }
 
 
+# ── Video Gen sensitivity endpoints ──────────────────────────────
+
+VIDEO_CACHE_JSON = PROJECT_ROOT / "video_generation" / "data" / "video_cache.json"
+VIDEOGEN_JUDGE_PROMPT = """You are evaluating AI-generated video quality for a creative agency use case.
+You will see frames sampled from the video.
+
+Score on 5 dimensions (0-10 each):
+1. SUBJECT_QUALITY: Is the main subject clear, well-rendered, and visually compelling?
+2. TEMPORAL_COHERENCE: Do the frames tell a coherent visual story/sequence?
+3. MOTION_QUALITY: Does movement look natural and fluid?
+4. VISUAL_FIDELITY: Sharpness, color accuracy, no artifacts?
+5. SCENE_STABILITY: Consistent lighting, composition, no flickering?
+
+Return ONLY this JSON:
+{"subject_quality": 0, "temporal_coherence": 0, "motion_quality": 0, "visual_fidelity": 0, "scene_stability": 0, "overall": 0, "one_line_summary": "one sentence"}
+overall = round(subject_quality*0.30 + temporal_coherence*0.25 + motion_quality*0.20 + visual_fidelity*0.15 + scene_stability*0.10, 1)"""
+
+
+def score_video_path(video_path: Path) -> dict:
+    """Extract frames from a video file and score via LLM judge (via OpenRouter)."""
+    try:
+        temp_dir, frame_paths = _extract_frames(video_path)
+    except Exception as e:
+        return {"subject_quality": 5, "temporal_coherence": 5, "motion_quality": 5,
+                "visual_fidelity": 5, "scene_stability": 5, "overall": 5.0,
+                "one_line_summary": f"Scoring unavailable: {e}"}
+
+    try:
+        urls = _frame_paths_to_data_urls(frame_paths)
+        content = [{"type": "text", "text": VIDEOGEN_JUDGE_PROMPT}]
+        for url in urls:
+            content.append({"type": "image_url", "image_url": {"url": url}})
+
+        import httpx as _httpx
+        r = _httpx.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json",
+                     "HTTP-Referer": "https://gruve.ai", "X-Title": "Gruve Atlas"},
+            json={"model": "google/gemini-2.0-flash-001",
+                  "messages": [{"role": "user", "content": content}], "max_tokens": 300},
+            timeout=60,
+        )
+        raw = r.json()["choices"][0]["message"]["content"] or ""
+        m = re.search(r"\{[\s\S]*?\}", raw)
+        if m:
+            return json.loads(m.group(0))
+    except Exception as e:
+        pass
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    return {"subject_quality": 5, "temporal_coherence": 5, "motion_quality": 5,
+            "visual_fidelity": 5, "scene_stability": 5, "overall": 5.0,
+            "one_line_summary": "Scoring unavailable"}
+
+
+@app.get("/videogen/load-cache")
+def videogen_load_cache():
+    """Return pre-scored video cache data (no API calls). Requires setup_cache.py to have been run."""
+    if not VIDEO_CACHE_JSON.exists():
+        return {"error": "Cache not found. Run: python video_generation/setup_cache.py",
+                "available": False}
+    try:
+        data = json.loads(VIDEO_CACHE_JSON.read_text())
+        return {"available": True, "data": data, "count": len(data)}
+    except Exception as e:
+        return {"error": str(e), "available": False}
+
+
+class VideoGenComparisonRequest(BaseModel):
+    prompt: str | None = None
+    clip_sec: int = 10
+    resolution: str = "1080p"       # 720p | 1080p | 4K
+    fps: int = 24
+    generations_per_month: int = 200
+    subject_quality_min: float = 7.0
+    temporal_coherence_min: float = 6.0
+    latency_threshold_sec: int = 60
+
+
+@app.post("/videogen/generate-comparison")
+def videogen_generate_comparison(req: VideoGenComparisonRequest):
+    """Generate Sora 2 + Kling 2.6 with the same prompt, score both, return comparison."""
+    prompt = req.prompt or (
+        "Cinematic brand video. Dynamic product launch, modern sleek aesthetic, "
+        "professional studio quality, smooth camera movement."
+    )
+    run_id = str(uuid.uuid4())[:8]
+    quality = "1080p" if req.resolution in ("1080p", "4K") else "720p"
+
+    RES_MULT = {"720p": 1.0, "1080p": 2.0, "4K": 4.0}
+    mult = RES_MULT.get(req.resolution, 2.0)
+    sora_cpg  = round(req.clip_sec * 0.15 * mult, 2)
+    kling_cpg = round(req.clip_sec * 0.08 * mult, 2)
+
+    # Generate both concurrently
+    sora_result  = {"path": None, "gen_time": None, "error": None}
+    kling_result = {"path": None, "gen_time": None, "error": None}
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+        fut_sora  = ex.submit(_generate_one, "sora",  prompt, f"{run_id}_sora",  quality, "16:9")
+        fut_kling = ex.submit(_generate_one, "kling", prompt, f"{run_id}_kling", quality, "16:9")
+
+        for fut, key in [(fut_sora, "sora"), (fut_kling, "kling")]:
+            target = sora_result if key == "sora" else kling_result
+            try:
+                _, path, gen_time = fut.result()
+                target["path"] = path
+                target["gen_time"] = gen_time
+            except Exception as e:
+                target["error"] = str(e)
+
+    def build_model_result(result: dict, cpg: float, model_name: str) -> dict:
+        if result["error"] or not result["path"]:
+            return {
+                "status": "error", "error": result["error"] or "Generation failed",
+                "cost_per_gen": cpg,
+                "monthly_cost": round(cpg * req.generations_per_month),
+                "annual_cost":  round(cpg * req.generations_per_month * 12),
+                "gen_time_sec": None, "scores": None,
+                "meets_quality_bar": False, "latency_ok": False,
+                "video_b64": None,
+            }
+        path: Path = result["path"]
+        gen_time = result["gen_time"]
+        scores = score_video_path(path)
+        with open(path, "rb") as f:
+            video_b64 = base64.b64encode(f.read()).decode()
+
+        meets = (scores.get("subject_quality", 0) >= req.subject_quality_min and
+                 scores.get("temporal_coherence", 0) >= req.temporal_coherence_min)
+        return {
+            "status": "complete",
+            "gen_time_sec": round(gen_time, 1),
+            "cost_per_gen": cpg,
+            "monthly_cost": round(cpg * req.generations_per_month),
+            "annual_cost":  round(cpg * req.generations_per_month * 12),
+            "scores": scores,
+            "meets_quality_bar": meets,
+            "latency_ok": gen_time <= req.latency_threshold_sec,
+            "video_b64": video_b64,
+            "error": None,
+        }
+
+    sora_out  = build_model_result(sora_result,  sora_cpg,  "Sora 2")
+    kling_out = build_model_result(kling_result, kling_cpg, "Kling 2.6")
+
+    # Recommendation
+    sm = sora_out["meets_quality_bar"]
+    km = kling_out["meets_quality_bar"]
+    if sm and km:
+        rec = "kling"
+        ratio = round((sora_cpg / max(kling_cpg, 0.01) - 1) * 100)
+        reason = f"Both models meet your quality bar. Kling 2.6 is {ratio}% cheaper."
+    elif sm and not km:
+        rec = "sora"
+        reason = "Only Sora 2 meets your quality thresholds. Quality justifies the premium."
+    elif km and not sm:
+        rec = "kling"
+        reason = "Kling 2.6 meets your quality bar at lower cost."
+    else:
+        rec = "neither"
+        reason = "Neither model meets your quality bar. Consider lowering thresholds or using higher resolution."
+
+    return {
+        "run_id": run_id,
+        "prompt_used": prompt,
+        "config": {"clip_sec": req.clip_sec, "resolution": req.resolution,
+                   "fps": req.fps, "generations_per_month": req.generations_per_month},
+        "sora":  sora_out,
+        "kling": kling_out,
+        "recommendation": rec,
+        "recommendation_reason": reason,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
+
 @app.get("/video/{filename}")
 def serve_video(filename: str):
     """Serve a generated video file from OUTPUT_DIR (filename only, e.g. runid_wan.mp4)."""

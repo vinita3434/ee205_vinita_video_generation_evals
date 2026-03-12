@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 video_analysis/scripts/download_sports_clips.py)",
+      "Bash(python3 video_analysis/scripts/score_results.py)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 video_analysis/scripts/run_benchmark.py)",
+      "Bash(curl -s http://localhost:8001/benchmark-results)",
+      "Bash(python3 -m json.tool)",
+      "Bash(git fetch origin)",
+      "Bash(git merge origin/main --no-edit)",
+      "Bash(git checkout --theirs frontend/index.html)",
+      "Bash(git add frontend/index.html)",
+      "Bash(git commit:*)",
+      "Bash(python3 -c \"from backend.main import app; print\\(''gen backend imports ok''\\)\")",
+      "Bash(curl -s http://localhost:8001/vision-models)",
+      "Bash(python3 -c \"from backend.main import app; print\\(''gen backend ok''\\)\")",
+      "Bash(lsof -ti:8000 -ti:8001)",
+      "Bash(curl -s http://localhost:8000/)",
+      "Bash(pkill -f \"uvicorn backend.main:app --port 8000\")",
+      "Bash(uvicorn backend.main:app --port 8000 --reload)",
+      "Bash(pip freeze)",
+      "Bash(python3 -c \"import combined; print\\(''combined.py imports ok''\\)\")",
+      "Bash(curl -s http://localhost:8001/append-run -X POST -H \"Content-Type: application/json\" -d '{\"\"clip_id\"\":\"\"test\"\",\"\"filename\"\":\"\"test.mp4\"\",\"\"question\"\":\"\"Q?\"\",\"\"ground_truth\"\":\"\"A\"\",\"\"results\"\":[]}')",
+      "Bash(ls -lh video_analysis/data/test_clips/*.mp4)",
+      "Bash(git add combined.py railway.toml requirements.txt frontend/index.html)",
+      "Bash(git add video_analysis/backend/main.py video_analysis/frontend/index.html video_analysis/data/test_clips/ video_analysis/data/ground_truth.json video_analysis/data/results/.gitkeep video_analysis/data/frames/.gitkeep)",
+      "Bash(git add video_analysis/backend/__init__.py video_analysis/backend/config.py video_analysis/backend/analyzers/ video_analysis/scripts/)",
+      "Bash(git add video_analysis/data/results/scored_results.json)",
+      "Bash(git push origin feature/video-analysis-eval)",
+      "Bash(git add Dockerfile railway.toml)",
+      "Bash(git add nixpacks.toml)"
+    ]
+  }
+}
