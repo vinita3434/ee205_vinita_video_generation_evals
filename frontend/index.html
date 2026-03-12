@@ -809,6 +809,41 @@
   /* validation */
   .vi-val-msg{font-size:.75rem;color:#dc2626;margin-top:.5rem;background:#fef2f2;padding:.5rem .75rem;border-radius:6px;border:1px solid #fca5a5;display:none}
   .vi-val-msg.show{display:block}
+  /* exploration UI */
+  .vi-explore-section{margin-bottom:1.5rem}
+  .vi-range-row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.6rem}
+  .vi-range-row label{min-width:120px;font-size:.82rem;color:var(--text-dim)}
+  .vi-range-from-to{display:flex;align-items:center;gap:.5rem;font-size:.82rem}
+  .vi-range-input{width:70px;padding:.35rem .5rem;border:1px solid var(--border);border-radius:6px;font-size:.82rem;text-align:center}
+  .vi-thorough-pills{display:flex;gap:.5rem;margin-bottom:.85rem}
+  .vi-thorough-pill{padding:.4rem .9rem;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;background:var(--bg);color:var(--text-dim);font-family:inherit}
+  .vi-thorough-pill.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+  .vi-cost-preview{background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:.82rem;margin-top:.75rem}
+  .vi-cost-preview .row{display:flex;justify-content:space-between;margin-bottom:.2rem}
+  .vi-cost-preview .val{font-weight:700;color:var(--accent)}
+  /* explore results */
+  .vi-tradeoff-table{width:100%;border-collapse:collapse;font-size:.84rem}
+  .vi-tradeoff-table th{background:var(--surface-elevated);padding:.55rem .75rem;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--text-muted);border-bottom:2px solid var(--border)}
+  .vi-tradeoff-table td{padding:.55rem .75rem;border-bottom:1px solid var(--border)}
+  .vi-tradeoff-table tr.sweet-spot td{background:rgba(126,232,162,.1);font-weight:600}
+  .vi-sweet-badge{background:#7EE8A2;color:#0a0e1a;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:.4rem}
+  .vi-sweet-card{border-left:4px solid #7EE8A2;padding:1.1rem 1.5rem;background:var(--surface);border-radius:0 10px 10px 0;margin-top:1rem;font-size:.88rem;line-height:1.65}
+  .vi-sweet-card .lead{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
+  .vi-quality-bar-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem;font-size:.8rem}
+  .vi-quality-bar-row .lbl{min-width:160px;color:var(--text-muted)}
+  .vi-quality-bar-row .bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+  .vi-quality-bar-row .bar{height:100%;border-radius:4px}
+  .vi-quality-bar-row .val{min-width:48px;text-align:right;font-weight:700}
+  .vi-scale-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.4rem;margin-top:.75rem}
+  .vi-scale-cell{padding:.5rem;background:var(--surface-elevated);border-radius:6px;font-size:.72rem;text-align:center}
+  .vi-scale-cell .cameras{font-weight:700;color:var(--text-muted);font-size:.65rem}
+  .vi-scale-cell .cost{font-weight:700;color:var(--text)}
+  .vi-sensitivity-table{width:100%;border-collapse:collapse;font-size:.84rem}
+  .vi-sensitivity-table td{padding:.5rem .75rem;border-bottom:1px solid var(--border)}
+  .vi-sensitivity-table td:last-child{font-weight:600}
+  .vi-sensitivity-table td.savings{color:#16a34a;font-weight:700}
+  .vi-model-output-pair{display:flex;gap:1rem;flex-wrap:wrap}
+  .vi-model-output-pair .vi-output-card{flex:1;min-width:220px}
   @media print{.nav-bar,#tab-gen{display:none!important}#tab-vi{display:block!important}.vi-step:not(#vi-s5){display:none!important}#vi-s5{display:block!important}.vi-col-body{display:block!important}}
   </style>
 </head>
@@ -2049,6 +2084,13 @@
         { id:'s2', name:'Gemini 2.0 Flash', model:'gemini', analyzeSeconds:30, conc:1, concOverride:null, clipPath:null, clipLabel:null, clipDuration:null, activeTab:'sample' },
       ],
       results: null, growthRate: 0.20, chartInst: null, chartScale: 'linear',
+      exploreResults: null,
+      exploreModels: ['gemini'],
+      exploreN: 5,
+      exploreClipMin: 5, exploreClipMax: 30,
+      exploreFreqMin: 1, exploreFreqMax: 4,
+      exploreCameras: 500,
+      exploreClip: 'security_anomaly_1',
     };
 
     // ── Tooltip helper ────────────────────────────────────────────
@@ -2271,11 +2313,15 @@
       s3.scrollIntoView({behavior:'smooth',block:'start'});
     }
     function showS4(){
-      const uc=UC_PARAMS[ucKey()];
-      st.scenarios.forEach(s=>{s.analyzeSeconds=uc?Math.min(uc.clip_default,30):30;});
       const s4=document.getElementById('vi-s4');s4.style.display='block';
-      document.getElementById('vi-s4sub').textContent=`Define up to 3 ways to run ${st.useCaseLbl}. We'll benchmark cost and performance for each.`;
-      renderScenarios();
+      if(ucKey()==='safety_ops__anomaly_detection'){
+        renderExploreUI();
+      }else{
+        const uc=UC_PARAMS[ucKey()];
+        st.scenarios.forEach(s=>{s.analyzeSeconds=uc?Math.min(uc.clip_default,30):30;});
+        document.getElementById('vi-s4sub').textContent=`Define up to 3 ways to run ${st.useCaseLbl}. We'll benchmark cost and performance for each.`;
+        renderScenarios();
+      }
       s4.scrollIntoView({behavior:'smooth',block:'start'});
     }
 
@@ -2501,6 +2547,448 @@
       renderScenarios();
     }
     function rmSc(idx){st.scenarios.splice(idx,1);renderScenarios();}
+
+    // ── Anomaly detection exploration UI ─────────────────────────
+    const SECURITY_CLIPS = {
+      'security_anomaly_1': { label:'🔒 Security Anomaly 1', name:'sample_security.mp4', duration:30 },
+      'security_anomaly_2': { label:'🔒 Security Anomaly 2', name:'sample_security.mp4', duration:30 },
+    };
+
+    function renderExploreUI(){
+      const wrap=document.getElementById('vi-sw');
+      const btnWrap=document.getElementById('vi-run-btn-wrap');
+      const sub=document.getElementById('vi-s4sub');
+      if(sub)sub.textContent='';
+      if(!wrap)return;
+
+      wrap.style.flexWrap='wrap';
+      wrap.innerHTML=`
+        <div style="width:100%;max-width:760px">
+          <div style="font-size:.9rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.65">
+            We'll automatically test multiple configurations of clip duration and check frequency against your security footage.<br>
+            You'll see the cost-quality tradeoff for each — and find your optimal operating point.
+          </div>
+
+          <div class="vi-explore-section">
+            <div class="vi-sec-lbl">A — Which Model to Benchmark? ${tipTxt('Select one or two models to compare. Two selected = full matrix for each model side by side.')}</div>
+            <div class="vi-model-pills" id="ex-model-pills">
+              ${['gpt4o','gemini','qwen'].map(m=>{const labels={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B · OSS'};return `<button class="vi-mpill${st.exploreModels.includes(m)?' selected':''}" onclick="VI.toggleExploreModel('${m}',this)">${labels[m]}</button>`;}).join('')}
+            </div>
+          </div>
+
+          <div class="vi-explore-section">
+            <div class="vi-sec-lbl">B — Your Camera Network ${tipTxt('Total cameras monitored for anomalies in your network.')}</div>
+            <div class="vi-range-row">
+              <label>Number of cameras</label>
+              <input type="number" class="vi-range-input" id="ex-cameras" value="${st.exploreCameras}" min="1" max="100000" oninput="VI.onExploreParam()" style="width:90px">
+              ${tipTxt('Total cameras in your network being monitored for anomalies')}
+            </div>
+            <div class="vi-range-row">
+              <label>Base check freq.</label>
+              <input type="number" class="vi-range-input" id="ex-base-freq" value="2" min="1" max="60" step="0.5" oninput="VI.onExploreParam()" style="width:70px">
+              <span style="font-size:.78rem;color:var(--text-muted)">/hr per camera</span>
+            </div>
+            <div class="vi-derive" id="ex-vol-derive"></div>
+          </div>
+
+          <div class="vi-explore-section">
+            <div class="vi-sec-lbl">C — Exploration Ranges ${tipTxt('We\'ll test configs spread across these ranges.')}</div>
+            <div class="vi-range-row">
+              <label>Clip duration</label>
+              <div class="vi-range-from-to">
+                From <input type="number" class="vi-range-input" id="ex-clip-min" value="${st.exploreClipMin}" min="3" max="300" oninput="VI.onExploreParam()">s
+                to   <input type="number" class="vi-range-input" id="ex-clip-max" value="${st.exploreClipMax}" min="3" max="300" oninput="VI.onExploreParam()">s
+              </div>
+            </div>
+            <div class="vi-range-row">
+              <label>Check frequency</label>
+              <div class="vi-range-from-to">
+                From <input type="number" class="vi-range-input" id="ex-freq-min" value="${st.exploreFreqMin}" min="0.1" max="60" step="0.5" oninput="VI.onExploreParam()">/hr
+                to   <input type="number" class="vi-range-input" id="ex-freq-max" value="${st.exploreFreqMax}" min="0.1" max="60" step="0.5" oninput="VI.onExploreParam()">/hr
+              </div>
+            </div>
+          </div>
+
+          <div class="vi-explore-section">
+            <div class="vi-sec-lbl">D — How Thorough?</div>
+            <div class="vi-thorough-pills">
+              ${[3,5,7].map(n=>`<button class="vi-thorough-pill${st.exploreN===n?' active':''}" onclick="VI.setExploreN(${n},this)">${n} — ${n===3?'Quick':n===5?'Standard ← default':'Thorough'}</button>`).join('')}
+            </div>
+            <div class="vi-derive" id="ex-time-est">Estimated run time: ~45 seconds</div>
+          </div>
+
+          <div class="vi-explore-section">
+            <div class="vi-sec-lbl">E — Sample Clip ${tipTxt('Sent live to the model API. Each config analyzes a trimmed version of this clip.')}</div>
+            <div class="vi-clip-btns">
+              ${Object.entries(SECURITY_CLIPS).map(([id,m])=>`<button class="vi-clip-btn${st.exploreClip===id?' selected':''}" onclick="VI.selExploreClip('${id}',this)">${m.label} · ${m.duration}s</button>`).join('')}
+            </div>
+            <div class="vi-clip-info" id="ex-clip-info">
+              ${st.exploreClip?`✓ Selected: ${SECURITY_CLIPS[st.exploreClip]?.name} · ${SECURITY_CLIPS[st.exploreClip]?.duration}s`:'⚠ Select a clip to enable Run'}
+            </div>
+            <div class="vi-clip-note">Sent live to model API. Each config analyzes a trimmed version of this clip.</div>
+          </div>
+
+          <div class="vi-explore-section">
+            <div class="vi-sec-lbl">F — Estimated Cost Range</div>
+            <div class="vi-cost-preview" id="ex-cost-preview"></div>
+          </div>
+        </div>`;
+
+      // replace the run button
+      if(btnWrap){
+        btnWrap.innerHTML=`<button class="vi-cta-btn" id="vi-run-btn" onclick="VI.runExplore()">▶ FIND MY OPTIMAL CONFIG →</button>`;
+      }
+      setTimeout(()=>{updateExploreDerived();updateExploreCostPreview();},0);
+    }
+
+    function tipTxt(t){return `<span class="tip-icon" data-tip="${t}">ⓘ</span>`;}
+
+    function toggleExploreModel(model,btn){
+      const idx=st.exploreModels.indexOf(model);
+      if(idx>=0)st.exploreModels.splice(idx,1);
+      else st.exploreModels.push(model);
+      btn.classList.toggle('selected',st.exploreModels.includes(model));
+      updateExploreTimeEst();
+    }
+    function setExploreN(n,btn){
+      st.exploreN=n;
+      document.querySelectorAll('.vi-thorough-pill').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      updateExploreTimeEst();
+    }
+    function selExploreClip(id,btn){
+      st.exploreClip=id;
+      document.querySelectorAll('.vi-clip-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const info=document.getElementById('ex-clip-info');
+      if(info)info.textContent=`✓ Selected: ${SECURITY_CLIPS[id]?.name} · ${SECURITY_CLIPS[id]?.duration}s`;
+      const runBtn=document.getElementById('vi-run-btn');if(runBtn)runBtn.disabled=false;
+    }
+    function onExploreParam(){
+      st.exploreCameras=parseInt(document.getElementById('ex-cameras')?.value)||500;
+      st.exploreClipMin=parseInt(document.getElementById('ex-clip-min')?.value)||5;
+      st.exploreClipMax=parseInt(document.getElementById('ex-clip-max')?.value)||30;
+      st.exploreFreqMin=parseFloat(document.getElementById('ex-freq-min')?.value)||1;
+      st.exploreFreqMax=parseFloat(document.getElementById('ex-freq-max')?.value)||4;
+      updateExploreDerived();updateExploreCostPreview();
+    }
+    function updateExploreDerived(){
+      const cam=st.exploreCameras;const freq=parseFloat(document.getElementById('ex-base-freq')?.value)||2;
+      const el=document.getElementById('ex-vol-derive');
+      if(el)el.textContent=`→ ${cam} × ${freq} × 24 = ${Math.round(cam*freq*24).toLocaleString()} checks/day · Annual: ${Math.round(cam*freq*24*365).toLocaleString()} queries/year`;
+    }
+    function updateExploreTimeEst(){
+      const total=st.exploreN*(st.exploreModels.length||1);
+      const el=document.getElementById('ex-time-est');
+      if(el)el.textContent=`Estimated run time: ~${Math.round(total*9)} seconds (${total} API calls)`;
+    }
+    function updateExploreCostPreview(){
+      const el=document.getElementById('ex-cost-preview');if(!el)return;
+      const model=st.exploreModels[0]||'gemini';
+      const cam=st.exploreCameras;
+      const cheapAnnual=estimateAnnualCost(model,st.exploreClipMin,st.exploreFreqMin,cam);
+      const expAnnual=estimateAnnualCost(model,st.exploreClipMax,st.exploreFreqMax,cam);
+      const fmt=v=>v>=10000?'$'+Math.round(v/1000)+'K':v>=1000?'$'+v.toFixed(0):'$'+v.toFixed(2);
+      el.innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">${cam.toLocaleString()} cameras · ${(cam*st.exploreFreqMin*24*365).toLocaleString()} – ${(cam*st.exploreFreqMax*24*365).toLocaleString()} queries/year</div>
+        <div class="row"><span>Cheapest config (${st.exploreClipMin}s · ${st.exploreFreqMin}/hr)</span><span class="val">${fmt(cheapAnnual)}/year</span></div>
+        <div class="row"><span>Most expensive (${st.exploreClipMax}s · ${st.exploreFreqMax}/hr)</span><span class="val">${fmt(expAnnual)}/year</span></div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.35rem">Run the exploration to find your optimal point.</div>`;
+    }
+    function estimateAnnualCost(model,clipSec,checksPerHr,cameras){
+      const PRICING={gpt4o:{input:2.50/1e6,output:10.00/1e6},gemini:{input:0.10/1e6,output:0.40/1e6},qwen:{input:0.59/1e6,output:0.59/1e6}};
+      const p=PRICING[model]||PRICING.gemini;
+      const cpq=clipSec*258*p.input+150*p.output;
+      return cpq*cameras*checksPerHr*24*365;
+    }
+
+    async function runExplore(){
+      const btn=document.getElementById('vi-run-btn');
+      if(btn){btn.disabled=true;btn.textContent='RUNNING EXPLORATION…';}
+      const payload={
+        consumer_type:st.consumer,use_case:st.useCase,
+        models:st.exploreModels.length?st.exploreModels:['gemini'],
+        cameras:st.exploreCameras,
+        base_checks_per_hr:parseFloat(document.getElementById('ex-base-freq')?.value)||2,
+        clip_min_sec:st.exploreClipMin,clip_max_sec:st.exploreClipMax,
+        freq_min_per_hr:st.exploreFreqMin,freq_max_per_hr:st.exploreFreqMax,
+        n_configs:st.exploreN,
+        clip_path:st.exploreClip||'security_anomaly_1',
+      };
+      try{
+        const r=await fetch('http://localhost:8002/benchmark-explore',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(payload),
+        });
+        if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.detail||r.statusText);}
+        const data=await r.json();
+        st.exploreResults=data;
+        showS5Explore(data);
+      }catch(e){
+        alert('Exploration failed: '+e.message);
+      }finally{
+        if(btn){btn.disabled=false;btn.textContent='▶ FIND MY OPTIMAL CONFIG →';}
+      }
+    }
+
+    function showS5Explore(data){
+      const s5=document.getElementById('vi-s5');s5.style.display='block';
+      // Inject completely new content into s5
+      const primaryModel=data.models_tested?.[0]||'gemini';
+      const modelLabels={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'};
+      const configs=data.configs||[];
+      const ss=data.sweet_spot;
+
+      // Extract flat list of per-config results for primary model
+      function getModelResult(cfg,model){return cfg.models?.[model]||{};}
+      const rows=configs.map(cfg=>{
+        const mr=getModelResult(cfg,primaryModel);
+        return{...cfg,...mr,model:primaryModel};
+      }).filter(r=>r.status==='complete'||r.annual_cost>0);
+
+      s5.innerHTML=`
+        <div class="vi-step-lbl">STEP 5 OF 5</div>
+        <div class="vi-db-breadcrumb" id="vi-db-bc">
+          <span>${st.consumerLbl} · ${st.useCaseLbl} · ${data.cameras} cameras · ${configs.length} configs tested</span>
+          <button onclick="document.getElementById('vi-s4').scrollIntoView({behavior:'smooth'})">↺ Reconfigure</button>
+        </div>
+
+        <!-- Section 1: Cost-quality tradeoff table -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">COST-QUALITY TRADEOFF — Find Your Optimal Operating Point</div>
+          <div style="overflow-x:auto">
+            <table class="vi-tradeoff-table" id="ex-tradeoff-table"></table>
+          </div>
+          <div id="ex-sweet-card"></div>
+        </div>
+
+        <!-- Section 2: Cost at scale -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">COST AT YOUR SCALE</div>
+          <div id="ex-cost-scale"></div>
+        </div>
+
+        <!-- Section 3: Sensitivity levers -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">WHAT REDUCES YOUR COST MOST?</div>
+          <div id="ex-sensitivity"></div>
+        </div>
+
+        <!-- Section 4: Model output comparison -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">WHAT THE MODEL SAW — Same clip, different duration</div>
+          <div id="ex-model-outputs"></div>
+        </div>
+
+        <!-- Section 5: 12-month projection -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">12-MONTH COST PROJECTION</div>
+          <div class="vi-gpills" id="ex-gpills">
+            <button class="vi-gpill" onclick="VI.setExploreGrowth(0,this)">Flat 0%</button>
+            <button class="vi-gpill active" onclick="VI.setExploreGrowth(0.20,this)">20% ← default</button>
+            <button class="vi-gpill" onclick="VI.setExploreGrowth(0.50,this)">50%</button>
+          </div>
+          <div class="vi-chart-wrap" style="height:260px"><canvas id="ex-proj-chart"></canvas></div>
+        </div>
+
+        <!-- Section 6: Gruve panel -->
+        <div class="vi-db-section">
+          <div class="vi-db-hd">YOUR WORKLOAD ON GRUVE</div>
+          <div id="ex-gruve-panel"></div>
+        </div>
+      `;
+
+      renderTradeoffTable(rows, ss, primaryModel, data.cameras);
+      renderCostAtScale(rows, ss, primaryModel, data.cameras);
+      renderSensitivity(rows, ss, primaryModel, data.cameras);
+      renderExploreOutputs(configs, primaryModel);
+      renderExploreProjection(rows, ss);
+      renderExploreGruve(ss, primaryModel, data.cameras);
+
+      s5.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function renderTradeoffTable(rows, ss, model, cameras){
+      const tbl=document.getElementById('ex-tradeoff-table');
+      const card=document.getElementById('ex-sweet-card');
+      if(!tbl)return;
+      const fmt$=v=>v>=10000?'$'+Math.round(v/1000)+'K/yr':'$'+Math.round(v)+'/yr';
+      const ssId=ss?.config_id;
+      tbl.innerHTML=`<thead><tr>
+        <th>Config</th><th>Clip</th><th>Checks/hr</th>
+        <th>Detection Latency</th><th>Quality Score</th>
+        <th>Annual Cost (${cameras} cameras)</th><th>Anomaly Detected?</th>
+      </tr></thead><tbody>${rows.map(r=>{
+        const isSS=r.config_id===ssId&&r.model===ss?.model;
+        const q=r.quality||{};
+        const overall=q.overall||0;
+        const qCls=overall>=70?'vi-qg':overall>=50?'vi-qm':'vi-qb';
+        return `<tr class="${isSS?'sweet-spot':''}">
+          <td><strong>Config ${r.config_id}</strong>${isSS?`<span class="vi-sweet-badge">★ SWEET SPOT</span>`:''}</td>
+          <td>${r.clip_sec}s</td>
+          <td>${r.checks_per_hr}/hr</td>
+          <td>≤${r.detection_latency_min} min</td>
+          <td><span class="${qCls}">${Math.round(overall)}/100</span></td>
+          <td>${fmt$(r.annual_cost||0)}</td>
+          <td>${q.anomaly_detected?'✓ Yes':'— No'}</td>
+        </tr>`;
+      }).join('')}</tbody>`;
+
+      if(ss&&card){
+        const r=rows.find(x=>x.config_id===ss.config_id&&x.model===ss.model)||rows[0];
+        if(!r)return;
+        const maxQ=Math.max(...rows.map(x=>x.quality?.overall||0));
+        const maxC=Math.max(...rows.map(x=>x.annual_cost||0));
+        const qPct=maxQ>0?Math.round((r.quality?.overall||0)/maxQ*100):0;
+        const cPct=maxC>0?Math.round((r.annual_cost||0)/maxC*100):0;
+        const q=r.quality||{};
+        card.innerHTML=`<div class="vi-sweet-card">
+          <div class="lead">★ Recommended: Config ${r.config_id} — ${r.clip_sec}s clips · ${r.checks_per_hr} checks/hr</div>
+          Achieves ${Math.round(q.overall||0)}/100 quality at $${Math.round(r.annual_cost||0).toLocaleString()}/year — ${qPct}% of max quality at ${cPct}% of max cost.${rows.length>1?' Going from Config '+r.config_id+' to Config '+rows[rows.length-1]?.config_id+' costs '+(((rows[rows.length-1]?.annual_cost||1)/(r.annual_cost||1)).toFixed(1))+'× more for '+(Math.round((rows[rows.length-1]?.quality?.overall||0)-(r.quality?.overall||0)))+'% quality improvement.':''}
+          <br><br>Detection latency: anomalies caught within <strong>${r.detection_latency_min} minutes</strong> of occurrence.
+          <div style="margin-top:.85rem">
+            ${['detection_accuracy','actionability','completeness'].map(k=>{const v=q[k]||0;return `<div class="vi-quality-bar-row"><span class="lbl">${k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</span><div class="bar-wrap"><div class="bar" style="width:${v}%;background:${v>=70?'#7EE8A2':v>=50?'#F59E0B':'#EF4444'}"></div></div><span class="val" style="color:${v>=70?'#16a34a':v>=50?'#d97706':'#dc2626'}">${Math.round(v)}/100</span></div>`;}).join('')}
+          </div>
+        </div>`;
+      }
+    }
+
+    function renderCostAtScale(rows, ss, model, cameras){
+      const wrap=document.getElementById('ex-cost-scale');if(!wrap)return;
+      const modelLabel={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'}[model]||model;
+      const ssRow=rows.find(r=>r.config_id===ss?.config_id)||rows[0];
+      const midRow=rows[Math.floor(rows.length/2)]||rows[0];
+      const lastRow=rows[rows.length-1]||rows[0];
+      const showCols=[ssRow,midRow,lastRow].filter((r,i,arr)=>arr.indexOf(r)===i);
+
+      const fmt$=v=>'$'+Math.round(v).toLocaleString();
+      const camScales=[cameras,cameras*2,cameras*4,cameras*10];
+
+      wrap.innerHTML=`<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem">${cameras.toLocaleString()} cameras · ${modelLabel}</div>
+        <div style="overflow-x:auto"><table class="vi-tradeoff-table" style="margin-bottom:1.25rem">
+          <thead><tr><th>Metric</th>${showCols.map(r=>`<th>Config ${r.config_id}${r.config_id===ss?.config_id?' ★':''}</th>`).join('')}</tr></thead>
+          <tbody>
+            <tr><td>Cost / query</td>${showCols.map(r=>`<td>$${(r.cost_per_query||0).toFixed(6)}</td>`).join('')}</tr>
+            <tr><td>Queries / day</td>${showCols.map(r=>`<td>${(r.queries_per_day||0).toLocaleString()}</td>`).join('')}</tr>
+            <tr><td>Daily cost</td>${showCols.map(r=>`<td>${fmt$(r.daily_cost||0)}</td>`).join('')}</tr>
+            <tr><td>Monthly cost</td>${showCols.map(r=>`<td>${fmt$(r.monthly_cost||0)}</td>`).join('')}</tr>
+            <tr><td style="font-weight:700">Annual cost</td>${showCols.map(r=>`<td style="font-weight:700${r.config_id===ss?.config_id?';color:var(--accent)':''}">${fmt$(r.annual_cost||0)}</td>`).join('')}</tr>
+          </tbody>
+        </table></div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem">AT SCALE — if you grow</div>
+        <div class="vi-scale-grid">${camScales.map(cam=>`<div class="vi-scale-cell"><div class="cameras">${cam.toLocaleString()} cameras</div><div class="cost" style="color:var(--accent)">$${Math.round((ssRow?.annual_cost||0)/cameras*cam).toLocaleString()}/yr</div><div style="font-size:.62rem;color:var(--text-muted)">Config ${ssRow?.config_id||1} ★</div></div>`).join('')}</div>`;
+    }
+
+    function renderSensitivity(rows, ss, model, cameras){
+      const wrap=document.getElementById('ex-sensitivity');if(!wrap)return;
+      if(!ss||!rows.length){wrap.innerHTML='<p style="color:var(--text-muted);font-size:.85rem">No sweet spot identified.</p>';return;}
+      const ssRow=rows.find(r=>r.config_id===ss.config_id)||rows[0];
+      const baseAnnual=ssRow?.annual_cost||0;
+      const cheapRow=rows.reduce((a,b)=>(a.annual_cost||0)<(b.annual_cost||0)?a:b,rows[0]);
+      const fmt$=v=>'$'+Math.round(v).toLocaleString()+'/yr';
+      const savPct=(base,new_)=>base>0?'-'+Math.round((base-new_)/base*100)+'%':'—';
+
+      const levers=[
+        {label:'Switch to cheapest config',new_annual:cheapRow.annual_cost||0,note:`Config ${cheapRow.config_id}: ${cheapRow.clip_sec}s · ${cheapRow.checks_per_hr}/hr`},
+        {label:'Halve camera count',new_annual:baseAnnual/2,note:`${Math.round(cameras/2).toLocaleString()} cameras`},
+        {label:'Reduce to 1/hr checks',new_annual:baseAnnual*(1/Math.max(ssRow.checks_per_hr||1,0.1)),note:'1 check/hr vs current'},
+      ];
+      // Add model comparison if only one model
+      const altModel=model==='gemini'?null:model==='gpt4o'?'gemini':null;
+      if(altModel){
+        const PRICING={gpt4o:{input:2.50/1e6,output:10.00/1e6},gemini:{input:0.10/1e6,output:0.40/1e6}};
+        const altAnnual=estimateAnnualCost(altModel,ssRow.clip_sec||15,ssRow.checks_per_hr||2,cameras);
+        levers.push({label:`Switch to Gemini (from ${model==='gpt4o'?'GPT-4o':'Qwen'})`,new_annual:altAnnual,note:'Quality may differ'});
+      }
+
+      wrap.innerHTML=`<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem">Based on Config ${ssRow.config_id} (sweet spot) at ${cameras.toLocaleString()} cameras · Current: <strong>$${Math.round(baseAnnual).toLocaleString()}/yr</strong></div>
+        <div style="overflow-x:auto"><table class="vi-sensitivity-table">
+          <thead><tr><th>If you...</th><th>Annual cost</th><th>Savings</th></tr></thead>
+          <tbody>${levers.map(l=>{const s=savPct(baseAnnual,l.new_annual);return `<tr><td>${l.label}<br><span style="font-size:.7rem;color:var(--text-muted)">${l.note}</span></td><td>$${Math.round(l.new_annual).toLocaleString()}/yr</td><td class="savings">${s}</td></tr>`;}).join('')}</tbody>
+        </table></div>
+        <div style="font-size:.75rem;color:#d97706;margin-top:.75rem;padding:.5rem .75rem;background:#fffbeb;border-radius:6px;border:1px solid #fde68a">⚠ Reducing clip length or check frequency may affect detection quality. See Config 1 quality score above before reducing.</div>`;
+    }
+
+    function renderExploreOutputs(configs, model){
+      const wrap=document.getElementById('ex-model-outputs');if(!wrap)return;
+      const cheapCfg=configs[0];const thoroughCfg=configs[configs.length-1];
+      if(!cheapCfg||!thoroughCfg){wrap.innerHTML='<p style="color:var(--text-muted)">Responses not available.</p>';return;}
+      const cheapRes=cheapCfg.models?.[model]||{};const thorRes=thoroughCfg.models?.[model]||{};
+      const card=(cfg,res,label)=>{
+        const txt=res.response_text||'No response';
+        const preview=txt.slice(0,280);const hasMore=txt.length>280;
+        const id=`ex-out-${cfg.config_id}`;
+        return `<div class="vi-output-card" style="flex:1;min-width:220px">
+          <div class="vi-output-card-head">
+            <span>${label} — ${cfg.clip_sec}s clip</span>
+            <span style="font-size:.7rem;color:${(res.quality?.overall||0)>=70?'#16a34a':'#d97706'}">${Math.round(res.quality?.overall||0)}/100</span>
+          </div>
+          <div class="vi-output-card-body" id="${id}">${preview||'(no response)'}</div>
+          ${hasMore?`<div style="padding:.3rem .9rem"><button class="vi-output-toggle" onclick="VI.toggleOutput('${id}',this,'${encodeURIComponent(txt)}')">Show full ▼</button></div>`:''}
+          <div class="vi-output-meta">${res.ttft_ms||'—'}ms TTFT · ${Math.round(res.quality?.overall||0)}/100 quality</div>
+        </div>`;
+      };
+      wrap.innerHTML=`<div class="vi-model-output-pair">
+        ${card(cheapCfg,cheapRes,'Config 1 · Cheapest')}
+        ${card(thoroughCfg,thorRes,'Config '+thoroughCfg.config_id+' · Most thorough')}
+      </div>`;
+    }
+
+    let exploreChartInst=null;
+    function setExploreGrowth(rate,btn){
+      document.querySelectorAll('#ex-gpills .vi-gpill').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      st.growthRate=rate;
+      if(st.exploreResults)renderExploreProjection(
+        st.exploreResults.configs.map(cfg=>{const mr=cfg.models?.[st.exploreResults.models_tested?.[0]||'gemini']||{};return{...cfg,...mr};}).filter(r=>r.status==='complete'),
+        st.exploreResults.sweet_spot
+      );
+    }
+    function renderExploreProjection(rows, ss){
+      const ctx=document.getElementById('ex-proj-chart');if(!ctx)return;
+      if(exploreChartInst)exploreChartInst.destroy();
+      const labels=Array.from({length:12},(_,i)=>`M${i+1}`);
+      const COLORS=['#64748b','#7EE8A2','#3B82F6','#F59E0B','#a78bfa','#f97316','#06b6d4'];
+      const r=st.growthRate;
+      const show=[rows[0],rows.find(x=>x.config_id===ss?.config_id),rows[rows.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i);
+      const datasets=show.map((row,i)=>({
+        label:`Config ${row.config_id}${row.config_id===ss?.config_id?' ★':''}`,
+        data:labels.map((_,m)=>parseFloat(((row.monthly_cost||0)*Math.pow(1+r,m)).toFixed(2))),
+        borderColor:COLORS[i]||'#999',backgroundColor:'transparent',tension:.2,fill:false,
+      }));
+      exploreChartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569'}}},scales:{x:{ticks:{color:'#64748b'}},y:{beginAtZero:true,ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#e2e8f0'}}}}});
+    }
+    function renderExploreGruve(ss, model, cameras){
+      const wrap=document.getElementById('ex-gruve-panel');if(!wrap)return;
+      const modelLabel={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen2.5-VL-72B'}[model]||model;
+      const ssRef=st.exploreResults?.configs?.find(c=>c.config_id===ss?.config_id);
+      const ssRes=ssRef?.models?.[model]||{};
+      const concurrentThreads=Math.ceil(cameras*(ss?.checks_per_hr||2)/3600);
+      const rows=[
+        ['Recommended config',`Config ${ss?.config_id||1} — ${ss?.clip_sec||15}s clips · ${ss?.checks_per_hr||2} checks/hr`],
+        ['Recommended model',modelLabel],
+        ['Direct API cost',`$${Math.round(ssRes.annual_cost||0).toLocaleString()}/year (live-measured at ${cameras.toLocaleString()} cameras)`],
+        ['On Gruve','Lower — confirm exact pricing with team'],
+        ['Infrastructure','Managed concurrency · No rate limit throttling'],
+        ['Concurrent threads needed',`~${concurrentThreads} sustained · ${Math.ceil(concurrentThreads*4)} at 4× peak`],
+      ].map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+      wrap.innerHTML=`<table class="vi-gruve-clean"><tbody>${rows}</tbody></table>
+        <p style="font-size:.7rem;color:var(--text-muted);margin-top:.6rem;font-style:italic">Direct API costs are live-measured. At ${cameras.toLocaleString()} cameras × ${ss?.checks_per_hr||2} checks/hr, you need ${concurrentThreads} sustained concurrent threads — direct API rate limits will throttle this at scale.</p>
+        <div class="vi-cta-row" style="margin-top:1rem">
+          <a href="mailto:hello@gruve.ai" class="vi-cta-btn" style="text-decoration:none">TALK TO GRUVE →</a>
+          <button class="vi-sec-btn" onclick="window.print()">Export PDF</button>
+          <button class="vi-sec-btn" onclick="VI.exportExploreCSV()">Export CSV</button>
+        </div>`;
+    }
+    function exportExploreCSV(){
+      if(!st.exploreResults)return;
+      const model=st.exploreResults.models_tested?.[0]||'gemini';
+      const rows=st.exploreResults.configs.map(cfg=>{
+        const r=cfg.models?.[model]||{};const q=r.quality||{};
+        return[cfg.config_id,cfg.clip_sec,cfg.checks_per_hr,cfg.detection_latency_min,Math.round(q.overall||0),r.ttft_ms||'',r.tps||'',r.cost_per_query||'',r.annual_cost||'',q.anomaly_detected?'YES':'NO'].join(',');
+      });
+      const blob=new Blob([['Config,Clip_sec,Checks_hr,Detection_latency_min,Quality_score,TTFT_ms,TPS,Cost_per_query,Annual_cost,Anomaly_detected',...rows].join('\n')],{type:'text/csv'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gruve_exploration.csv';a.click();
+    }
 
     // ── Validation ────────────────────────────────────────────────
     function checkValidation(){
@@ -2814,7 +3302,7 @@
     // Init
     initConsumerGrid();
 
-    return{selConsumer,selUC,showS4,addSc,rmSc,onDurSlide,onConcOverride,toggleConcOverride,selModel,selClip,onClipUpload,onDrop,switchClipTab,updateCost,runBenchmark,setGrowth,setScale,drawChart,toggleOutput,exportCSV};
+    return{selConsumer,selUC,showS4,addSc,rmSc,onDurSlide,onConcOverride,toggleConcOverride,selModel,selClip,onClipUpload,onDrop,switchClipTab,updateCost,runBenchmark,runExplore,setGrowth,setScale,drawChart,toggleOutput,exportCSV,toggleExploreModel,setExploreN,selExploreClip,onExploreParam,setExploreGrowth,exportExploreCSV};
   })();
   // ════════════════════════════════════════════════════════════════
 

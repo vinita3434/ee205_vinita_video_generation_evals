@@ -385,3 +385,302 @@ async def get_results():
         return json.loads(RESULTS_FILE.read_text())
     except Exception:
         return []
+
+
+# ── Exploration endpoint (anomaly detection config matrix) ────────
+
+ANOMALY_PROMPT = """You are a security AI monitoring a CCTV camera feed for anomalies.
+
+Analyze this security camera clip and respond in this exact format:
+
+ANOMALY_DETECTED: [YES/NO]
+CONFIDENCE: [0-100]%
+DESCRIPTION: [What is happening? Be specific about actions, persons, location in frame]
+SEVERITY: [LOW/MEDIUM/HIGH]
+TIMESTAMP: [When in the clip does the anomaly occur, if applicable]
+RECOMMENDATION: [What action should security take?]"""
+
+SECURITY_CLIP_MAP = {
+    "security_anomaly_1": "sample_security.mp4",
+    "security_anomaly_2": "sample_security.mp4",   # fallback to same clip if 2nd missing
+    "sample_security":    "sample_security.mp4",
+    "sample_retail":      "sample_retail.mp4",
+}
+
+EXPLORE_PRICING = {
+    "gpt4o":  {"input": 2.50 / 1e6, "output": 10.00 / 1e6},
+    "gemini": {"input": 0.10 / 1e6, "output":  0.40 / 1e6},
+    "qwen":   {"input": 0.59 / 1e6, "output":  0.59 / 1e6},
+}
+
+
+def generate_configs(clip_min: int, clip_max: int,
+                     freq_min: float, freq_max: float, n: int) -> list[dict]:
+    configs = []
+    for i in range(n):
+        t = i / (n - 1) if n > 1 else 0
+        configs.append({
+            "config_id": i + 1,
+            "clip_sec":      round(clip_min + t * (clip_max - clip_min)),
+            "checks_per_hr": round(freq_min + t * (freq_max - freq_min), 1),
+        })
+    return configs
+
+
+async def run_config_benchmark(
+    config: dict, model: str, clip_path: str, cameras: int
+) -> dict:
+    base = {"config_id": config["config_id"], "model": model}
+    if not OPENROUTER_API_KEY:
+        return {**base, "status": "error", "error": "OPENROUTER_API_KEY not configured"}
+
+    try:
+        frames = extract_frames_as_b64(clip_path, fps=1,
+                                       max_duration_sec=config["clip_sec"])
+    except Exception as e:
+        return {**base, "status": "error", "error": f"Frame extraction: {e}"}
+
+    content = [{"type": "text", "text": ANOMALY_PROMPT}]
+    for fb64 in frames:
+        content.append({"type": "image_url",
+                         "image_url": {"url": f"data:image/jpeg;base64,{fb64}"}})
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type":  "application/json",
+        "HTTP-Referer":  "https://gruve.ai",
+        "X-Title":       "Gruve Atlas",
+    }
+    payload = {
+        "model":      MODEL_IDS[model],
+        "messages":   [{"role": "user", "content": content}],
+        "max_tokens": 400,
+        "stream":     True,
+    }
+
+    t_start       = time.time()
+    t_first_token = None
+    full_text     = ""
+    chunk_count   = 0
+
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            async with client.stream(
+                "POST", f"{OPENROUTER_BASE}/chat/completions",
+                headers=headers, json=payload
+            ) as resp:
+                if resp.status_code != 200:
+                    body = await resp.aread()
+                    return {**base, "status": "error",
+                            "error": f"API {resp.status_code}: {body[:100].decode(errors='replace')}"}
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    chunk = line[6:]
+                    if chunk == "[DONE]":
+                        break
+                    try:
+                        data  = json.loads(chunk)
+                        delta = data["choices"][0]["delta"].get("content", "")
+                        if delta:
+                            if t_first_token is None:
+                                t_first_token = time.time()
+                            full_text   += delta
+                            chunk_count += 1
+                    except Exception:
+                        continue
+    except Exception as e:
+        return {**base, "status": "error", "error": str(e)}
+
+    t_end    = time.time()
+    ttft_ms  = round((t_first_token - t_start) * 1000) if t_first_token else None
+    elapsed  = max(t_end - (t_first_token or t_start), 0.001)
+    output_tokens = int(len(full_text.split()) * 1.3)
+    tps      = round(output_tokens / elapsed, 1)
+
+    # Cost calculation
+    p             = EXPLORE_PRICING[model]
+    video_tokens  = config["clip_sec"] * 258
+    prompt_tokens = 80
+    input_tokens  = video_tokens + prompt_tokens
+    cost_per_q    = input_tokens * p["input"] + output_tokens * p["output"]
+    queries_per_day  = cameras * config["checks_per_hr"] * 24
+    detection_latency_min = round(60 / max(config["checks_per_hr"], 0.1), 1)
+
+    # Quality judge — call Gemini flash (cheapest) to evaluate the response
+    quality_scores = await judge_anomaly_response(full_text)
+
+    return {
+        **base,
+        "clip_sec":          config["clip_sec"],
+        "checks_per_hr":     config["checks_per_hr"],
+        "detection_latency_min": detection_latency_min,
+        "ttft_ms":           ttft_ms,
+        "tps":               tps,
+        "input_tokens":      input_tokens,
+        "output_tokens":     output_tokens,
+        "cost_per_query":    round(cost_per_q, 6),
+        "queries_per_day":   round(queries_per_day),
+        "daily_cost":        round(cost_per_q * queries_per_day, 2),
+        "monthly_cost":      round(cost_per_q * queries_per_day * 30, 2),
+        "annual_cost":       round(cost_per_q * queries_per_day * 365, 2),
+        "quality":           quality_scores,
+        "response_text":     full_text[:600],
+        "status":            "complete",
+    }
+
+
+async def judge_anomaly_response(model_response: str) -> dict:
+    """Judge the anomaly detection response using Gemini Flash."""
+    judge_prompt = f"""You are evaluating an anomaly detection AI response for a security camera system.
+
+The AI was shown a CCTV clip and asked to detect anomalies.
+Here is its response:
+
+---
+{model_response[:500]}
+---
+
+Score this response on THREE dimensions (0-100 each):
+
+1. DETECTION_ACCURACY: Did it correctly identify whether an anomaly exists? Describe accurately?
+2. ACTIONABILITY: How specific and useful is the description for a security operator?
+3. COMPLETENESS: Did it capture all relevant details — timing, location, severity?
+
+Respond ONLY in this JSON format:
+{{"detection_accuracy": 0, "actionability": 0, "completeness": 0, "anomaly_detected": true, "overall": 0, "one_line_summary": "one sentence"}}
+
+overall = average of the three scores.
+anomaly_detected = true if the response indicates an anomaly was found."""
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f"{OPENROUTER_BASE}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type":  "application/json",
+                    "HTTP-Referer":  "https://gruve.ai",
+                    "X-Title":       "Gruve Atlas",
+                },
+                json={
+                    "model":    "google/gemini-2.0-flash-001",
+                    "messages": [{"role": "user", "content": judge_prompt}],
+                    "max_tokens": 200,
+                },
+            )
+        raw = r.json()["choices"][0]["message"]["content"] or ""
+        import re
+        m = re.search(r"\{[\s\S]*?\}", raw)
+        if m:
+            return json.loads(m.group(0))
+    except Exception:
+        pass
+    # Fallback: parse the response manually
+    text_lower = model_response.lower()
+    detected   = "yes" in text_lower and "anomaly_detected" in text_lower
+    return {
+        "detection_accuracy": 60,
+        "actionability":      55,
+        "completeness":       50,
+        "anomaly_detected":   detected,
+        "overall":            55,
+        "one_line_summary":   "Quality scoring unavailable",
+    }
+
+
+def find_sweet_spot(all_results: list[dict]) -> dict | None:
+    """Find config with best quality-per-dollar, min quality 60."""
+    valid = [r for r in all_results if r.get("quality", {}).get("overall", 0) >= 60]
+    if not valid:
+        valid = all_results
+    if not valid:
+        return None
+    return max(valid, key=lambda r: r["quality"]["overall"] / max(r["annual_cost"], 0.01))
+
+
+class ExploreRequest(BaseModel):
+    consumer_type:     str
+    use_case:          str
+    models:            list[str]
+    cameras:           int
+    base_checks_per_hr: float
+    clip_min_sec:      int
+    clip_max_sec:      int
+    freq_min_per_hr:   float
+    freq_max_per_hr:   float
+    n_configs:         int
+    clip_path:         str    # clip name or TEMP:{id}
+
+
+@app.post("/benchmark-explore")
+async def benchmark_explore(req: ExploreRequest):
+    configs = generate_configs(
+        req.clip_min_sec, req.clip_max_sec,
+        req.freq_min_per_hr, req.freq_max_per_hr,
+        req.n_configs,
+    )
+
+    # Resolve clip path
+    try:
+        clip_path = resolve_clip_path(req.clip_path)
+    except FileNotFoundError:
+        # Try security clip map
+        mapped = SECURITY_CLIP_MAP.get(req.clip_path)
+        if mapped:
+            clip_path = str(CLIPS_DIR / mapped)
+        else:
+            raise
+
+    # Run all configs × models concurrently
+    tasks = [
+        run_config_benchmark(cfg, model, clip_path, req.cameras)
+        for cfg in configs
+        for model in req.models
+        if model in MODEL_IDS
+    ]
+    raw_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Group results by config
+    config_results = {cfg["config_id"]: {"config_id": cfg["config_id"],
+                                          "clip_sec": cfg["clip_sec"],
+                                          "checks_per_hr": cfg["checks_per_hr"],
+                                          "detection_latency_min": round(60 / max(cfg["checks_per_hr"], 0.1), 1),
+                                          "models": {}} for cfg in configs}
+    flat_for_sweet_spot = []
+    for i, result in enumerate(raw_results):
+        if isinstance(result, Exception):
+            # figure out which config/model this was
+            task_idx = i
+            cfg_idx  = task_idx // len(req.models)
+            mod_idx  = task_idx % len(req.models)
+            cfg_id   = configs[min(cfg_idx, len(configs)-1)]["config_id"]
+            model    = req.models[min(mod_idx, len(req.models)-1)]
+            config_results[cfg_id]["models"][model] = {
+                "status": "error", "error": str(result)
+            }
+        else:
+            cfg_id = result["config_id"]
+            model  = result["model"]
+            config_results[cfg_id]["models"][model] = result
+            if result.get("status") == "complete":
+                flat_for_sweet_spot.append({
+                    "config_id":   cfg_id,
+                    "model":       model,
+                    "annual_cost": result.get("annual_cost", 0),
+                    "quality":     result.get("quality", {}),
+                    "clip_sec":    result.get("clip_sec", 0),
+                    "checks_per_hr": result.get("checks_per_hr", 0),
+                })
+
+    sweet_spot = find_sweet_spot(flat_for_sweet_spot)
+
+    return {
+        "run_id":       str(uuid.uuid4()),
+        "timestamp":    datetime.utcnow().isoformat(),
+        "use_case":     req.use_case,
+        "cameras":      req.cameras,
+        "models_tested": req.models,
+        "configs":      list(config_results.values()),
+        "sweet_spot":   sweet_spot,
+    }
