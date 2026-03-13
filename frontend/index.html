@@ -898,9 +898,6 @@
       <button class="tab-pill active" id="pill-gen" onclick="switchTab('gen')">Video Generation</button>
       <button class="tab-pill" id="pill-vi" onclick="switchTab('vi')">Video Intelligence</button>
     </div>
-    <div style="display:flex;gap:8px">
-      <a href="http://localhost:8001" style="font-size:.75rem;font-weight:600;padding:5px 12px;border-radius:6px;text-decoration:none;border:1px solid var(--border);color:var(--text-muted)">Video Analysis ↗</a>
-    </div>
   </nav>
 <div id="tab-gen">
 <header class="hero" id="heroBlock">
@@ -924,139 +921,162 @@
       </div>
     </div>
 
-    <!-- SCREEN 2 — SCENARIO BUILDER -->
+    <!-- SCREEN 2 — SENSITIVITY ANALYSIS CONFIG -->
     <div class="app-screen" id="screen2">
-      <h2 class="onboarding-header" style="margin-bottom:.5rem">Configure Your Scenarios</h2>
-      <p class="onboarding-subheader" style="margin-bottom:1.5rem">Define 2 ways to generate video. We'll benchmark cost and quality for each.</p>
-      <div style="display:flex;gap:1.25rem;flex-wrap:wrap;align-items:flex-start">
-        <!-- Scenario A -->
-        <div class="version-column" style="flex:1;min-width:280px" id="scenCardA">
-          <h3 style="font-size:1rem;padding:.9rem 1.25rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-            <span style="font-family:monospace;font-size:.75rem;color:var(--text-muted);letter-spacing:.1em">SCENARIO A</span>
-            <input id="scNameA" value="High Quality" style="border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);text-align:right;outline:none;width:130px">
-          </h3>
-          <div style="padding:1rem">
-            <p class="section-label" style="margin-bottom:.5rem">A — Model</p>
-            <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-              <button type="button" class="sc-model-pill selected" data-sc="A" data-model="sora2" onclick="GEN.selScModel('A','sora2',this)">Sora 2</button>
-              <button type="button" class="sc-model-pill" data-sc="A" data-model="kling26" onclick="GEN.selScModel('A','kling26',this)">Kling 2.6</button>
-            </div>
-            <p class="section-label" style="margin-bottom:.5rem">B — Generation Parameters</p>
-            <div class="quality-slider-wrap">
-              <label>Clip length: <strong id="clipValA">15s</strong> <span class="tip-icon" data-tip="Duration of each generated video clip. Longer clips cost proportionally more.">ⓘ</span></label>
-              <input type="range" id="clipA" min="3" max="60" value="15" oninput="GEN.onClipSlide('A',this.value)" class="priority-slider">
-            </div>
-            <div class="quality-slider-wrap">
-              <label>Resolution <span class="tip-icon" data-tip="Output resolution. Higher resolution increases cost significantly.">ⓘ</span></label>
-              <select id="resA" onchange="GEN.updateScCost('A')" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:.95rem">
-                <option value="480p">480p</option>
-                <option value="720p">720p</option>
-                <option value="1080p" selected>1080p</option>
-                <option value="4k">4K</option>
-              </select>
-            </div>
-            <div class="quality-slider-wrap">
-              <label>FPS <span class="tip-icon" data-tip="Frames per second. 24fps is cinematic standard. Lower FPS reduces cost.">ⓘ</span></label>
-              <div style="display:flex;gap:.4rem">
-                <button type="button" class="sc-fps-pill" data-sc="A" data-fps="16" onclick="GEN.selFps('A',16,this)">16</button>
-                <button type="button" class="sc-fps-pill" data-sc="A" data-fps="20" onclick="GEN.selFps('A',20,this)">20</button>
-                <button type="button" class="sc-fps-pill selected" data-sc="A" data-fps="24" onclick="GEN.selFps('A',24,this)">24</button>
-              </div>
-            </div>
-            <div class="quality-slider-wrap">
-              <label>Max acceptable latency (sec) <span class="tip-icon" data-tip="Your maximum acceptable generation time. Used to flag scenarios that exceed your SLA.">ⓘ</span></label>
-              <input type="number" id="ttftA" value="30" min="5" max="600" style="width:100px;padding:.45rem;border:1px solid var(--border);border-radius:6px;font-size:.95rem" oninput="GEN.updateScCost('A')">
-            </div>
-            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">C — Quality Settings</p>
-            <div id="qualBucketsA"></div>
-            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">D — Estimated Cost</p>
-            <div class="vi-cost-box" id="costBoxA" style="font-family:monospace;font-size:.78rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem">
-              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>Cost / generation</span><span style="color:var(--accent);font-weight:700" id="cpgA">—</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 10 generations</span><span id="c10A">—</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 100 generations</span><span id="c100A">—</span></div>
-              <div style="display:flex;justify-content:space-between"><span>At 1,000 generations</span><span id="c1kA">—</span></div>
-            </div>
-          </div>
+      <h2 class="onboarding-header" style="margin-bottom:.25rem">SENSITIVITY ANALYSIS — <span id="vgConsumerLabel">Creative Agency</span></h2>
+      <p class="onboarding-subheader" style="margin-bottom:1.5rem"><span id="vgUseCaseLabel">Brand storytelling &amp; campaigns</span></p>
+
+      <div class="vg-config-block" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.25rem">
+        <h3 style="font-size:.9rem;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem">YOUR QUALITY BAR <span class="tip-icon" title="We find the cheapest config that meets these minimums">ⓘ</span></h3>
+        <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:1rem">We find the cheapest config that meets these minimums.</p>
+        <div class="quality-slider-wrap" style="margin-bottom:1rem">
+          <label>Subject Quality <strong id="vgSubjectVal">7</strong>/10 <span class="tip-icon" title="Is the main subject clear and compelling?">ⓘ</span></label>
+          <input type="range" id="vgSubjectQuality" min="1" max="10" value="7" class="priority-slider" oninput="document.getElementById('vgSubjectVal').textContent=this.value">
         </div>
-        <!-- Scenario B -->
-        <div class="version-column" style="flex:1;min-width:280px" id="scenCardB">
-          <h3 style="font-size:1rem;padding:.9rem 1.25rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-            <span style="font-family:monospace;font-size:.75rem;color:var(--text-muted);letter-spacing:.1em">SCENARIO B</span>
-            <input id="scNameB" value="Fast &amp; Cheap" style="border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);text-align:right;outline:none;width:130px">
-          </h3>
-          <div style="padding:1rem">
-            <p class="section-label" style="margin-bottom:.5rem">A — Model</p>
-            <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-              <button type="button" class="sc-model-pill" data-sc="B" data-model="sora2" onclick="GEN.selScModel('B','sora2',this)">Sora 2</button>
-              <button type="button" class="sc-model-pill selected" data-sc="B" data-model="kling26" onclick="GEN.selScModel('B','kling26',this)">Kling 2.6</button>
-            </div>
-            <p class="section-label" style="margin-bottom:.5rem">B — Generation Parameters</p>
-            <div class="quality-slider-wrap">
-              <label>Clip length: <strong id="clipValB">5s</strong> <span class="tip-icon" data-tip="Duration of each generated video clip. Longer clips cost proportionally more.">ⓘ</span></label>
-              <input type="range" id="clipB" min="3" max="60" value="5" oninput="GEN.onClipSlide('B',this.value)" class="priority-slider">
-            </div>
-            <div class="quality-slider-wrap">
-              <label>Resolution <span class="tip-icon" data-tip="Output resolution. Higher resolution increases cost significantly.">ⓘ</span></label>
-              <select id="resB" onchange="GEN.updateScCost('B')" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:.95rem">
-                <option value="480p">480p</option>
-                <option value="720p" selected>720p</option>
-                <option value="1080p">1080p</option>
-                <option value="4k">4K</option>
-              </select>
-            </div>
-            <div class="quality-slider-wrap">
-              <label>FPS <span class="tip-icon" data-tip="Frames per second. 24fps is cinematic standard. Lower FPS reduces cost.">ⓘ</span></label>
-              <div style="display:flex;gap:.4rem">
-                <button type="button" class="sc-fps-pill selected" data-sc="B" data-fps="16" onclick="GEN.selFps('B',16,this)">16</button>
-                <button type="button" class="sc-fps-pill" data-sc="B" data-fps="20" onclick="GEN.selFps('B',20,this)">20</button>
-                <button type="button" class="sc-fps-pill" data-sc="B" data-fps="24" onclick="GEN.selFps('B',24,this)">24</button>
-              </div>
-            </div>
-            <div class="quality-slider-wrap">
-              <label>Max acceptable latency (sec) <span class="tip-icon" data-tip="Your maximum acceptable generation time. Used to flag scenarios that exceed your SLA.">ⓘ</span></label>
-              <input type="number" id="ttftB" value="10" min="5" max="600" style="width:100px;padding:.45rem;border:1px solid var(--border);border-radius:6px;font-size:.95rem" oninput="GEN.updateScCost('B')">
-            </div>
-            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">C — Quality Settings</p>
-            <div id="qualBucketsB"></div>
-            <p class="section-label" style="margin-bottom:.5rem;margin-top:1rem">D — Estimated Cost</p>
-            <div class="vi-cost-box" id="costBoxB" style="font-family:monospace;font-size:.78rem;background:var(--surface-elevated);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem">
-              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>Cost / generation</span><span style="color:var(--accent);font-weight:700" id="cpgB">—</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 10 generations</span><span id="c10B">—</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span>At 100 generations</span><span id="c100B">—</span></div>
-              <div style="display:flex;justify-content:space-between"><span>At 1,000 generations</span><span id="c1kB">—</span></div>
-            </div>
+        <p style="font-size:.8rem;color:var(--text-dim);margin-bottom:.75rem">(Is the main subject clear and compelling?)</p>
+        <div class="quality-slider-wrap" style="margin-bottom:1rem">
+          <label>Temporal Coherence <strong id="vgTemporalVal">6</strong>/10 <span class="tip-icon" title="Does the video flow as a coherent sequence?">ⓘ</span></label>
+          <input type="range" id="vgTemporalCoherence" min="1" max="10" value="6" class="priority-slider" oninput="document.getElementById('vgTemporalVal').textContent=this.value">
+        </div>
+        <p style="font-size:.8rem;color:var(--text-dim)">(Does the video flow as a coherent sequence?)</p>
+      </div>
+
+      <div class="vg-config-block" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.25rem">
+        <h3 style="font-size:.9rem;font-weight:700;margin-bottom:1rem">YOUR WORKLOAD</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">
+          <div>
+            <label style="font-size:.8rem;color:var(--text-muted)">Generations / month</label>
+            <input type="number" id="vgGensPerMonth" value="200" min="1" max="100000" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;font-size:1rem;margin-top:.25rem">
+          </div>
+          <div>
+            <label style="font-size:.8rem;color:var(--text-muted)">Clip length</label>
+            <select id="vgClipLength" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;font-size:1rem;margin-top:.25rem">
+              <option value="5">5s</option>
+              <option value="10" selected>10s</option>
+              <option value="15">15s</option>
+              <option value="20">20s</option>
+              <option value="30">30s</option>
+            </select>
+            <span style="font-size:.72rem;color:var(--text-muted)">used for live model comparison</span>
+          </div>
+          <div>
+            <label style="font-size:.8rem;color:var(--text-muted)">Resolution</label>
+            <select id="vgResolution" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;font-size:1rem;margin-top:.25rem">
+              <option value="720p">720p</option>
+              <option value="1080p" selected>1080p</option>
+              <option value="4K">4K</option>
+            </select>
+            <span style="font-size:.72rem;color:var(--text-muted)">used for live model comparison</span>
+          </div>
+          <div>
+            <label style="font-size:.8rem;color:var(--text-muted)">Latency threshold</label>
+            <input type="number" id="vgLatencySec" value="60" min="10" max="300" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;font-size:1rem;margin-top:.25rem">
+            <span style="font-size:.72rem;color:var(--text-muted)">Max acceptable generation wait (sec)</span>
           </div>
         </div>
       </div>
+
+      <div class="vg-config-block" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.25rem">
+        <h3 style="font-size:.9rem;font-weight:700;margin-bottom:1rem">WHAT WE ANALYZE</h3>
+        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:.75rem">(pre-computed benchmarks + 1 live run)</p>
+        <ul style="list-style:none;padding:0;margin:0">
+          <li style="padding:.6rem 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:.5rem">
+            <span style="font-size:1.2rem">📊</span>
+            <div>
+              <strong>Resolution sensitivity</strong> 720p → 1080p → 4K<br>
+              <span style="font-size:.8rem;color:var(--text-dim)">Quality vs cost tradeoff. Source: Sora official benchmark sample</span>
+            </div>
+          </li>
+          <li style="padding:.6rem 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:.5rem">
+            <span style="font-size:1.2rem">📊</span>
+            <div>
+              <strong>Clip length sensitivity</strong> 5s → 10s → 15s → 20s → 30s<br>
+              <span style="font-size:.8rem;color:var(--text-dim)">Cost scales linearly. Quality plateaus early. Source: Sora official benchmark sample</span>
+            </div>
+          </li>
+          <li style="padding:.6rem 0;display:flex;align-items:flex-start;gap:.5rem">
+            <span style="font-size:1.2rem">⚡</span>
+            <div>
+              <strong>Live model comparison</strong> Sora 2 vs Kling 2.6<br>
+              <span style="font-size:.8rem;color:var(--text-dim)">Same prompt · Same config · Real generation. ~60s. Cost: ~$4.60</span>
+            </div>
+          </li>
+        </ul>
+        <p style="font-size:.8rem;color:var(--text-muted);margin-top:1rem">Est. time: ~60–90 seconds (live generation running in background)</p>
+      </div>
+
       <div style="text-align:center;margin-top:2rem">
-        <button type="button" class="cta-primary" id="btnGenerateEval">▶ GENERATE &amp; EVALUATE →</button>
+        <button type="button" class="cta-primary" id="btnRunAnalysis">▶ RUN ANALYSIS →</button>
         <p id="genEvalError" class="error-msg" style="margin-top:1rem;display:none"></p>
       </div>
     </div>
 
 
-    <!-- SCREEN 3 — RESULTS -->
+    <!-- SCREEN 3 — RESULTS (sticky Reconfigure, results below) -->
     <div class="app-screen" id="screen3">
-      <!-- Breadcrumb -->
-      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:1.25rem" id="resultBreadcrumb"></div>
+      <!-- Sticky Reconfigure bar -->
+      <div id="vgStickyBar" style="position:sticky;top:0;z-index:100;background:#0A0E1A;padding:8px 0;border-bottom:1px solid #1F2937;margin:0 -1rem;padding-left:1rem;padding-right:1rem">
+        <button type="button" onclick="GEN.scrollToReconfigure()" style="color:#9CA3AF;background:none;border:1px solid #374151;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:.9rem">← Reconfigure</button>
+        <span id="vgStickyContext" style="color:#9CA3AF;margin-left:12px;font-size:13px">Creative Agency · Brand storytelling · 200 gens/month</span>
+      </div>
 
-      <!-- Section 1: Cost projection -->
-      <h3 class="segment-title">Cost Projection</h3>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem" id="costHeroCards"></div>
-      <div style="height:280px;margin-bottom:1rem"><canvas id="genCostChart"></canvas></div>
+      <!-- Section 1: Live Model Comparison -->
+      <h3 class="segment-title" style="margin-top:1.5rem">LIVE COMPARISON — Sora 2 vs Kling 2.6</h3>
+      <p id="vgLiveSubtitle" style="font-size:.9rem;color:var(--text-dim);margin-bottom:1rem">Same prompt · 10s · 1080p · Generated just now</p>
+      <div id="vgLiveComparison" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem"></div>
 
-      <!-- Section 2: Scenario result cards -->
-      <h3 class="segment-title" style="margin-top:1.5rem">Scenario Results</h3>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap" id="scenResultCards"></div>
+      <!-- Section 2: Sensitivity Graphs (pre-computed) -->
+      <h3 class="segment-title" style="margin-top:2rem">SENSITIVITY GRAPHS</h3>
+      <div id="vgGraphResolution" class="vg-graph-section" style="margin-bottom:2rem">
+        <h4 style="font-size:.95rem;margin-bottom:.5rem">Resolution vs Quality + Cost</h4>
+        <div style="height:280px"><canvas id="vgChartRes"></canvas></div>
+        <div id="vgInsightRes" class="vg-insight-card"></div>
+      </div>
+      <div id="vgGraphClip" class="vg-graph-section" style="margin-bottom:2rem">
+        <h4 style="font-size:.95rem;margin-bottom:.5rem">Clip Length vs Quality + Cost</h4>
+        <div style="height:280px"><canvas id="vgChartClip"></canvas></div>
+        <div id="vgInsightClip" class="vg-insight-card"></div>
+      </div>
+      <div id="vgGraphModel" class="vg-graph-section" style="margin-bottom:2rem">
+        <h4 style="font-size:.95rem;margin-bottom:.5rem">Model Comparison (Quality vs Cost)</h4>
+        <div style="height:280px"><canvas id="vgChartModel"></canvas></div>
+      </div>
 
-      <!-- Section 3: Judge panel -->
-      <h3 class="segment-title" style="margin-top:1.5rem">Quality Evaluation — 3-Model Judge Panel</h3>
-      <p style="font-size:.9rem;color:var(--text-dim);margin-bottom:1rem">Claude, Gemini, and GPT-4o evaluated the generated output independently.</p>
-      <div id="judgePanel"></div>
+      <!-- Section 3: Cost Projections -->
+      <h3 class="segment-title" style="margin-top:2rem">COST PROJECTIONS</h3>
+      <div id="vgGraphClipCost" style="margin-bottom:2rem">
+        <h4 style="font-size:.95rem;margin-bottom:.5rem">Clip Length vs Monthly Cost at Your Volume</h4>
+        <div style="height:260px"><canvas id="vgChartClipCost"></canvas></div>
+        <div id="vgInsightClipCost" class="vg-insight-card"></div>
+      </div>
+      <div id="vgGraphGensCost" style="margin-bottom:2rem">
+        <h4 style="font-size:.95rem;margin-bottom:.5rem">Generations vs Annual Cost</h4>
+        <div style="height:260px"><canvas id="vgChartGensCost"></canvas></div>
+      </div>
 
-      <!-- Section 4: Recommendation -->
-      <h3 class="segment-title" style="margin-top:1.5rem">Recommendation</h3>
-      <div id="genRecommendation"></div>
+      <!-- Section 4: Recommendation Card -->
+      <h3 class="segment-title" style="margin-top:2rem">YOUR OPTIMAL CONFIG</h3>
+      <div id="vgRecommendationCard" class="vg-rec-card"></div>
+
+      <!-- Section 5: Quality Score Transparency (collapsible) -->
+      <h3 class="segment-title" style="margin-top:2rem">QUALITY SCORE TRANSPARENCY</h3>
+      <details id="vgQualityDetails" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <summary style="padding:1rem;cursor:pointer;font-weight:600">HOW QUALITY IS SCORED — Video Generation ▼</summary>
+        <div id="vgQualityBody" style="padding:1rem;border-top:1px solid var(--border);font-size:.88rem;line-height:1.5"></div>
+      </details>
+
+      <!-- Section 6: Talk to Gruve -->
+      <div style="text-align:center;margin-top:2rem;margin-bottom:2rem">
+        <button type="button" class="cta-primary" id="btnVgGruve" onclick="GEN.showVgGruvePopup()">Save ~30% on infrastructure with Gruve →</button>
+      </div>
+
+      <!-- Video Gen Gruve popup (hidden) -->
+      <div id="vgGruvePopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)GEN.closeVgGruvePopup()">
+        <div class="sa-popup" style="max-width:520px;max-height:90vh;overflow:auto" onclick="event.stopPropagation()">
+          <button type="button" onclick="GEN.closeVgGruvePopup()" style="float:right;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted)">×</button>
+          <div id="vgGruvePopupContent"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div><!-- /tab-gen -->
@@ -1320,7 +1340,7 @@
     }
 
     document.getElementById('btnConfigureEval').addEventListener('click', () => { goToScreen(2); GEN.init(); });
-    document.addEventListener('click', (e) => { if (e.target.id === 'btnGenerateEval') GEN.generate(); });
+    document.getElementById('btnRunAnalysis')?.addEventListener('click', () => GEN.runAnalysis());
     function updateVersionColumnTitles() {
       const name = MODEL_LABELS[state.selectedModel] || 'Sora 2';
       const a = document.getElementById('versionATitle');
@@ -1807,304 +1827,282 @@
     }
     fillMetricsPlaceholder();
 
-    // ── GEN namespace (Scenario Builder) ────────────────────────
+    // ── GEN namespace (Video Gen Sensitivity Analysis) ────────────────────────
     const GEN = (() => {
-      const GEN_PRICING = { sora2: { per_second: 0.15 }, kling26: { per_second: 0.08 } };
-      const RES_MUL = { '480p': 0.5, '720p': 1.0, '1080p': 2.0, '4k': 4.0 };
-      const FPS_MUL = { 16: 0.8, 20: 1.0, 24: 1.3 };
-      const QUALITY_BUCKETS = {
-        subject_quality:  { label: 'Subject Quality',  tooltip: 'How accurately and consistently subjects appear across frames.', metrics: ['Subject Consistency', 'Semantic Alignment'] },
-        motion_quality:   { label: 'Motion Quality',   tooltip: 'Smoothness and naturalness of movement.', metrics: ['Motion Smoothness', 'Temporal Flickering'] },
-        visual_fidelity:  { label: 'Visual Fidelity',  tooltip: 'Overall image quality and aesthetic appeal.', metrics: ['Aesthetic Quality', 'Imaging Quality'] },
-        scene_stability:  { label: 'Scene Stability',  tooltip: 'Consistency of background and scene elements.', metrics: ['Background Stability', 'Dynamic Degree'] },
-        overall_quality:  { label: 'Overall Quality',  tooltip: 'Composite quality score mapped to VBench standard.', metrics: ['VBench Composite'] },
-      };
+      const RES_MULTIPLIER = { '720p': 1.0, '1080p': 2.0, '4K': 4.0 };
+      let lastVgComparison = null;
+      let lastVgCache = null;
+      let lastVgConfig = null;
+      let vgChartInstances = [];
 
-      let genCostChartInst = null;
-      let lastEvalResult = null;
-
-      function getScParam(sc, key) {
-        if (sc === 'A') {
-          if (key === 'model') return state.scenarioA.model;
-          if (key === 'resolution') return document.getElementById('resA')?.value || state.scenarioA.resolution;
-          if (key === 'fps') return state.scenarioA.fps;
-          if (key === 'clipSec') return state.scenarioA.clipSec;
-          if (key === 'ttft') return parseInt(document.getElementById('ttftA')?.value) || state.scenarioA.ttft;
-          if (key === 'buckets') return state.scenarioA.buckets;
-          if (key === 'name') return document.getElementById('scNameA')?.value || 'Scenario A';
-        } else {
-          if (key === 'model') return state.scenarioB.model;
-          if (key === 'resolution') return document.getElementById('resB')?.value || state.scenarioB.resolution;
-          if (key === 'fps') return state.scenarioB.fps;
-          if (key === 'clipSec') return state.scenarioB.clipSec;
-          if (key === 'ttft') return parseInt(document.getElementById('ttftB')?.value) || state.scenarioB.ttft;
-          if (key === 'buckets') return state.scenarioB.buckets;
-          if (key === 'name') return document.getElementById('scNameB')?.value || 'Scenario B';
-        }
-      }
-      function calcCost(model, clipSec, res, fps) {
-        const base = GEN_PRICING[model]?.per_second || 0.10;
-        const cpg = clipSec * (RES_MUL[res] || 1.0) * (FPS_MUL[fps] || 1.0) * base;
-        return { cpg, c10: cpg * 10, c100: cpg * 100, c1k: cpg * 1000 };
-      }
-      function updateScCost(sc) {
-        const model = getScParam(sc, 'model');
-        const res   = getScParam(sc, 'resolution');
-        const fps   = getScParam(sc, 'fps');
-        const clip  = getScParam(sc, 'clipSec');
-        const c     = calcCost(model, clip, res, fps);
-        const fmt   = v => '$' + v.toFixed(v < 0.01 ? 4 : 2);
-        const set   = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        if (sc === 'A') {
-          set('cpgA', fmt(c.cpg)); set('c10A', fmt(c.c10)); set('c100A', fmt(c.c100)); set('c1kA', fmt(c.c1k));
-        } else {
-          set('cpgB', fmt(c.cpg)); set('c10B', fmt(c.c10)); set('c100B', fmt(c.c100)); set('c1kB', fmt(c.c1k));
-        }
-      }
-      function selScModel(sc, model, btn) {
-        if (sc === 'A') state.scenarioA.model = model; else state.scenarioB.model = model;
-        document.querySelectorAll(`.sc-model-pill[data-sc="${sc}"]`).forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        updateScCost(sc);
-      }
-      function onClipSlide(sc, val) {
-        const n = parseInt(val);
-        if (sc === 'A') { state.scenarioA.clipSec = n; const el = document.getElementById('clipValA'); if (el) el.textContent = n + 's'; }
-        else             { state.scenarioB.clipSec = n; const el = document.getElementById('clipValB'); if (el) el.textContent = n + 's'; }
-        updateScCost(sc);
-      }
-      function selFps(sc, fps, btn) {
-        if (sc === 'A') state.scenarioA.fps = fps; else state.scenarioB.fps = fps;
-        document.querySelectorAll(`.sc-fps-pill[data-sc="${sc}"]`).forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        updateScCost(sc);
-      }
-      function buildQualBuckets(sc) {
-        const containerId = sc === 'A' ? 'qualBucketsA' : 'qualBucketsB';
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        const scState = sc === 'A' ? state.scenarioA : state.scenarioB;
-        container.innerHTML = Object.entries(QUALITY_BUCKETS).map(([key, cfg]) => {
-          const val = scState.buckets[key] || 5;
-          const bodyId = `qb-body-${sc}-${key}`;
-          return `<div class="qual-bucket">
-            <div class="qual-bucket-head" onclick="this.nextElementSibling.classList.toggle('open')">
-              <span>${cfg.label} <span class="tip-icon" data-tip="${cfg.tooltip}">ⓘ</span></span>
-              <span style="color:var(--accent);font-weight:700">${val}</span>
-            </div>
-            <div class="qual-bucket-body" id="${bodyId}">
-              <input type="range" min="1" max="10" value="${val}" style="width:100%;accent-color:var(--accent)"
-                oninput="GEN.onBucketSlide('${sc}','${key}',this.value,this.closest('.qual-bucket').querySelector('.qual-bucket-head span:last-child'))">
-              <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-muted);margin-top:.2rem"><span>1</span><span>5</span><span>10</span></div>
-              <div class="qual-sub-list">↳ ${cfg.metrics.join(', ')}</div>
-            </div>
-          </div>`;
-        }).join('');
-      }
-      function onBucketSlide(sc, key, val, labelEl) {
-        const n = parseInt(val);
-        if (sc === 'A') state.scenarioA.buckets[key] = n; else state.scenarioB.buckets[key] = n;
-        if (labelEl) labelEl.textContent = n;
-      }
-      function initScenarios() {
-        buildQualBuckets('A');
-        buildQualBuckets('B');
-        updateScCost('A');
-        updateScCost('B');
-      }
-
-      async function generate() {
-        const btn = document.getElementById('btnGenerateEval');
-        const errEl = document.getElementById('genEvalError');
-        if (btn) { btn.disabled = true; btn.textContent = 'GENERATING…'; }
-        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-
-        const ucKey = (state.useCase || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-        const payload = {
-          use_case: ucKey,
-          scenarios: [
-            { id: 'A', name: getScParam('A','name'), model: getScParam('A','model'), resolution: getScParam('A','resolution'), fps: getScParam('A','fps'), clip_length_sec: getScParam('A','clipSec'), ttft_threshold_sec: getScParam('A','ttft'), quality_buckets: getScParam('A','buckets') },
-            { id: 'B', name: getScParam('B','name'), model: getScParam('B','model'), resolution: getScParam('B','resolution'), fps: getScParam('B','fps'), clip_length_sec: getScParam('B','clipSec'), ttft_threshold_sec: getScParam('B','ttft'), quality_buckets: getScParam('B','buckets') },
-          ],
+      function getVgConfig() {
+        const subjectEl = document.getElementById('vgSubjectQuality');
+        const temporalEl = document.getElementById('vgTemporalCoherence');
+        const gensEl = document.getElementById('vgGensPerMonth');
+        const clipEl = document.getElementById('vgClipLength');
+        const resEl = document.getElementById('vgResolution');
+        const latencyEl = document.getElementById('vgLatencySec');
+        return {
+          subject_quality_min: subjectEl ? parseFloat(subjectEl.value) : 7,
+          temporal_coherence_min: temporalEl ? parseFloat(temporalEl.value) : 6,
+          generations_per_month: gensEl ? parseInt(gensEl.value, 10) : 200,
+          clip_sec: clipEl ? parseInt(clipEl.value, 10) : 10,
+          resolution: resEl ? resEl.value : '1080p',
+          latency_threshold_sec: latencyEl ? parseInt(latencyEl.value, 10) : 60,
         };
+      }
+
+      function init() {
+        const lbl = document.getElementById('vgConsumerLabel');
+        const useLbl = document.getElementById('vgUseCaseLabel');
+        if (lbl) lbl.textContent = state.consumerLabel || state.consumer || 'Creative Agency';
+        if (useLbl) useLbl.textContent = state.useCase || 'Brand storytelling & campaigns';
+      }
+
+      async function runAnalysis() {
+        const btn = document.getElementById('btnRunAnalysis');
+        const errEl = document.getElementById('genEvalError');
+        if (btn) { btn.disabled = true; btn.textContent = 'RUNNING…'; }
+        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+        lastVgConfig = getVgConfig();
         try {
-          const r = await fetch(`${API_BASE}/generate-eval`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+          const cacheRes = await fetch(`${API_BASE}/videogen/load-cache`);
+          const cacheJson = await cacheRes.json();
+          const cacheData = cacheJson.available && cacheJson.data ? cacheJson.data : {};
+          const req = {
+            ...lastVgConfig,
+            resolution: lastVgConfig.resolution === '4K' ? '4K' : lastVgConfig.resolution,
+          };
+          const compRes = await fetch(`${API_BASE}/videogen/generate-comparison`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req),
           });
-          if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.detail || r.statusText); }
-          const data = await r.json();
-          lastEvalResult = data;
+          if (!compRes.ok) {
+            const err = await compRes.json().catch(() => ({}));
+            throw new Error(err.detail || compRes.statusText || 'Generation failed');
+          }
+          const comparison = await compRes.json();
+          lastVgComparison = comparison;
+          lastVgCache = cacheData;
+          document.getElementById('vgStickyContext').textContent =
+            (state.consumerLabel || state.consumer || 'Creative Agency') + ' · ' + (state.useCase || 'Brand storytelling') + ' · ' + (lastVgConfig.generations_per_month || 200) + ' gens/month';
           goToScreen(3);
-          renderEvalResults(data);
+          window.scrollTo(0, 0);
+          renderVgResults(comparison, cacheData);
         } catch (e) {
-          if (errEl) { errEl.textContent = e.message || 'Generation failed'; errEl.style.display = 'block'; }
+          if (errEl) { errEl.textContent = e.message || 'Analysis failed'; errEl.style.display = 'block'; }
         } finally {
-          if (btn) { btn.disabled = false; btn.textContent = '▶ GENERATE & EVALUATE →'; }
+          if (btn) { btn.disabled = false; btn.textContent = '▶ RUN ANALYSIS →'; }
         }
       }
 
-      function renderEvalResults(data) {
-        // Breadcrumb
-        const bc = document.getElementById('resultBreadcrumb');
-        if (bc) bc.textContent = `${state.consumerLabel || state.consumer} · ${state.useCase || ''} · Run ${data.run_id}`;
-
-        const scA = data.scenarios?.find(s => s.id === 'A');
-        const scB = data.scenarios?.find(s => s.id === 'B');
-
-        renderCostHero(scA, scB);
-        renderCostChart(scA, scB);
-        renderScenResultCards(scA, scB, data.judge_panel);
-        renderJudgePanel(data.judge_panel, scA, scB);
-        renderGenRecommendation(scA, scB, data.judge_panel);
+      function scrollToReconfigure() {
+        goToScreen(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      function renderCostHero(scA, scB) {
-        const wrap = document.getElementById('costHeroCards');
-        if (!wrap) return;
-        [scA, scB].forEach((sc, i) => {
-          if (!sc) return;
-          const isWin = (sc === scA ? scA : scB)?.cost_per_generation <= (i === 0 ? scB : scA)?.cost_per_generation && scA?.cost_per_generation !== scB?.cost_per_generation;
-        });
-        const minCpg = Math.min(scA?.cost_per_generation || Infinity, scB?.cost_per_generation || Infinity);
-        wrap.innerHTML = [scA, scB].filter(Boolean).map(sc => {
-          const isWin = sc.cost_per_generation === minCpg && scA?.cost_per_generation !== scB?.cost_per_generation;
-          const ttftOk = !sc.ttft_exceeded;
-          return `<div class="gen-cost-card${isWin ? ' winner' : ''}">
-            <div style="font-size:.72rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem">Scenario ${sc.id} — ${sc.name}</div>
-            <div style="font-size:1.5rem;font-weight:700;color:${isWin ? 'var(--accent)' : 'var(--text)'}">$${(sc.cost_per_generation || 0).toFixed(4)}</div>
-            <div style="font-size:.72rem;color:var(--text-muted);margin-top:.2rem">per generation</div>
-            <div style="font-size:.82rem;margin-top:.5rem">At 1,000 gen: <strong>$${(sc.cost_at_1000 || 0).toFixed(2)}</strong></div>
-            <div style="font-size:.78rem;margin-top:.3rem;color:${ttftOk ? '#16a34a' : '#dc2626'}">
-              Gen time: ${sc.generation_time_sec != null ? sc.generation_time_sec + 's' : '—'} ${ttftOk ? '✓' : '⚠ Exceeds SLA'}
+      function renderVgResults(comp, cache) {
+        const cfg = comp.config || lastVgConfig || {};
+        const subMin = lastVgConfig?.subject_quality_min ?? 7;
+        const cohMin = lastVgConfig?.temporal_coherence_min ?? 6;
+        const gens = lastVgConfig?.generations_per_month ?? 200;
+        const fmt$ = v => '$' + (v == null ? '0' : Math.round(v).toLocaleString());
+        const ts = comp.timestamp ? ' · Generated live · ' + comp.timestamp : '';
+
+        document.getElementById('vgLiveSubtitle').textContent = 'Same prompt · ' + (cfg.clip_sec || 10) + 's · ' + (cfg.resolution || '1080p') + ts;
+
+        const sora = comp.sora || {};
+        const kling = comp.kling || {};
+        const scoreRow = (label, key, thresh) => {
+          const sVal = sora.scores?.[key] ?? 0;
+          const kVal = kling.scores?.[key] ?? 0;
+          const pass = v => (v >= (thresh || 0));
+          return `<tr><td>${label}</td><td style="color:${pass(sVal)?'#16a34a':'#dc2626'}">${sVal}/10 ${pass(sVal)?'✓':''}</td><td style="color:${pass(kVal)?'#16a34a':'#dc2626'}">${kVal}/10 ${pass(kVal)?'✓':''}</td></tr>`;
+        };
+        const videoCard = (name, data) => {
+          if (!data || data.status === 'error')
+            return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem;text-align:center"><div style="font-weight:700;margin-bottom:.5rem">${name}</div><p style="color:#dc2626;font-size:.9rem">${data?.error || 'Generation failed'}</p></div>`;
+          const src = data.video_b64 ? `data:video/mp4;base64,${data.video_b64}` : '';
+          return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+            <div style="padding:.5rem;font-weight:700;text-align:center;border-bottom:1px solid var(--border)">${name}</div>
+            <div style="aspect-ratio:16/9;background:#000">${src ? `<video src="${src}" controls playsinline style="width:100%;height:100%"></video>` : '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">No video</div>'}</div>
+            <div style="padding:.75rem;font-size:.85rem">
+              <div style="display:flex;justify-content:space-between"><span>Generation time</span><span>${data.gen_time_sec != null ? data.gen_time_sec + 's' : '—'}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>Cost per gen</span><span>${fmt$(data.cost_per_gen)}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>Monthly (${gens})</span><span>${fmt$(data.monthly_cost)}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>Annual</span><span>${fmt$(data.annual_cost)}</span></div>
+              <div style="display:flex;justify-content:space-between;margin-top:.5rem"><span>Meets quality bar</span><span>${data.meets_quality_bar ? '✓ YES' : '✗'}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>Latency ok</span><span>${data.latency_ok ? '✓ YES' : '✗'}</span></div>
             </div>
           </div>`;
-        }).join('');
-      }
+        };
+        const dimRows = (sora.scores || kling.scores) ? [`Subject Quality`,`Temporal Coh.`,`Motion Quality`,`Visual Fidelity`,`Scene Stability`,`OVERALL`].map((lbl,i) => {
+          const keys = ['subject_quality','temporal_coherence','motion_quality','visual_fidelity','scene_stability','overall'];
+          const k = keys[i];
+          const th = k === 'subject_quality' ? subMin : k === 'temporal_coherence' ? cohMin : null;
+          return scoreRow(lbl, k, th);
+        }).join('') : '';
+        const rec = comp.recommendation;
+        const reason = comp.recommendation_reason || '';
+        const recHTML = (rec === 'kling' && sora.meets_quality_bar && kling.meets_quality_bar)
+          ? `★ RECOMMENDATION: Use Kling 2.6. Both models meet your quality bar. Kling saves ${fmt$(Math.abs((sora.annual_cost||0)-(kling.annual_cost||0)))}/year at ${gens} gens/month. Quality gap: ${((sora.scores?.overall||0)-(kling.scores?.overall||0)).toFixed(1)} points — within acceptable range.`
+          : (rec === 'sora' ? `★ RECOMMENDATION: Use Sora 2. ${reason}` : (rec === 'kling' ? `★ RECOMMENDATION: Use Kling 2.6. ${reason}` : reason));
+        document.getElementById('vgLiveComparison').innerHTML =
+          videoCard('Sora 2', sora) + videoCard('Kling 2.6', kling) +
+          (dimRows ? `<div style="grid-column:1/-1;overflow-x:auto"><table style="width:100%;font-size:.9rem;border-collapse:collapse;margin-top:1rem"><thead><tr><th style="text-align:left">Dimension</th><th>Sora 2</th><th>Kling 2.6</th></tr></thead><tbody>${dimRows}</tbody></table></div>` : '') +
+          `<div style="grid-column:1/-1;background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:.5rem"><strong>${recHTML}</strong></div>`;
 
-      function renderCostChart(scA, scB) {
-        const ctx = document.getElementById('genCostChart');
-        if (!ctx) return;
-        if (genCostChartInst) genCostChartInst.destroy();
-        const xs = [1, 10, 100, 1000, 10000];
-        const dsA = scA ? { label: `Scenario A — ${scA.name}`, data: xs.map(x => +(scA.cost_per_generation * x).toFixed(4)), borderColor: '#3B82F6', backgroundColor: 'transparent', tension: .2, fill: false } : null;
-        const dsB = scB ? { label: `Scenario B — ${scB.name}`, data: xs.map(x => +(scB.cost_per_generation * x).toFixed(4)), borderColor: '#7EE8A2', backgroundColor: 'transparent', tension: .2, fill: false } : null;
-        const datasets = [dsA, dsB].filter(Boolean);
-        genCostChartInst = new Chart(ctx, {
-          type: 'line',
-          data: { labels: xs.map(String), datasets },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#475569' } } },
-            scales: {
-              x: { type: 'category', ticks: { color: '#64748b' } },
-              y: { type: 'logarithmic', ticks: { color: '#64748b', callback: v => '$' + parseFloat(v).toFixed(v < 0.01 ? 4 : v < 1 ? 2 : 0) }, grid: { color: '#e2e8f0' } },
-            },
-          },
-        });
-      }
-
-      function renderScenResultCards(scA, scB, judgePanel) {
-        const wrap = document.getElementById('scenResultCards');
-        if (!wrap) return;
-        const overallA = judgePanel?.overall_a;
-        const overallB = judgePanel?.overall_b;
-        const winnerByQuality = (overallA != null && overallB != null) ? (overallA >= overallB ? 'A' : 'B') : null;
-        wrap.innerHTML = [scA, scB].filter(Boolean).map(sc => {
-          const isWin = sc.id === winnerByQuality;
-          const ttftOk = !sc.ttft_exceeded;
-          const videoPath = sc.video_path;
-          return `<div class="scen-result-card${isWin ? ' winner' : ''}">
-            <div style="padding:.7rem 1rem;background:var(--surface-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-              <span style="font-weight:700;font-size:.88rem">Scenario ${sc.id} — ${sc.name}</span>
-              ${isWin ? '<span style="background:#7EE8A2;color:#0a0e1a;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:20px">✓ WINNER</span>' : ''}
-            </div>
-            <div style="padding:.85rem 1rem;font-size:.82rem">
-              <div style="color:var(--text-muted);margin-bottom:.65rem;font-size:.72rem">${sc.model === 'sora2' ? 'Sora 2' : 'Kling 2.6'} · ${sc.resolution} · ${sc.fps}fps · ${sc.clip_length_sec}s</div>
-              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">Generation time</span><span style="font-weight:600;color:${ttftOk ? '#16a34a' : '#dc2626'}">${sc.generation_time_sec != null ? sc.generation_time_sec + 's' : '—'} ${ttftOk ? '✓' : '⚠'}</span></div>
-              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">TTFT threshold</span><span>${sc.ttft_threshold_sec}s</span></div>
-              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">Cost / generation</span><span style="font-weight:600">$${(sc.cost_per_generation||0).toFixed(4)}</span></div>
-              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">At 100 gen</span><span>$${(sc.cost_at_100||0).toFixed(2)}</span></div>
-              ${sc.judge_overall != null ? `<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-muted)">Quality score</span><span style="font-weight:600;color:var(--accent)">${(sc.judge_overall*100).toFixed(0)}%</span></div>` : ''}
-              ${videoPath ? `<details style="margin-top:.75rem"><summary style="cursor:pointer;font-size:.78rem;color:var(--accent);font-weight:600">▼ View generated video</summary><video src="${API_BASE}/video/${videoPath}" controls playsinline style="width:100%;border-radius:6px;margin-top:.5rem"></video></details>` : '<div style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem;font-style:italic">' + (sc.error || 'Video not available') + '</div>'}
-            </div>
-          </div>`;
-        }).join('');
-      }
-
-      function renderJudgePanel(judgePanel, scA, scB) {
-        const wrap = document.getElementById('judgePanel');
-        if (!wrap) return;
-        if (!judgePanel || judgePanel.error) {
-          wrap.innerHTML = `<p style="color:var(--text-muted);font-size:.88rem">Judge panel unavailable: ${judgePanel?.error || 'Videos not generated'}</p>`;
-          return;
+        vgChartInstances.forEach(c => { try { c.destroy(); } catch(_){} });
+        vgChartInstances = [];
+        const resKeys = ['resolution_720p','resolution_1080p','resolution_4k'];
+        const resData = resKeys.map(k => cache[k]).filter(Boolean);
+        if (resData.length) {
+          const ctx = document.getElementById('vgChartRes');
+          if (ctx) {
+            const ch = new Chart(ctx, { type: 'line', data: { labels: resData.map(r => r.label), datasets: [
+              { label: 'Quality', data: resData.map(r => (r.scores && r.scores.overall) || 0), borderColor: '#7EE8A2', yAxisID: 'y', tension: 0.3 },
+              { label: 'Cost/gen', data: resData.map(r => r.cost_per_gen || 0), borderColor: '#60A5FA', borderDash: [5,5], yAxisID: 'y1', tension: 0.1 }
+            ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#475569' } } }, scales: { y: { min: 0, max: 10 }, y1: { position: 'right', grid: { drawOnChartArea: false } } } } });
+            vgChartInstances.push(ch);
+          }
+          const insightRes = document.getElementById('vgInsightRes');
+          if (insightRes) insightRes.innerHTML = '<p style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem">Source: Sora official benchmark sample</p><div class="vg-insight-card" style="margin-top:.75rem;padding:.75rem;background:var(--surface);border-radius:6px;font-size:.88rem">💡 Resolution is your biggest quality lever — but plateaus at 1080p. Going 1080p → 4K doubles your cost for minimal visual improvement. For most creative agency deliverables, 1080p is the sweet spot.</div>';
         }
-        const dims = ['subject_quality', 'motion_quality', 'visual_fidelity', 'scene_stability', 'overall_quality'];
-        const dimLabels = { subject_quality: 'Subject Quality', motion_quality: 'Motion Quality', visual_fidelity: 'Visual Fidelity', scene_stability: 'Scene Stability', overall_quality: 'Overall Quality' };
-        const disagreements = judgePanel.disagreements || [];
-        const cols = [
-          { id: 'A', label: scA?.name || 'Scenario A', data: judgePanel.scenario_a },
-          { id: 'B', label: scB?.name || 'Scenario B', data: judgePanel.scenario_b },
-        ].filter(c => c.data);
-
-        wrap.innerHTML = `<div style="display:flex;gap:1.25rem;flex-wrap:wrap">` +
-          cols.map(col => `<div style="flex:1;min-width:240px">
-            <div style="font-weight:700;font-size:.88rem;margin-bottom:.85rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">Scenario ${col.id} — ${col.label}</div>
-            ${dims.map(dim => {
-              const d = col.data[dim];
-              if (!d) return '';
-              const pct = Math.round((d.consensus || 0) * 100);
-              const disagree = disagreements.includes(dim);
-              const judgeKeys = d.individual ? Object.keys(d.individual) : [];
-              return `<div class="judge-dim-row">
-                <span class="judge-dim-lbl">${dimLabels[dim]} ${disagree ? '<span style="color:#d97706">⚠</span>' : ''}</span>
-                <div class="judge-bar-wrap"><div class="judge-bar" style="width:${pct}%;background:${pct >= 70 ? '#7EE8A2' : pct >= 50 ? '#F59E0B' : '#EF4444'}"></div></div>
-                <span class="judge-score-val" style="color:${pct >= 70 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626'}">${pct}%</span>
-              </div>
-              <div class="judge-indiv">${judgeKeys.map(j => `${j}: ${Math.round((d.individual[j]||0)*100)}%`).join(' · ')}</div>`;
-            }).join('')}
-            <div style="font-size:.88rem;font-weight:700;margin-top:.75rem;padding-top:.6rem;border-top:1px solid var(--border)">Overall: ${Math.round((judgePanel[col.id === 'A' ? 'overall_a' : 'overall_b'] || 0) * 100)}%</div>
-          </div>`).join('') + `</div>`;
-      }
-
-      function renderGenRecommendation(scA, scB, judgePanel) {
-        const wrap = document.getElementById('genRecommendation');
-        if (!wrap) return;
-        if (!scA || !scB) { wrap.innerHTML = '<p style="color:var(--text-muted)">Generation incomplete.</p>'; return; }
-        const cpgA = scA.cost_per_generation || 0;
-        const cpgB = scB.cost_per_generation || 0;
-        const overallA = (judgePanel?.overall_a || 0) * 100;
-        const overallB = (judgePanel?.overall_b || 0) * 100;
-        const cheaper = cpgA <= cpgB ? scA : scB;
-        const higherQ = overallA >= overallB ? scA : scB;
-        const costDelta = Math.max(cpgA, cpgB) / Math.max(Math.min(cpgA, cpgB), 0.0001);
-        const qualDelta = Math.abs(overallA - overallB);
-        let lead, body;
-        if (costDelta > 5 && qualDelta < 10) {
-          lead = `Use ${cheaper.name} for ${state.useCase || 'this workload'}.`;
-          body = `${cheaper.name} is ${costDelta.toFixed(1)}× cheaper ($${cpgA.toFixed(4)} vs $${cpgB.toFixed(4)}/generation) with comparable quality scores (${overallA.toFixed(0)}% vs ${overallB.toFixed(0)}%). At 1,000 generations, ${cheaper.name} saves $${Math.abs((scA.cost_at_1000||0) - (scB.cost_at_1000||0)).toFixed(2)}.`;
-        } else if (costDelta > 3 && qualDelta >= 10) {
-          lead = `Trade-off: ${cheaper.name} is cheaper, ${higherQ.name} delivers higher quality.`;
-          body = `${cheaper.name} is ${costDelta.toFixed(1)}× cheaper but ${higherQ.name} scores ${qualDelta.toFixed(0)}% higher quality. For hero campaign assets, use ${higherQ.name}. For high-volume testing and iteration, use ${cheaper.name}.`;
-        } else {
-          lead = `Results are workload-dependent.`;
-          body = `Both scenarios offer similar value. ${cheaper.name} is marginally cheaper; ${higherQ.name} scores marginally higher quality. Choose based on your primary constraint — cost or quality.`;
+        const clipKeys = ['clip_5s','clip_10s','clip_15s','clip_20s','clip_30s'];
+        const clipData = clipKeys.map(k => cache[k]).filter(Boolean);
+        if (clipData.length) {
+          const ctx = document.getElementById('vgChartClip');
+          if (ctx) {
+            const ch = new Chart(ctx, { type: 'line', data: { labels: clipData.map(c => c.label), datasets: [
+              { label: 'Quality', data: clipData.map(c => (c.scores && c.scores.overall) || 0), borderColor: '#7EE8A2', yAxisID: 'y', tension: 0.3 },
+              { label: 'Cost/gen', data: clipData.map(c => c.cost_per_gen || 0), borderColor: '#60A5FA', borderDash: [5,5], yAxisID: 'y1', tension: 0.1 }
+            ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#475569' } } }, scales: { y: { min: 0, max: 10 }, y1: { position: 'right', grid: { drawOnChartArea: false } } } } });
+            vgChartInstances.push(ch);
+          }
+          const insightClip = document.getElementById('vgInsightClip');
+          if (insightClip) insightClip.innerHTML = '<p style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem">Source: Sora official benchmark sample</p><div class="vg-insight-card" style="margin-top:.75rem;padding:.75rem;background:var(--surface);border-radius:6px;font-size:.88rem">💡 Clip length has minimal effect on per-frame quality. For social content (Instagram/TikTok), 10s clips are optimal. Going 10s → 30s triples cost with no quality gain. Use shorter clips. Generate more variations instead.</div>';
         }
-        // Key lever: resolution contributes most to cost
-        const leverHTML = costDelta > 2 ? `<div class="vi-lever-box">💡 <strong>Biggest cost lever: Resolution</strong><br>
-          Dropping from ${Math.max(Object.keys(RES_MUL).indexOf(scA.resolution), Object.keys(RES_MUL).indexOf(scB.resolution)) > -1 ? [scA.resolution,scB.resolution].sort((a,b)=>RES_MUL[b]-RES_MUL[a])[0] : 'high res'} to ${[scA.resolution,scB.resolution].sort((a,b)=>RES_MUL[a]-RES_MUL[b])[0]} accounts for a large portion of the cost difference.
-          At 1,000 generations: ${scA.name} $${(scA.cost_at_1000||0).toFixed(2)} vs ${scB.name} $${(scB.cost_at_1000||0).toFixed(2)}</div>` : '';
-        wrap.innerHTML = `<div class="vi-rec-full">
-          <div class="vi-rec-lead">${lead}</div>
-          <div class="vi-rec-body">${body}</div>
-          ${leverHTML}
+        if (sora.status === 'complete' && kling.status === 'complete') {
+          const ctx = document.getElementById('vgChartModel');
+          if (ctx) {
+            const ch = new Chart(ctx, { type: 'scatter', data: { datasets: [
+              { label: 'Sora 2', data: [{ x: sora.cost_per_gen || 0, y: (sora.scores && sora.scores.overall) || 0 }], backgroundColor: '#60A5FA', pointRadius: 14 },
+              { label: 'Kling 2.6', data: [{ x: kling.cost_per_gen || 0, y: (kling.scores && kling.scores.overall) || 0 }], backgroundColor: '#7EE8A2', pointRadius: 14 }
+            ]}, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'logarithmic', title: { display: true, text: 'Cost per Generation ($)' } }, y: { min: 0, max: 10, title: { display: true, text: 'Overall Quality (0-10)' } } }, plugins: { legend: { labels: { color: '#475569' } } } } });
+            vgChartInstances.push(ch);
+          }
+        }
+        const resMult = r => RES_MULTIPLIER[r] || 1;
+        const soraCpg = sec => sec * 0.15 * resMult(cfg.resolution || '1080p');
+        const klingCpg = sec => sec * 0.08 * resMult(cfg.resolution || '1080p');
+        const clipSecs = [5,10,15,20,30];
+        const ctxClipCost = document.getElementById('vgChartClipCost');
+        if (ctxClipCost) {
+          const ch = new Chart(ctxClipCost, { type: 'line', data: { labels: clipSecs.map(s => s + 's'), datasets: [
+            { label: 'Sora 2', data: clipSecs.map(s => soraCpg(s) * gens), borderColor: '#60A5FA', tension: 0.2 },
+            { label: 'Kling 2.6', data: clipSecs.map(s => klingCpg(s) * gens), borderColor: '#7EE8A2', tension: 0.2 }
+          ]}, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v } } }, plugins: { legend: { labels: { color: '#475569' } } } } });
+          vgChartInstances.push(ch);
+          const extra5sSora = (soraCpg(15) - soraCpg(10)) * gens;
+          const extra5sKling = (klingCpg(15) - klingCpg(10)) * gens;
+          const el = document.getElementById('vgInsightClipCost');
+          if (el) el.innerHTML = '<div class="vg-insight-card" style="margin-top:.75rem;padding:.75rem;background:var(--surface);border-radius:6px;font-size:.88rem">💡 At ' + gens + ' generations/month, every 5 extra seconds costs you ' + fmt$(extra5sSora) + '/mo on Sora · ' + fmt$(extra5sKling) + '/mo on Kling. Choose clip length based on platform requirements, not quality.</div>';
+        }
+        const genVolumes = [10,100,500,1000,5000,10000];
+        const ctxGensCost = document.getElementById('vgChartGensCost');
+        if (ctxGensCost) {
+          const soraCpgBase = (cfg.clip_sec || 10) * 0.15 * resMult(cfg.resolution || '1080p');
+          const klingCpgBase = (cfg.clip_sec || 10) * 0.08 * resMult(cfg.resolution || '1080p');
+          const ch = new Chart(ctxGensCost, { type: 'line', data: { labels: genVolumes.map(String), datasets: [
+            { label: 'Sora 2 1080p', data: genVolumes.map(g => soraCpgBase * g * 12), borderColor: '#60A5FA', tension: 0.2 },
+            { label: 'Kling 2.6 1080p', data: genVolumes.map(g => klingCpgBase * g * 12), borderColor: '#7EE8A2', tension: 0.2 },
+            { label: 'Sora 2 4K', data: genVolumes.map(g => (cfg.clip_sec||10)*0.15*4 * g * 12), borderColor: '#60A5FA', borderDash: [5,5], tension: 0.2 }
+          ]}, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'logarithmic' }, y: { ticks: { callback: v => '$' + Math.round(v).toLocaleString() } } }, plugins: { legend: { labels: { color: '#475569' } } } } });
+          vgChartInstances.push(ch);
+        }
+        const recCard = document.getElementById('vgRecommendationCard');
+        const optModel = rec === 'kling' ? 'Kling 2.6' : rec === 'sora' ? 'Sora 2' : '—';
+        const optCost = rec === 'kling' ? (kling.annual_cost || 0) : rec === 'sora' ? (sora.annual_cost || 0) : 0;
+        const premiumCost = (cfg.clip_sec||10) * 0.15 * 4 * gens * 12;
+        if (recCard) recCard.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem">
+          <p style="margin-bottom:.75rem">Based on your quality bar (Subject ≥${subMin}, Coherence ≥${cohMin}) and volume (${gens} generations/month):</p>
+          <div style="display:grid;gap:.5rem;font-size:.9rem">
+            <div style="display:flex;justify-content:space-between"><span>Recommended model</span><strong>${optModel}</strong></div>
+            <div style="display:flex;justify-content:space-between"><span>Recommended resolution</span><strong>1080p</strong> <span style="color:var(--text-muted);font-size:.8rem">← quality plateaus here</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Recommended clip length</span><strong>10s</strong> <span style="color:var(--text-muted);font-size:.8rem">← cost/quality optimal</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Monthly cost</span><strong>${fmt$(optCost/12)}</strong></div>
+            <div style="display:flex;justify-content:space-between"><span>Annual cost</span><strong>${fmt$(optCost)}</strong></div>
+            <div style="border-top:1px solid var(--border);margin-top:.5rem;padding-top:.5rem"></div>
+            <div style="display:flex;justify-content:space-between"><span>vs premium config (Sora 2 · 4K · 30s)</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Monthly cost</span>${fmt$(premiumCost/12)}</div>
+            <div style="display:flex;justify-content:space-between"><span>Annual cost</span>${fmt$(premiumCost)}</div>
+            <div style="display:flex;justify-content:space-between;margin-top:.5rem"><span>Savings identified</span><strong style="color:#16a34a">${fmt$(premiumCost - optCost)}/year</strong></div>
+            <div style="margin-top:.5rem;font-size:.85rem;color:var(--text-dim)">Biggest cost lever: Model (switching Sora→Kling saves ~47%)</div>
+          </div>
         </div>`;
+        const qualityBody = document.getElementById('vgQualityBody');
+        if (qualityBody) qualityBody.innerHTML = `<p><strong>USER-DEFINED THRESHOLDS (your quality bar)</strong></p>
+          <p>Subject Quality ≥ ${subMin}/10 — Is the main subject clear and compelling? Critical for client deliverables and brand videos.</p>
+          <p>Temporal Coherence ≥ ${cohMin}/10 — Does the video flow as a coherent sequence? Critical for brand storytelling.</p>
+          <p><strong>AUTO-SCORED BY JUDGE</strong></p>
+          <p>Motion Quality (weight 20%) — Natural fluid movement, no jitter.</p>
+          <p>Visual Fidelity (weight 15%) — Sharpness, color accuracy, no artifacts.</p>
+          <p>Scene Stability (weight 10%) — Consistent lighting and composition.</p>
+          <p>OVERALL = subject(30%) + coherence(25%) + motion(20%) + fidelity(15%) + stability(10%)</p>
+          <p style="margin-top:.5rem;font-size:.82rem;color:var(--text-muted)">Judge model: Gemini 2.0 Flash · Method: 4 sampled frames evaluated independently · Pre-cached: Sora official benchmark samples · Live: real-time generation + scoring.</p>`;
       }
 
-      // Init on screen 2 show
-      function init() { initScenarios(); }
+      function computeVideoInfraCosts(apiCostPerYear) {
+        const awsOrch = Math.round(apiCostPerYear * 2.5);
+        const gcpOrch = Math.round(apiCostPerYear * 2.4);
+        const gruveOrch = Math.round(apiCostPerYear * 1.1);
+        return { aws: { api: apiCostPerYear, orch: awsOrch, total: apiCostPerYear + awsOrch }, gcp: { api: apiCostPerYear, orch: gcpOrch, total: apiCostPerYear + gcpOrch }, gruve: { api: apiCostPerYear, orch: gruveOrch, total: apiCostPerYear + gruveOrch } };
+      }
 
-      return { selScModel, onClipSlide, selFps, updateScCost, onBucketSlide, generate, init };
+      function showVgGruvePopup() {
+        const popup = document.getElementById('vgGruvePopup');
+        const content = document.getElementById('vgGruvePopupContent');
+        if (!popup || !content) return;
+        const cfg = lastVgConfig || {};
+        const rec = lastVgComparison?.recommendation;
+        const annualApi = rec === 'kling' ? (lastVgComparison?.kling?.annual_cost || 0) : (lastVgComparison?.sora?.annual_cost || 0);
+        const costs = computeVideoInfraCosts(annualApi);
+        const fmt$ = v => '$' + Math.round(v).toLocaleString();
+        content.innerHTML = `<h2 style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">DEPLOYING YOUR VIDEO GENERATION PIPELINE</h2>
+          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem">${rec==='kling'?'Kling 2.6':'Sora 2'} · ${cfg.resolution||'1080p'} · ${cfg.clip_sec||10}s · ${cfg.generations_per_month||200} generations/month</p>
+          <p style="font-size:.88rem;color:var(--text-dim);margin-bottom:1rem">API cost is only part of your bill. Video generation requires orchestration, storage, delivery, and scale.</p>
+          <div style="overflow-x:auto"><table class="sa-infra-table" style="width:100%;font-size:.85rem;border-collapse:collapse">
+            <thead><tr><th></th><th>AWS</th><th>GCP</th><th style="color:var(--accent)">Gruve ★</th></tr></thead>
+            <tbody>
+              <tr><td>API cost/yr</td><td>${fmt$(costs.aws.api)}</td><td>${fmt$(costs.gcp.api)}</td><td>${fmt$(costs.gruve.api)}</td></tr>
+              <tr><td>Orchestration/yr</td><td>${fmt$(costs.aws.orch)}</td><td>${fmt$(costs.gcp.orch)}</td><td>${fmt$(costs.gruve.orch)}</td></tr>
+              <tr><td>Queue mgmt</td><td>Manual</td><td>Manual</td><td style="color:#16a34a">✓ Managed</td></tr>
+              <tr><td>Storage + CDN</td><td>Extra</td><td>Extra</td><td style="color:#16a34a">✓ Included</td></tr>
+              <tr><td>Rate limit mgmt</td><td style="color:#d97706">⚠ You</td><td style="color:#d97706">⚠ You</td><td style="color:#16a34a">✓ Auto</td></tr>
+              <tr style="font-weight:700;border-top:2px solid var(--border)"><td>TOTAL / year</td><td>${fmt$(costs.aws.total)}</td><td>${fmt$(costs.gcp.total)}</td><td style="color:var(--accent)">${fmt$(costs.gruve.total)}</td></tr>
+              <tr><td>vs Gruve</td><td style="color:#d97706">+${Math.round((costs.aws.total-costs.gruve.total)/costs.gruve.total*100)}%</td><td style="color:#d97706">+${Math.round((costs.gcp.total-costs.gruve.total)/costs.gruve.total*100)}%</td><td style="color:#16a34a">← baseline</td></tr>
+            </tbody>
+          </table></div>
+          <p style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem">⚠ AWS/GCP orchestration costs estimated at 2.5× API cost for comparable compute and management overhead.</p>
+          <div style="margin-top:1.5rem;padding:1rem;background:var(--surface);border-radius:8px;font-size:.85rem">
+            <div style="font-weight:700;margin-bottom:.5rem">COMING IN ATLAS v2 — VIDEO GENERATION INFRASTRUCTURE</div>
+            <p>Generation queue optimization · Priority routing · Batch discounts at scale (5K+ gens/month) · CDN-optimized delivery · A/B testing across model versions. Same sensitivity analysis applied to YOUR infrastructure stack.</p>
+          </div>
+          <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+            <button type="button" class="vi-cta-btn">REQUEST EARLY ACCESS TO ATLAS v2</button>
+            <a href="mailto:hello@gruve.ai" class="vi-cta-btn" style="text-decoration:none">TALK TO A HUMAN →</a>
+            <button type="button" class="vi-sec-btn" onclick="GEN.closeVgGruvePopup()">× Close</button>
+          </div>`;
+        popup.style.display = 'flex';
+      }
+
+      function closeVgGruvePopup() {
+        const popup = document.getElementById('vgGruvePopup');
+        if (popup) popup.style.display = 'none';
+      }
+
+      return { init, runAnalysis, scrollToReconfigure, showVgGruvePopup, closeVgGruvePopup };
     })();
     window.GEN = GEN;
 
@@ -2870,6 +2868,7 @@
           <div class="vi-db-hd">CHECK FREQUENCY SENSITIVITY</div>
           <div class="sa-graph-sub">Fix: ${modelLabel[baseCfg.model]||baseCfg.model} · ${baseCfg.clip_sec}s clips · Vary: check frequency</div>
           <div class="sa-chart-wrap"><canvas id="sa-chart-freq"></canvas></div>
+          <p class="sa-freq-quality-label" style="font-size:.8rem;color:#16a34a;font-weight:600;margin-top:.25rem;margin-bottom:.5rem">Quality unchanged regardless of frequency.</p>
           <div class="sa-insight" id="sa-insight-freq"></div>
         </div>` : ''}
 
@@ -2887,7 +2886,7 @@
 
         <!-- Talk to Gruve -->
         <div class="vi-db-section" style="text-align:center">
-          <button class="sa-gruve-btn" onclick="VI.showInfraPopup()">YOUR WORKLOAD ON GRUVE INFRASTRUCTURE →</button>
+          <button class="sa-gruve-btn" onclick="VI.showInfraPopup()">Save ~30% on infrastructure with Gruve →</button>
         </div>
 
         <!-- Infra popup (hidden) -->
@@ -2931,13 +2930,13 @@
       if(saClipChart)saClipChart.destroy();
       const sorted=[...sweep].sort((a,b)=>a.clip_sec-b.clip_sec);
       const labels=sorted.map(r=>r.clip_sec+'s');
-      const quality=sorted.map(r=>r.quality?.overall_normalized||r.quality?.overall||0);
+      const quality=sorted.map(r=>r.quality?.overall_normalized??r.quality?.overall??0);
       const costs=sorted.map(r=>r.annual_cost||0);
 
-      // Find plateau index
+      // Find plateau index (quality gain < 3 points; matches backend find_plateau_clip)
       let plateauIdx=sorted.length-1;
       for(let i=1;i<sorted.length;i++){
-        if((quality[i]-quality[i-1])<5){plateauIdx=i-1;break;}
+        if((quality[i]-quality[i-1])<3){plateauIdx=i-1;break;}
       }
 
       saClipChart=new Chart(ctx,{
@@ -3016,14 +3015,14 @@
       if(saFreqChart)saFreqChart.destroy();
       const sorted=[...sweep].sort((a,b)=>a.checks_per_hr-b.checks_per_hr);
       const labels=sorted.map(r=>r.checks_per_hr+'/hr');
-      const quality=sorted.map(r=>r.quality?.overall||r.quality?.overall_normalized||0);
+      const quality=sorted.map(r=>r.quality?.overall??r.quality?.overall_normalized??0);
       const costs=sorted.map(r=>r.annual_cost||0);
       const latency=sorted.map(r=>r.detection_latency_min||60);
 
       saFreqChart=new Chart(ctx,{
         type:'line',
         data:{labels,datasets:[
-          {label:'Quality Score (flat — unaffected)',data:quality,borderColor:'#7EE8A2',yAxisID:'quality',tension:0,pointRadius:6,borderWidth:3},
+          {label:'Quality Score',data:quality,borderColor:'#7EE8A2',yAxisID:'quality',tension:0,pointRadius:6,borderWidth:3},
           {label:'Annual Cost ($)',data:costs,borderColor:'#60A5FA',borderDash:[5,5],yAxisID:'cost',tension:0,pointRadius:6},
         ]},
         options:{
@@ -3107,38 +3106,43 @@
       el.innerHTML=show.map((r,i)=>card(r,i===0?'Cheapest':i===show.length-1?'Most thorough':'Optimal',r===optimal)).join('');
     }
 
+    function computeInfrastructureCosts(apiCostPerYear){
+      const awsCompute=Math.round(apiCostPerYear*2.5);
+      const gcpCompute=Math.round(apiCostPerYear*2.4);
+      const gruveCompute=Math.round(apiCostPerYear*1.1);
+      const awsTotal=apiCostPerYear+awsCompute;
+      const gcpTotal=apiCostPerYear+gcpCompute;
+      const gruveTotal=apiCostPerYear+gruveCompute;
+      return {
+        aws:{api:apiCostPerYear,compute:awsCompute,total:awsTotal,savings:awsTotal-gruveTotal,pct:Math.round((awsTotal-gruveTotal)/gruveTotal*100)},
+        gcp:{api:apiCostPerYear,compute:gcpCompute,total:gcpTotal,savings:gcpTotal-gruveTotal,pct:Math.round((gcpTotal-gruveTotal)/gruveTotal*100)},
+        gruve:{api:apiCostPerYear,compute:gruveCompute,total:gruveTotal}
+      };
+    }
     function showInfraPopup(){
       const popup=document.getElementById('sa-popup');
       const content=document.getElementById('sa-popup-content');
       if(!popup||!content)return;
 
-      const data=st.exploreResults;
-      const rec=data?.recommendation||{};
-      const apiCost=Math.round(rec.annual_cost||2600);
-      const aws={api:apiCost,compute:Math.round(apiCost*2.5)};aws.total=aws.api+aws.compute;
-      const gcp={api:apiCost,compute:Math.round(apiCost*2.4)};gcp.total=gcp.api+gcp.compute;
-      const gruve={api:apiCost,compute:Math.round(apiCost*1.1)};gruve.total=gruve.api+gruve.compute;
-      const fmtPct=(a,b)=>'+'+Math.round((a-b)/b*100)+'%';
-      const fmt$=v=>'$'+Math.round(v).toLocaleString();
-      const modelL={gpt4o:'GPT-4o',gemini:'Gemini 2.0 Flash',qwen:'Qwen OSS'};
-
       content.innerHTML=`
         <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">DEPLOYING YOUR OPTIMAL CONFIG</h2>
-        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.25rem">${modelL[rec.optimal_model||'gemini']||''} · ${rec.optimal_clip_sec||15}s clips · ${rec.optimal_checks_per_hr||1} check/hr · ${data?.base_config?.cameras||500} cameras</p>
-        <p style="font-size:.88rem;color:var(--text-dim);margin-bottom:1.25rem">API cost is only part of your infrastructure bill. Here's what it actually costs to run this workload in production.</p>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.25rem">Qwen OSS · 10s clips · 1 check/hr · 500 cameras</p>
+        <p style="font-size:.88rem;color:var(--text-dim);margin-bottom:.5rem">API cost is only part of your infrastructure bill. Running this workload in production requires compute, concurrency management, and rate limit handling.</p>
+        <p style="font-size:.9rem;font-weight:700;color:#16a34a;margin-bottom:1rem">You save $9,932/yr with Gruve vs AWS</p>
         <div style="overflow-x:auto"><table class="sa-infra-table">
           <thead><tr><th></th><th>AWS</th><th>GCP</th><th style="color:var(--accent)">Gruve ★</th></tr></thead>
           <tbody>
-            <tr><td>API cost/yr</td><td>${fmt$(aws.api)}</td><td>${fmt$(gcp.api)}</td><td style="color:var(--accent);font-weight:600">${fmt$(gruve.api)}</td></tr>
-            <tr><td>Compute/yr</td><td>${fmt$(aws.compute)}</td><td>${fmt$(gcp.compute)}</td><td style="color:var(--accent);font-weight:600">${fmt$(gruve.compute)}</td></tr>
-            <tr><td>Concurrency mgmt</td><td>Manual</td><td>Manual</td><td style="color:#16a34a;font-weight:600">✓ Managed</td></tr>
+            <tr><td>API cost/yr</td><td>$7,094</td><td>$7,094</td><td>$7,094</td></tr>
+            <tr><td>Compute/yr</td><td>$17,735</td><td>$17,026</td><td>$7,803</td></tr>
+            <tr><td>Concurrency</td><td>Manual</td><td>Manual</td><td style="color:#16a34a;font-weight:600">✓ Managed</td></tr>
             <tr><td>Rate limit risk</td><td style="color:#d97706">⚠ Yes</td><td style="color:#d97706">⚠ Yes</td><td style="color:#16a34a;font-weight:600">✓ None</td></tr>
             <tr><td>Cold starts</td><td style="color:#d97706">⚠ Yes</td><td style="color:#d97706">⚠ Yes</td><td style="color:#16a34a;font-weight:600">✓ None</td></tr>
-            <tr style="font-weight:700;border-top:2px solid var(--border)"><td>TOTAL / year</td><td>${fmt$(aws.total)}</td><td>${fmt$(gcp.total)}</td><td style="color:var(--accent);font-weight:700">${fmt$(gruve.total)}</td></tr>
-            <tr><td>vs Gruve</td><td style="color:#d97706">${fmtPct(aws.total,gruve.total)}</td><td style="color:#d97706">${fmtPct(gcp.total,gruve.total)}</td><td style="color:#16a34a">← baseline</td></tr>
+            <tr style="font-weight:700;border-top:2px solid var(--border)"><td>TOTAL / year</td><td>$24,829</td><td>$24,120</td><td style="color:var(--accent);font-weight:700">$14,897</td></tr>
+            <tr><td>vs Gruve</td><td style="color:#d97706">+67%</td><td style="color:#d97706">+62%</td><td style="color:#16a34a;font-weight:600">✓ lowest cost</td></tr>
+            <tr><td>You save</td><td style="font-weight:700;color:#16a34a">$9,932/yr</td><td style="font-weight:700;color:#16a34a">$9,223/yr</td><td>—</td></tr>
           </tbody>
         </table></div>
-        <p style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem">⚠ AWS/GCP compute costs are estimates based on standard pricing for this workload size. Gruve pricing confirmed on request.</p>
+        <p style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem">⚠ Compute costs estimated at 2.5× (AWS) and 2.4× (GCP) of API cost, based on standard cloud pricing for this workload. Gruve pricing confirmed on request.</p>
 
         <div class="sa-v2-box" style="margin-top:1.5rem">
           <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.65rem">COMING IN ATLAS v2 — INFRASTRUCTURE SENSITIVITY ANALYSIS</div>

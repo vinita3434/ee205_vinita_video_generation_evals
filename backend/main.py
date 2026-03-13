@@ -8,6 +8,7 @@ import tempfile
 import time
 import uuid
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,7 +52,7 @@ class GenerateRequest(BaseModel):
     prompt: str
     quality: str = "720p"   # 480p | 720p | 1080p  (Sora only; Kling is always Pro)
     ratio: str = "16:9"     # 16:9 | 9:16 | 1:1
-    model: str | None = None  # "sora" | "kling" = run this model twice for Version A & B; None = run both models once
+    model: Optional[str] = None  # "sora" | "kling" = run this model twice for Version A & B; None = run both models once
 
 
 # Actual output durations (seconds) — Kling 5s, Sora 8s (from generators)
@@ -859,7 +860,7 @@ def videogen_load_cache():
 
 
 class VideoGenComparisonRequest(BaseModel):
-    prompt: str | None = None
+    prompt: Optional[str] = None
     clip_sec: int = 10
     resolution: str = "1080p"       # 720p | 1080p | 4K
     fps: int = 24

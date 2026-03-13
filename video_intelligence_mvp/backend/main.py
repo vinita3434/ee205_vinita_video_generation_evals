@@ -962,19 +962,19 @@ async def score_response_quality(response_text: str, ground_truth: str | None = 
 
 
 def normalize_scores_to_anchor(sweep_results: list[dict]) -> list[dict]:
-    """Scale highest-scoring config to 95/100, others proportionally."""
+    """Apply anchor normalization once after ALL clip sweep results are collected. Clip sweep only."""
     if not sweep_results:
         return sweep_results
     max_score = max(r.get("quality", {}).get("overall", 0) for r in sweep_results)
     if max_score == 0:
         return sweep_results
-    scale = 95 / max_score
+    scale_factor = 95 / max_score
     for r in sweep_results:
         q = r.get("quality", {})
-        q["overall_normalized"] = round(q.get("overall", 0) * scale)
+        q["overall_normalized"] = round(q.get("overall", 0) * scale_factor)
         for dim in ["detection", "localization", "severity", "actionability"]:
             if dim in q:
-                q[f"{dim}_normalized"] = round(q[dim] * scale)
+                q[f"{dim}_normalized"] = round(q[dim] * scale_factor)
     return sweep_results
 
 
@@ -1050,17 +1050,32 @@ async def run_single_inference_for_sensitivity(
     }
 
 
-def build_recommendation(clip_sweep: list, model_sweep: list, freq_sweep: list) -> dict:
-    # Clip plateau: first point where quality gain < 5 vs previous
-    sorted_clip = sorted(clip_sweep, key=lambda r: r["clip_sec"])
-    optimal_clip = sorted_clip[0]
-    for i in range(1, len(sorted_clip)):
-        prev_q = sorted_clip[i - 1].get("quality", {}).get("overall_normalized", 0)
-        curr_q = sorted_clip[i].get("quality", {}).get("overall_normalized", 0)
-        if (curr_q - prev_q) < 5:
-            optimal_clip = sorted_clip[i - 1]
+def find_plateau_clip(clip_sweep: list) -> dict:
+    """
+    Find the clip duration where marginal quality/cost ratio drops sharply.
+    Plateau = point where adding more seconds gives < 3 quality points.
+    If no clear plateau, return the middle config.
+    """
+    sorted_clips = sorted(clip_sweep, key=lambda c: c["clip_sec"])
+    if len(sorted_clips) <= 1:
+        return sorted_clips[0] if sorted_clips else {}
+    best = sorted_clips[0]
+    for i in range(1, len(sorted_clips)):
+        curr = sorted_clips[i]
+        prev = sorted_clips[i - 1]
+        curr_quality = curr["quality"].get("overall_normalized", curr["quality"].get("overall", 0))
+        prev_quality = prev["quality"].get("overall_normalized", prev["quality"].get("overall", 0))
+        quality_gain = curr_quality - prev_quality
+        if quality_gain >= 3:
+            best = curr
+        else:
             break
-        optimal_clip = sorted_clip[i]
+    return best
+
+
+def build_recommendation(clip_sweep: list, model_sweep: list, freq_sweep: list) -> dict:
+    sorted_clip = sorted(clip_sweep, key=lambda r: r["clip_sec"])
+    optimal_clip = find_plateau_clip(clip_sweep) if clip_sweep else (sorted_clip[0] if sorted_clip else {})
 
     # Best model: highest quality / cost ratio
     valid_models = [m for m in model_sweep if m.get("status") == "complete"]
@@ -1128,8 +1143,7 @@ async def sensitivity_analysis(req: SensitivityRequest):
                 req.base_model, dur, req.base_checks_per_hr, req.cameras, clip_path))
             task_labels.append(("clip_sweep", dur))
 
-    # base inference for model_sweep and freq_sweep
-    base_for_models = []
+    # Model sweep: always run all 3 models as independent inference calls (no deduplication)
     if req.run_model_sensitivity:
         for model in req.models_to_compare:
             if model in MODEL_IDS:
@@ -1138,9 +1152,7 @@ async def sensitivity_analysis(req: SensitivityRequest):
                 task_labels.append(("model_sweep", model))
 
     # freq_sweep: single base inference, reuse base_model + base_clip_sec
-    freq_base_task_idx = None
     if req.run_frequency_sensitivity:
-        freq_base_task_idx = len(tasks)
         tasks.append(run_single_inference_for_sensitivity(
             req.base_model, req.base_clip_sec, req.base_checks_per_hr, req.cameras, clip_path))
         task_labels.append(("freq_base", req.base_checks_per_hr))
@@ -1166,19 +1178,8 @@ async def sensitivity_analysis(req: SensitivityRequest):
         elif sweep_type == "freq_base":
             freq_base_result = result
 
-    # Build frequency sweep by scaling cost (1 inference, math only)
+    # Build frequency sweep by scaling cost (1 base inference); explicitly copy ALL quality fields
     freq_sweep_raw = []
-    if freq_base_result and req.run_frequency_sensitivity:
-        base_cpq = freq_base_result.get("cost_per_query", 0)
-        for freq in req.frequencies:
-            entry = dict(freq_base_result)
-            entry["checks_per_hr"] = freq
-            entry["queries_per_day"] = round(req.cameras * freq * 24)
-            entry["daily_cost"] = round(base_cpq * req.cameras * freq * 24, 2)
-            entry["monthly_cost"] = round(base_cpq * req.cameras * freq * 24 * 30, 2)
-            entry["annual_cost"] = round(base_cpq * req.cameras * freq * 24 * 365, 2)
-            entry["detection_latency_min"] = round(60 / max(freq, 0.1), 1)
-            freq_sweep_raw.append(entry)
 
     # Score quality for clip_sweep + model_sweep + freq_base (in parallel)
     # BUG 2 FIX: include freq_base_result so its quality is set before copying to freq entries
@@ -1194,18 +1195,40 @@ async def sensitivity_analysis(req: SensitivityRequest):
         }
         result["quality"] = q
 
-    # Frequency sweep gets base quality (quality unchanged by frequency)
-    base_quality = freq_base_result.get("quality", {}) if freq_base_result else {}
-    if not base_quality and model_sweep_raw:
-        # Use base model's quality from model sweep if available
-        for m in model_sweep_raw:
-            if m.get("model") == req.base_model and m.get("quality"):
-                base_quality = m["quality"]
-                break
-    for entry in freq_sweep_raw:
-        entry["quality"] = dict(base_quality)
+    # Frequency sweep: one base inference, then copy ALL quality fields into each frequency entry
+    if freq_base_result and req.run_frequency_sensitivity and freq_base_result.get("status") == "complete":
+        base_result = freq_base_result
+        base_quality = base_result.get("quality", {})
+        for freq in req.frequencies:
+            freq_result = {
+                "checks_per_hr": freq,
+                "clip_sec": req.base_clip_sec,
+                "model": req.base_model,
+                "cost_per_query": base_result["cost_per_query"],
+                "annual_cost": round(base_result["cost_per_query"] * req.cameras * freq * 24 * 365, 2),
+                "ttft_ms": base_result.get("ttft_ms", 0),
+                "tps": base_result.get("tps", 0),
+                "queries_per_day": round(req.cameras * freq * 24),
+                "daily_cost": round(base_result["cost_per_query"] * req.cameras * freq * 24, 2),
+                "monthly_cost": round(base_result["cost_per_query"] * req.cameras * freq * 24 * 30, 2),
+                "detection_latency_min": round(60 / max(freq, 0.1), 1),
+                "quality": {
+                    "detection": base_quality.get("detection", 0),
+                    "localization": base_quality.get("localization", 0),
+                    "severity": base_quality.get("severity", 0),
+                    "actionability": base_quality.get("actionability", 0),
+                    "overall": base_quality.get("overall", 0),
+                    "overall_normalized": base_quality.get("overall_normalized", base_quality.get("overall", 0)),
+                    "anomaly_detected": base_quality.get("anomaly_detected", True),
+                    "one_line_summary": base_quality.get("one_line_summary", ""),
+                },
+                "response_text": base_result.get("response_text", ""),
+                "key": freq,
+                "status": "complete",
+            }
+            freq_sweep_raw.append(freq_result)
 
-    # Normalize clip_sweep scores to anchor
+    # Normalize clip_sweep scores to anchor (ONCE, after all clip results collected; not for model/freq)
     clip_sweep_final = normalize_scores_to_anchor(clip_sweep_raw)
 
     # Recommendation
